@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 285 22% 8%; /* rgb(19, 19, 20) */
+    --foreground: 270 20% 98%; /* rgb(249, 248, 251) */
+    --card: 285 22% 8%;
+    --card-foreground: 270 20% 98%;
+    --popover: 285 22% 8%;
+    --popover-foreground: 270 20% 98%;
+    --primary: 328 48% 51%;
+    --primary-foreground: 320 80% 90%;
+    --secondary: 288 18% 15%;
+    --secondary-foreground: 320 38% 86%;
+    --muted: 288 18% 15%;
+    --muted-foreground: 320 12% 65%;
+    --accent: 288 18% 15%;
+    --accent-foreground: 320 38% 86%;
+    --destructive: 0 63% 31%;
+    --border: 288 15% 20%;
+    --input: 288 15% 20%;
+    --ring: 328 48% 51%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Same as root for a dark-only theme */
+    --background: 285 22% 8%;
+    --foreground: 270 20% 98%;
+    --card: 285 22% 8%;
+    --card-foreground: 270 20% 98%;
+    --popover: 285 22% 8%;
+    --popover-foreground: 270 20% 98%;
+    --primary: 328 48% 51%;
+    --primary-foreground: 320 80% 90%;
+    --secondary: 288 18% 15%;
+    --secondary-foreground: 320 38% 86%;
+    --muted: 288 18% 15%;
+    --muted-foreground: 320 12% 65%;
+    --accent: 288 18% 15%;
+    --accent-foreground: 320 38% 86%;
+    --destructive: 0 63% 31%;
+    --border: 288 15% 20%;
+    --input: 288 15% 20%;
+    --ring: 328 48% 51%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss05";
+  }
+
+  /* Create the complex background effect */
+  .main-background {
+    @apply fixed inset-0 -z-10;
+  }
+  .main-background::before {
+    content: "";
+    @apply absolute inset-0 bg-mauve-deep opacity-100;
+    background-image: radial-gradient(closest-corner at 120px 36px, rgba(255, 1, 111, 0.19), rgba(255, 1, 111, 0)),
+      linear-gradient(hsl(285, 30%, 15%) 15%, hsl(285, 50%, 5%));
+    opacity: 0.4;
+  }
+  .main-background::after {
+    content: "";
+    @apply absolute inset-0 opacity-20 mix-blend-overlay;
+    background-image: url("/noise.png");
+    background-repeat: repeat;
+    background-size: 96px 96px;
+  }
+
+  /* Additional styles for noise background */
+  .noise-bg {
+    background-image: url("/noise.png");
+    background-repeat: repeat;
+    background-size: 96px 96px;
+  }
+}

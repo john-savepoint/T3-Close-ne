@@ -1,0 +1,182 @@
+import { MemorySettings } from "@/components/memory-settings"
+import { TemporaryChatSettings } from "@/components/temporary-chat-settings"
+import { TeamManagementDashboard } from "@/components/team-management-dashboard"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { FileText, Brain, EyeOff, ExternalLink, Users, Gift } from "lucide-react"
+import Link from "next/link"
+
+export default function SettingsPage() {
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+          <p className="text-mauve-subtle/70">Manage your T3Chat preferences and privacy settings</p>
+        </div>
+
+        <Tabs defaultValue="memory" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-5 bg-mauve-dark/50">
+            <TabsTrigger value="memory">
+              <Brain className="w-4 h-4 mr-2" />
+              Memory
+            </TabsTrigger>
+            <TabsTrigger value="temporary">
+              <EyeOff className="w-4 h-4 mr-2" />
+              Temporary
+            </TabsTrigger>
+            <TabsTrigger value="team">
+              <Users className="w-4 h-4 mr-2" />
+              Team
+            </TabsTrigger>
+            <TabsTrigger value="gifts">
+              <Gift className="w-4 h-4 mr-2" />
+              Gifts
+            </TabsTrigger>
+            <TabsTrigger value="attachments">
+              <FileText className="w-4 h-4 mr-2" />
+              Files
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="memory">
+            <MemorySettings />
+          </TabsContent>
+
+          <TabsContent value="temporary">
+            <TemporaryChatSettings />
+          </TabsContent>
+
+          <TabsContent value="team">
+            <TeamManagementDashboard />
+          </TabsContent>
+
+          <TabsContent value="gifts">
+            <Card className="bg-mauve-surface/50 border-mauve-dark">
+              <CardHeader>
+                <CardTitle className="text-foreground flex items-center gap-2">
+                  <Gift className="w-5 h-5 text-pink-400" />
+                  Gift Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-mauve-subtle/70">
+                  Share the power of T3Chat with friends, family, and colleagues through gift subscriptions.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-foreground">3</div>
+                    <div className="text-sm text-mauve-subtle/70">Gifts Sent</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-foreground">2</div>
+                    <div className="text-sm text-mauve-subtle/70">Gifts Redeemed</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-foreground">$400</div>
+                    <div className="text-sm text-mauve-subtle/70">Total Gifted</div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Recent Gift Activity</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 bg-mauve-dark/30 rounded-lg">
+                      <div>
+                        <div className="text-sm font-medium">Gift to alex@example.com</div>
+                        <div className="text-xs text-mauve-subtle/70">Pro Yearly • Redeemed Jan 20, 2024</div>
+                      </div>
+                      <Badge className="bg-green-500/20 text-green-400 border-green-500/50">Redeemed</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-mauve-dark/30 rounded-lg">
+                      <div>
+                        <div className="text-sm font-medium">Gift to sarah@example.com</div>
+                        <div className="text-xs text-mauve-subtle/70">Pro Monthly • Sent Jan 15, 2024</div>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        Pending
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button className="flex-1 bg-gradient-to-r from-pink-500/20 to-purple-600/20 hover:from-pink-500/30 hover:to-purple-600/30 text-pink-400 border-pink-500/50">
+                    <Gift className="w-4 h-4 mr-2" />
+                    Send a Gift
+                  </Button>
+                  <Link href="/redeem">
+                    <Button variant="outline" className="flex-1">
+                      Redeem Gift Code
+                      <ExternalLink className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="attachments">
+            <Card className="bg-mauve-surface/50 border-mauve-dark">
+              <CardHeader>
+                <CardTitle className="text-foreground flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Attachment Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-mauve-subtle/70">
+                  Manage your file library, view usage statistics, and configure upload preferences.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-foreground">24</div>
+                    <div className="text-sm text-mauve-subtle/70">Total Files</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-foreground">156 MB</div>
+                    <div className="text-sm text-mauve-subtle/70">Storage Used</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-foreground">8.3</div>
+                    <div className="text-sm text-mauve-subtle/70">Avg. Reuse Rate</div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Supported File Types</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      Documents (.pdf, .docx, .pptx)
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      Code (.ts, .js, .py, .rs, .cpp)
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      Data (.xlsx, .csv, .json, .xml)
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      Images (.png, .jpg, .svg)
+                    </Badge>
+                  </div>
+                </div>
+
+                <Link href="/settings/attachments">
+                  <Button className="w-full bg-mauve-accent/20 hover:bg-mauve-accent/30">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Open Attachment Library
+                    <ExternalLink className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  )
+}
