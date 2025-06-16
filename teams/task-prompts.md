@@ -33,8 +33,16 @@ ACCEPTANCE CRITERIA:
 - Can create/read basic documents
 - Environment setup documented
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest Convex documentation
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official Convex docs if needed
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/convex-setup
 DOCUMENTATION: Update teams/01-convex-setup/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ### **Task 02: Convex Auth Integration**
@@ -65,8 +73,16 @@ ACCEPTANCE CRITERIA:
 - Protected routes work correctly
 - Auth state available in components
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest Convex Auth documentation
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official Convex Auth docs if needed
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/convex-auth
 DOCUMENTATION: Update teams/02-convex-auth/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ### **Task 03: OpenRouter API Integration**
@@ -95,8 +111,16 @@ ACCEPTANCE CRITERIA:
 - Proper error handling for API failures
 - Streaming responses work
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest OpenRouter and AI SDK documentation
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official OpenRouter docs if needed
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/openrouter-integration
 DOCUMENTATION: Update teams/03-openrouter-api/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ### **Task 04: Real-time Chat Streaming**
@@ -126,8 +150,16 @@ ACCEPTANCE CRITERIA:
 - Messages persist to database
 - Handles network interruptions gracefully
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest AI SDK and streaming documentation
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official Vercel AI SDK docs if needed
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/chat-streaming
 DOCUMENTATION: Update teams/04-chat-streaming/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ### **Task 05: File Upload Infrastructure**
@@ -157,8 +189,16 @@ ACCEPTANCE CRITERIA:
 - Files stored in Convex storage
 - Attachment library functional
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest Convex file storage documentation
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official Convex storage docs if needed
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/file-uploads
 DOCUMENTATION: Update teams/05-file-uploads/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ---
@@ -193,8 +233,16 @@ ACCEPTANCE CRITERIA:
 - Stream state persists in Redis
 - Robust error recovery
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest Upstash Redis documentation
+- Use Brave Search MCP to find current Upstash patterns and examples
+- Use Fire Crawl MCP to scrape the specific Upstash resumable streams blog post
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/resumable-streams
 DOCUMENTATION: Update teams/06-resumable-streams/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ### **Task 07: Image Generation**
@@ -223,8 +271,16 @@ ACCEPTANCE CRITERIA:
 - Error handling for generation failures
 - Images stored properly
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest OpenAI DALL-E documentation
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official OpenAI API docs if needed
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/image-generation
 DOCUMENTATION: Update teams/07-image-generation/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ### **Task 08: Syntax Highlighting Enhancement**
@@ -253,8 +309,16 @@ ACCEPTANCE CRITERIA:
 - Professional appearance
 - Multiple language support
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest React Syntax Highlighter documentation
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official syntax highlighting docs if needed
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/syntax-highlighting
 DOCUMENTATION: Update teams/08-syntax-highlighting/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ### **Task 09: BYOK System**
@@ -283,8 +347,16 @@ ACCEPTANCE CRITERIA:
 - Easy key testing functionality
 - Clear setup instructions
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest API key management best practices
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official API provider docs if needed
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/byok-system
 DOCUMENTATION: Update teams/09-byok-system/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ### **Task 10: Web Search Integration**
@@ -313,8 +385,16 @@ ACCEPTANCE CRITERIA:
 - Search can be toggled on/off
 - Results cached for performance
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest web search API documentation
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official Tavily or similar API docs if needed
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/web-search
 DOCUMENTATION: Update teams/10-web-search/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ---
@@ -347,8 +427,16 @@ ACCEPTANCE CRITERIA:
 - No memory leaks
 - Fast initial load
 
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest React performance optimization documentation
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official React and Next.js performance docs if needed
+- Reference CLAUDE.md for project context and standards
+
 BRANCH: feat/performance-optimization
 DOCUMENTATION: Update teams/11-performance-optimization/STATUS.md when complete
+
+IMPORTANT: use context7
 ```
 
 ---
