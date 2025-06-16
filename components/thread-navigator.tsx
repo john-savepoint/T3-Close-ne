@@ -5,7 +5,16 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { MessageSquare, User, Bot, GitBranch, Clock, Edit3, ChevronRight, ChevronDown } from "lucide-react"
+import {
+  MessageSquare,
+  User,
+  Bot,
+  GitBranch,
+  Clock,
+  Edit3,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react"
 
 import { useConversationTree } from "@/hooks/use-conversation-tree"
 import type { ConversationBranch } from "@/types/chat"
@@ -57,7 +66,7 @@ export function ThreadNavigator({
     return (
       <div key={message.id} className="space-y-1">
         <div
-          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+          className={`flex cursor-pointer items-center gap-2 rounded-lg p-2 transition-colors ${
             isActive ? "bg-mauve-accent/20" : "hover:bg-mauve-dark/30"
           }`}
           style={{ marginLeft: `${depth * 16}px` }}
@@ -73,7 +82,11 @@ export function ThreadNavigator({
                 toggleBranch(message.id)
               }}
             >
-              {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3" />
+              ) : (
+                <ChevronRight className="h-3 w-3" />
+              )}
             </Button>
           )}
 
@@ -83,13 +96,13 @@ export function ThreadNavigator({
             <Bot className="h-4 w-4 text-mauve-accent" />
           )}
 
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               {editingTitle === message.id ? (
                 <input
                   type="text"
                   defaultValue={message.title || message.content.substring(0, 30)}
-                  className="bg-mauve-dark/50 border border-mauve-dark rounded px-2 py-1 text-xs flex-1"
+                  className="flex-1 rounded border border-mauve-dark bg-mauve-dark/50 px-2 py-1 text-xs"
                   onBlur={() => setEditingTitle(null)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -99,7 +112,7 @@ export function ThreadNavigator({
                   autoFocus
                 />
               ) : (
-                <span className="text-sm truncate">
+                <span className="truncate text-sm">
                   {message.title || message.content.substring(0, 30)}
                   {message.content.length > 30 && "..."}
                 </span>
@@ -118,13 +131,15 @@ export function ThreadNavigator({
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 mt-1">
+            <div className="mt-1 flex items-center gap-2">
               <Clock className="h-3 w-3 text-mauve-subtle/50" />
-              <span className="text-xs text-mauve-subtle/70">{message.timestamp.toLocaleTimeString()}</span>
+              <span className="text-xs text-mauve-subtle/70">
+                {message.timestamp.toLocaleTimeString()}
+              </span>
 
               {hasBranches && (
                 <Badge variant="outline" className="text-xs">
-                  <GitBranch className="h-3 w-3 mr-1" />
+                  <GitBranch className="mr-1 h-3 w-3" />
                   {message.branches!.length}
                 </Badge>
               )}
@@ -133,7 +148,9 @@ export function ThreadNavigator({
         </div>
 
         {hasBranches && isExpanded && (
-          <div className="space-y-1">{message.branches!.map((branch) => renderMessage(branch, depth + 1))}</div>
+          <div className="space-y-1">
+            {message.branches!.map((branch) => renderMessage(branch, depth + 1))}
+          </div>
         )}
       </div>
     )
@@ -156,8 +173,10 @@ export function ThreadNavigator({
     return (
       <div key={branch.id} className="space-y-1">
         <div
-          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-            branch.isActive ? "bg-mauve-accent/20 border border-mauve-accent/50" : "hover:bg-mauve-dark/30"
+          className={`flex cursor-pointer items-center gap-2 rounded-lg p-2 transition-colors ${
+            branch.isActive
+              ? "border border-mauve-accent/50 bg-mauve-accent/20"
+              : "hover:bg-mauve-dark/30"
           }`}
           style={{ marginLeft: `${branch.depth * 16}px` }}
         >
@@ -170,17 +189,21 @@ export function ThreadNavigator({
               toggleBranch(branch.id)
             }}
           >
-            {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            {isExpanded ? (
+              <ChevronDown className="h-3 w-3" />
+            ) : (
+              <ChevronRight className="h-3 w-3" />
+            )}
           </Button>
 
           <GitBranch className="h-4 w-4 text-mauve-accent" />
 
           {isEditing ? (
-            <div className="flex items-center gap-2 flex-1">
+            <div className="flex flex-1 items-center gap-2">
               <input
                 type="text"
                 defaultValue={branch.name || ""}
-                className="bg-mauve-dark/50 border border-mauve-dark rounded px-2 py-1 text-xs flex-1"
+                className="flex-1 rounded border border-mauve-dark bg-mauve-dark/50 px-2 py-1 text-xs"
                 onBlur={(e) => {
                   if (e.target.value.trim() && onBranchRename) {
                     onBranchRename(branch.messages[0].id, e.target.value.trim())
@@ -199,8 +222,11 @@ export function ThreadNavigator({
               />
             </div>
           ) : (
-            <div className="flex items-center gap-2 flex-1">
-              <span className="text-sm truncate cursor-pointer" onClick={() => onBranchSelect?.(branch.id)}>
+            <div className="flex flex-1 items-center gap-2">
+              <span
+                className="cursor-pointer truncate text-sm"
+                onClick={() => onBranchSelect?.(branch.id)}
+              >
                 {branch.name}
               </span>
               <Badge variant="outline" className="text-xs">
@@ -221,7 +247,11 @@ export function ThreadNavigator({
           )}
         </div>
 
-        {isExpanded && <div className="space-y-1">{branch.messages.map((message) => renderMessage(message, 1))}</div>}
+        {isExpanded && (
+          <div className="space-y-1">
+            {branch.messages.map((message) => renderMessage(message, 1))}
+          </div>
+        )}
       </div>
     )
   }
@@ -233,7 +263,7 @@ export function ThreadNavigator({
           <MessageSquare className="h-4 w-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="bg-mauve-surface border-mauve-dark w-80">
+      <SheetContent side="right" className="w-80 border-mauve-dark bg-mauve-surface">
         <SheetHeader>
           <div className="flex items-center justify-between">
             <SheetTitle className="text-foreground">Thread Navigator</SheetTitle>
@@ -242,13 +272,17 @@ export function ThreadNavigator({
               size="sm"
               onClick={() => setViewMode(viewMode === "standard" ? "tree" : "standard")}
             >
-              {viewMode === "standard" ? <GitBranch className="h-4 w-4" /> : <MessageSquare className="h-4 w-4" />}
+              {viewMode === "standard" ? (
+                <GitBranch className="h-4 w-4" />
+              ) : (
+                <MessageSquare className="h-4 w-4" />
+              )}
               {viewMode === "standard" ? "Tree" : "Standard"}
             </Button>
           </div>
         </SheetHeader>
 
-        <ScrollArea className="h-full mt-4">
+        <ScrollArea className="mt-4 h-full">
           {viewMode === "standard" ? renderStandardView() : renderTreeView()}
         </ScrollArea>
       </SheetContent>

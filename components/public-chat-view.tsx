@@ -7,7 +7,16 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { GitBranch, Calendar, MessageSquare, Sparkles, ArrowRight, ExternalLink, Copy, Check } from "lucide-react"
+import {
+  GitBranch,
+  Calendar,
+  MessageSquare,
+  Sparkles,
+  ArrowRight,
+  ExternalLink,
+  Copy,
+  Check,
+} from "lucide-react"
 import { T3Logo } from "@/components/t3-logo"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
@@ -42,7 +51,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
             token: chat.token,
             messages: chat.messages,
             title: chat.title,
-          }),
+          })
         )
         window.location.href = "/login?redirect=fork"
         return
@@ -106,7 +115,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-mauve-dark">
+      <header className="sticky top-0 z-50 border-b border-mauve-dark bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -114,7 +123,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
               <div className="hidden md:block">
                 <Badge
                   variant="outline"
-                  className="text-xs bg-mauve-accent/20 border-mauve-accent/50 text-mauve-bright"
+                  className="border-mauve-accent/50 bg-mauve-accent/20 text-xs text-mauve-bright"
                 >
                   Shared Conversation
                 </Badge>
@@ -125,12 +134,12 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
               <Button variant="outline" size="sm" onClick={handleCopyLink}>
                 {copied ? (
                   <>
-                    <Check className="w-4 h-4 mr-2 text-green-400" />
+                    <Check className="mr-2 h-4 w-4 text-green-400" />
                     Copied!
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4 mr-2" />
+                    <Copy className="mr-2 h-4 w-4" />
                     Copy Link
                   </>
                 )}
@@ -139,13 +148,13 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
               <Button
                 onClick={handleForkConversation}
                 disabled={isForking}
-                className="bg-mauve-accent/20 hover:bg-mauve-accent/30 text-mauve-bright"
+                className="bg-mauve-accent/20 text-mauve-bright hover:bg-mauve-accent/30"
               >
                 {isForking ? (
                   "Creating..."
                 ) : (
                   <>
-                    <GitBranch className="w-4 h-4 mr-2" />
+                    <GitBranch className="mr-2 h-4 w-4" />
                     Fork Conversation
                   </>
                 )}
@@ -154,7 +163,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
               <Button asChild size="sm">
                 <a href="/" className="flex items-center gap-2">
                   Sign Up
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className="h-3 w-3" />
                 </a>
               </Button>
             </div>
@@ -163,28 +172,28 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto max-w-4xl px-4 py-8">
         {/* Chat Header */}
         <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{chat.title}</h1>
+          <h1 className="mb-4 text-2xl font-bold text-foreground md:text-3xl">{chat.title}</h1>
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-mauve-subtle/70">
             <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
+              <Calendar className="h-4 w-4" />
               {chat.createdAt.toLocaleDateString()}
             </div>
             <div className="flex items-center gap-1">
-              <MessageSquare className="w-4 h-4" />
+              <MessageSquare className="h-4 w-4" />
               {chat.messageCount} messages
             </div>
           </div>
 
           {/* Fork CTA */}
-          <Alert className="mt-6 bg-mauve-accent/10 border-mauve-accent/20">
+          <Alert className="mt-6 border-mauve-accent/20 bg-mauve-accent/10">
             <Sparkles className="h-4 w-4 text-mauve-accent" />
             <AlertDescription className="text-mauve-subtle">
-              <strong>Want to continue this conversation?</strong> Fork it to your T3Chat account and keep the
-              discussion going with AI.
+              <strong>Want to continue this conversation?</strong> Fork it to your T3Chat account
+              and keep the discussion going with AI.
               <Button
                 onClick={handleForkConversation}
                 disabled={isForking}
@@ -192,7 +201,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
                 className="ml-3 bg-mauve-accent/20 hover:bg-mauve-accent/30"
               >
                 {isForking ? "Creating..." : "Fork Now"}
-                <ArrowRight className="w-4 h-4 ml-1" />
+                <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </AlertDescription>
           </Alert>
@@ -206,39 +215,45 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
             return (
               <div
                 key={message.id}
-                className={`flex gap-4 p-6 rounded-lg transition-colors ${
-                  message.type === "user" ? "bg-mauve-surface/30 ml-8" : "bg-mauve-dark/20"
+                className={`flex gap-4 rounded-lg p-6 transition-colors ${
+                  message.type === "user" ? "ml-8 bg-mauve-surface/30" : "bg-mauve-dark/20"
                 }`}
               >
                 <Avatar className="h-8 w-8 flex-shrink-0">
                   {message.type === "user" ? (
                     <AvatarFallback className="bg-blue-500/20 text-blue-400">U</AvatarFallback>
                   ) : (
-                    <div className="w-full h-full bg-mauve-accent/20 flex items-center justify-center">
+                    <div className="flex h-full w-full items-center justify-center bg-mauve-accent/20">
                       <span className="text-xs font-bold text-mauve-bright">AI</span>
                     </div>
                   )}
                 </Avatar>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold text-sm">{message.type === "user" ? "User" : "Assistant"}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="text-sm font-semibold">
+                      {message.type === "user" ? "User" : "Assistant"}
+                    </span>
                     {message.model && (
                       <Badge variant="outline" className="text-xs">
                         {message.model}
                       </Badge>
                     )}
-                    <span className="text-xs text-mauve-subtle/70">{message.timestamp.toLocaleTimeString()}</span>
+                    <span className="text-xs text-mauve-subtle/70">
+                      {message.timestamp.toLocaleTimeString()}
+                    </span>
                   </div>
 
                   <div className="prose prose-invert max-w-none">
                     {blocks.map((block, index) => (
                       <div key={index}>
                         {block.type === "text" ? (
-                          <div className="whitespace-pre-wrap text-sm text-foreground">{block.content}</div>
+                          <div className="whitespace-pre-wrap text-sm text-foreground">
+                            {block.content}
+                          </div>
                         ) : (
                           <div className="my-4">
-                            <div className="flex items-center justify-between bg-mauve-dark/50 px-4 py-2 rounded-t-lg border-b border-mauve-dark">
+                            <div className="flex items-center justify-between rounded-t-lg border-b border-mauve-dark bg-mauve-dark/50 px-4 py-2">
                               <Badge variant="outline" className="text-xs">
                                 {block.language}
                               </Badge>
@@ -268,10 +283,10 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
 
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
-          <div className="inline-flex flex-col items-center gap-4 p-6 bg-mauve-surface/30 rounded-xl border border-mauve-dark">
+          <div className="inline-flex flex-col items-center gap-4 rounded-xl border border-mauve-dark bg-mauve-surface/30 p-6">
             <T3Logo className="h-8 text-foreground" />
             <h3 className="text-lg font-semibold text-foreground">Continue the conversation</h3>
-            <p className="text-sm text-mauve-subtle/70 max-w-md">
+            <p className="max-w-md text-sm text-mauve-subtle/70">
               Fork this conversation to your own T3Chat account and keep exploring with AI.
             </p>
             <div className="flex gap-3">
@@ -280,7 +295,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
                 disabled={isForking}
                 className="bg-mauve-accent/20 hover:bg-mauve-accent/30"
               >
-                <GitBranch className="w-4 h-4 mr-2" />
+                <GitBranch className="mr-2 h-4 w-4" />
                 {isForking ? "Creating..." : "Fork Conversation"}
               </Button>
               <Button variant="outline" asChild>
@@ -292,11 +307,11 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-mauve-dark mt-16">
+      <footer className="mt-16 border-t border-mauve-dark">
         <div className="container mx-auto px-4 py-8 text-center text-sm text-mauve-subtle/70">
           <p>
             Powered by{" "}
-            <a href="/" className="text-mauve-accent hover:text-mauve-bright transition-colors">
+            <a href="/" className="text-mauve-accent transition-colors hover:text-mauve-bright">
               T3Chat
             </a>{" "}
             • Build better with AI

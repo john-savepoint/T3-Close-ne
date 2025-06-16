@@ -1,30 +1,37 @@
 # Task 01: Convex Setup & Schema
 
 ## 🎯 **Objective**
+
 Set up Convex database with schema definitions matching our existing TypeScript types.
 
 ## 📋 **Task Details**
 
 ### **Priority**: 🔴 Critical (Day 1)
+
 ### **Estimated Time**: 2-3 hours
+
 ### **Dependencies**: None (foundational task)
+
 ### **Agent Assignment**: Available
 
 ## 🛠️ **Technical Requirements**
 
 ### **Dependencies to Install**
+
 ```bash
 pnpm add convex
 pnpm add -D @types/convex
 ```
 
 ### **Files to Create**
+
 - `convex/schema.ts` - Database schema definitions
-- `convex/_generated/` - Auto-generated Convex files  
+- `convex/_generated/` - Auto-generated Convex files
 - `convex.config.ts` - Convex configuration
 - `.env.local.example` - Environment variable template
 
 ### **Files to Modify**
+
 - `package.json` - Add Convex scripts
 - `CLAUDE.md` - Update setup instructions
 
@@ -33,6 +40,7 @@ pnpm add -D @types/convex
 Must match existing TypeScript interfaces:
 
 ### **Chat Schema** (from `types/chat.ts`)
+
 ```typescript
 // ChatMessage interface
 {
@@ -61,6 +69,7 @@ Must match existing TypeScript interfaces:
 ```
 
 ### **Project Schema** (from `types/project.ts`)
+
 ```typescript
 {
   id: string
@@ -75,6 +84,7 @@ Must match existing TypeScript interfaces:
 ```
 
 ### **Memory Schema** (from `types/memory.ts`)
+
 ```typescript
 {
   id: string
@@ -109,6 +119,7 @@ Must match existing TypeScript interfaces:
 ## 📝 **Documentation Requirements**
 
 Update the following when complete:
+
 - `CLAUDE.md` - Add Convex setup steps
 - `teams/01-convex-setup/STATUS.md` - Progress tracking
 - `docs/convex-setup.md` - Detailed technical guide

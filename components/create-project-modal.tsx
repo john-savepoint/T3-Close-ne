@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { useProjects } from "@/hooks/use-projects"
 import { Loader2 } from "lucide-react"
 
@@ -49,7 +55,7 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-mauve-surface border-mauve-dark">
+      <DialogContent className="border-mauve-dark bg-mauve-surface">
         <DialogHeader>
           <DialogTitle className="text-foreground">Create New Project</DialogTitle>
         </DialogHeader>
@@ -64,7 +70,7 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
               placeholder="e.g., WebApp-Frontend, Climate Research"
               value={formData.name}
               onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-              className="bg-mauve-dark/50 border-mauve-dark focus-visible:ring-mauve-accent"
+              className="border-mauve-dark bg-mauve-dark/50 focus-visible:ring-mauve-accent"
               required
             />
           </div>
@@ -78,7 +84,7 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
               placeholder="Define the AI's role and behavior for this project..."
               value={formData.systemPrompt}
               onChange={(e) => setFormData((prev) => ({ ...prev, systemPrompt: e.target.value }))}
-              className="bg-mauve-dark/50 border-mauve-dark focus-visible:ring-mauve-accent min-h-[100px]"
+              className="min-h-[100px] border-mauve-dark bg-mauve-dark/50 focus-visible:ring-mauve-accent"
               rows={4}
             />
             <p className="text-xs text-mauve-subtle/70">
@@ -95,7 +101,7 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
               className="bg-mauve-accent/20 hover:bg-mauve-accent/30"
               disabled={loading || !formData.name.trim()}
             >
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Project
             </Button>
           </DialogFooter>

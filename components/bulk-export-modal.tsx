@@ -4,7 +4,13 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -76,15 +82,15 @@ export function BulkExportModal({ chats, trigger }: BulkExportModalProps) {
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" size="sm" className="gap-2">
-            <Package className="w-4 h-4" />
+            <Package className="h-4 w-4" />
             Bulk Export
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="bg-mauve-surface border-mauve-dark max-w-2xl max-h-[80vh]">
+      <DialogContent className="max-h-[80vh] max-w-2xl border-mauve-dark bg-mauve-surface">
         <DialogHeader>
-          <DialogTitle className="text-foreground flex items-center gap-2">
-            <Package className="w-5 h-5" />
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <Package className="h-5 w-5" />
             Bulk Export Chats
           </DialogTitle>
         </DialogHeader>
@@ -92,14 +98,16 @@ export function BulkExportModal({ chats, trigger }: BulkExportModalProps) {
         <div className="space-y-4">
           {isExporting ? (
             <div className="space-y-4">
-              <Alert className="bg-blue-500/10 border-blue-500/20">
-                <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
+              <Alert className="border-blue-500/20 bg-blue-500/10">
+                <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
                 <AlertDescription className="text-blue-300">
                   Exporting {selectedChats.size} chats... Please wait.
                 </AlertDescription>
               </Alert>
               <Progress value={exportProgress} className="w-full" />
-              <p className="text-sm text-center text-mauve-subtle/70">{Math.round(exportProgress)}% complete</p>
+              <p className="text-center text-sm text-mauve-subtle/70">
+                {Math.round(exportProgress)}% complete
+              </p>
             </div>
           ) : (
             <>
@@ -122,20 +130,20 @@ export function BulkExportModal({ chats, trigger }: BulkExportModalProps) {
                 </div>
               </div>
 
-              <ScrollArea className="h-64 border border-mauve-dark rounded-lg">
-                <div className="p-4 space-y-2">
+              <ScrollArea className="h-64 rounded-lg border border-mauve-dark">
+                <div className="space-y-2 p-4">
                   {chats.map((chat) => (
                     <div
                       key={chat.id}
-                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-mauve-dark/30 cursor-pointer"
+                      className="flex cursor-pointer items-center space-x-3 rounded-lg p-2 hover:bg-mauve-dark/30"
                       onClick={() => toggleChatSelection(chat.id)}
                     >
                       <Checkbox
                         checked={selectedChats.has(chat.id)}
                         onCheckedChange={() => toggleChatSelection(chat.id)}
                       />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{chat.title}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{chat.title}</p>
                         <div className="flex items-center gap-2 text-xs text-mauve-subtle/70">
                           <span>{chat.messages.length} messages</span>
                           <span>•</span>
@@ -147,16 +155,21 @@ export function BulkExportModal({ chats, trigger }: BulkExportModalProps) {
                 </div>
               </ScrollArea>
 
-              <Alert className="bg-amber-500/10 border-amber-500/20">
+              <Alert className="border-amber-500/20 bg-amber-500/10">
                 <AlertTriangle className="h-4 w-4 text-amber-400" />
-                <AlertDescription className="text-amber-300 text-sm">
-                  Bulk export will create a ZIP file containing all selected chats in Markdown format.
+                <AlertDescription className="text-sm text-amber-300">
+                  Bulk export will create a ZIP file containing all selected chats in Markdown
+                  format.
                 </AlertDescription>
               </Alert>
 
               <div className="flex gap-2">
-                <Button onClick={handleBulkExport} disabled={selectedChats.size === 0} className="flex-1">
-                  <Download className="w-4 h-4 mr-2" />
+                <Button
+                  onClick={handleBulkExport}
+                  disabled={selectedChats.size === 0}
+                  className="flex-1"
+                >
+                  <Download className="mr-2 h-4 w-4" />
                   Export {selectedChats.size} Chats
                 </Button>
                 <Button variant="outline" onClick={() => setIsOpen(false)}>

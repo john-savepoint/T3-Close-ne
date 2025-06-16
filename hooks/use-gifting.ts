@@ -1,7 +1,12 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import type { GiftCode, GiftPurchaseData, GiftRedemptionData, SubscriptionPlan } from "@/types/gifting"
+import type {
+  GiftCode,
+  GiftPurchaseData,
+  GiftRedemptionData,
+  SubscriptionPlan,
+} from "@/types/gifting"
 
 // Mock subscription plans
 const mockPlans: SubscriptionPlan[] = [
@@ -20,7 +25,13 @@ const mockPlans: SubscriptionPlan[] = [
     description: "Full access to T3Chat Pro features (12 months)",
     monthlyPrice: 20,
     yearlyPrice: 200,
-    features: ["Unlimited chats", "Advanced AI models", "Priority support", "Export features", "2 months free"],
+    features: [
+      "Unlimited chats",
+      "Advanced AI models",
+      "Priority support",
+      "Export features",
+      "2 months free",
+    ],
     isGiftable: true,
   },
 ]
@@ -110,7 +121,7 @@ export function useGifting() {
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
         const giftCode = giftCodes.find(
-          (code) => code.redemptionCode === data.redemptionCode && code.status === "active",
+          (code) => code.redemptionCode === data.redemptionCode && code.status === "active"
         )
 
         if (!giftCode) {
@@ -129,7 +140,9 @@ export function useGifting() {
           redeemedAt: new Date(),
         }
 
-        setGiftCodes((prev) => prev.map((code) => (code.id === giftCode.id ? updatedGiftCode : code)))
+        setGiftCodes((prev) =>
+          prev.map((code) => (code.id === giftCode.id ? updatedGiftCode : code))
+        )
 
         return updatedGiftCode
       } catch (error) {
@@ -139,14 +152,14 @@ export function useGifting() {
         setLoading(false)
       }
     },
-    [giftCodes],
+    [giftCodes]
   )
 
   const getGiftCodeByCode = useCallback(
     (redemptionCode: string): GiftCode | null => {
       return giftCodes.find((code) => code.redemptionCode === redemptionCode) || null
     },
-    [giftCodes],
+    [giftCodes]
   )
 
   const getAvailablePlans = useCallback((): SubscriptionPlan[] => {

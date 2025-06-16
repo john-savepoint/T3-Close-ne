@@ -3,7 +3,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { EyeOff, Shield, Clock, Info } from "lucide-react"
@@ -15,19 +21,21 @@ export function TemporaryChatSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-          <EyeOff className="w-5 h-5" />
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+          <EyeOff className="h-5 w-5" />
           Temporary Chats
         </h3>
-        <p className="text-sm text-mauve-subtle/70">Configure how temporary chats behave and what data they include</p>
+        <p className="text-sm text-mauve-subtle/70">
+          Configure how temporary chats behave and what data they include
+        </p>
       </div>
 
       <div className="space-y-4">
         {/* Privacy Settings */}
-        <Card className="bg-mauve-surface/50 border-mauve-dark">
+        <Card className="border-mauve-dark bg-mauve-surface/50">
           <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Shield className="w-4 h-4" />
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <Shield className="h-4 w-4" />
               Privacy & Memory
             </CardTitle>
           </CardHeader>
@@ -38,7 +46,8 @@ export function TemporaryChatSettings() {
                   Include AI Memory in Temporary Chats
                 </Label>
                 <p className="text-xs text-mauve-subtle/70">
-                  When enabled, your saved memories and preferences will be included in temporary chats
+                  When enabled, your saved memories and preferences will be included in temporary
+                  chats
                 </p>
               </div>
               <Switch
@@ -49,21 +58,21 @@ export function TemporaryChatSettings() {
             </div>
 
             {!settings.includeMemoryInTempChats && (
-              <Alert className="bg-green-500/10 border-green-500/20">
+              <Alert className="border-green-500/20 bg-green-500/10">
                 <Shield className="h-4 w-4 text-green-400" />
                 <AlertDescription className="text-green-300">
-                  <strong>Maximum Privacy:</strong> Temporary chats will not include your personal memories or
-                  preferences, ensuring complete anonymity.
+                  <strong>Maximum Privacy:</strong> Temporary chats will not include your personal
+                  memories or preferences, ensuring complete anonymity.
                 </AlertDescription>
               </Alert>
             )}
 
             {settings.includeMemoryInTempChats && (
-              <Alert className="bg-yellow-500/10 border-yellow-500/20">
+              <Alert className="border-yellow-500/20 bg-yellow-500/10">
                 <Info className="h-4 w-4 text-yellow-400" />
                 <AlertDescription className="text-yellow-300">
-                  <strong>Personalized Experience:</strong> The AI will remember your preferences and context, but this
-                  reduces privacy in temporary chats.
+                  <strong>Personalized Experience:</strong> The AI will remember your preferences
+                  and context, but this reduces privacy in temporary chats.
                 </AlertDescription>
               </Alert>
             )}
@@ -71,10 +80,10 @@ export function TemporaryChatSettings() {
         </Card>
 
         {/* Auto-Deletion Policy */}
-        <Card className="bg-mauve-surface/50 border-mauve-dark">
+        <Card className="border-mauve-dark bg-mauve-surface/50">
           <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Clock className="w-4 h-4" />
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <Clock className="h-4 w-4" />
               Auto-Deletion Policy
             </CardTitle>
           </CardHeader>
@@ -87,13 +96,13 @@ export function TemporaryChatSettings() {
                 value={settings.autoDeletePolicy}
                 onValueChange={(value) => updateSettings({ autoDeletePolicy: value as any })}
               >
-                <SelectTrigger className="bg-mauve-dark/50 border-mauve-dark">
+                <SelectTrigger className="border-mauve-dark bg-mauve-dark/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-mauve-surface border-mauve-dark">
+                <SelectContent className="border-mauve-dark bg-mauve-surface">
                   <SelectItem value="session">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs text-red-400 border-red-500/50">
+                      <Badge variant="outline" className="border-red-500/50 text-xs text-red-400">
                         Most Private
                       </Badge>
                       End of session (close tab/browser)
@@ -114,7 +123,7 @@ export function TemporaryChatSettings() {
         </Card>
 
         {/* Warning Settings */}
-        <Card className="bg-mauve-surface/50 border-mauve-dark">
+        <Card className="border-mauve-dark bg-mauve-surface/50">
           <CardHeader>
             <CardTitle className="text-sm font-medium">User Experience</CardTitle>
           </CardHeader>
@@ -124,7 +133,9 @@ export function TemporaryChatSettings() {
                 <Label htmlFor="show-warnings" className="text-sm font-medium">
                   Show temporary chat warnings
                 </Label>
-                <p className="text-xs text-mauve-subtle/70">Display reminders that temporary chats are not saved</p>
+                <p className="text-xs text-mauve-subtle/70">
+                  Display reminders that temporary chats are not saved
+                </p>
               </div>
               <Switch
                 id="show-warnings"
@@ -136,7 +147,7 @@ export function TemporaryChatSettings() {
         </Card>
 
         {/* Usage Statistics */}
-        <Card className="bg-mauve-surface/50 border-mauve-dark">
+        <Card className="border-mauve-dark bg-mauve-surface/50">
           <CardHeader>
             <CardTitle className="text-sm font-medium">Usage Statistics</CardTitle>
           </CardHeader>
@@ -156,8 +167,8 @@ export function TemporaryChatSettings() {
               </div>
               <div>
                 <span className="text-mauve-subtle/70">Privacy score:</span>
-                <div className="font-medium flex items-center gap-1">
-                  <Badge variant="outline" className="text-xs text-green-400 border-green-500/50">
+                <div className="flex items-center gap-1 font-medium">
+                  <Badge variant="outline" className="border-green-500/50 text-xs text-green-400">
                     High
                   </Badge>
                 </div>

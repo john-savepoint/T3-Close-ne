@@ -4,7 +4,18 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Copy, Edit, Trash2, Download, RefreshCw, ThumbsUp, ThumbsDown, Volume2, Code, Share2 } from "lucide-react"
+import {
+  Copy,
+  Edit,
+  Trash2,
+  Download,
+  RefreshCw,
+  ThumbsUp,
+  ThumbsDown,
+  Volume2,
+  Code,
+  Share2,
+} from "lucide-react"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { ShareChatModal } from "@/components/share-chat-modal"
@@ -150,8 +161,8 @@ export function ChatMessage({
 
   return (
     <div
-      className={`group flex gap-4 p-4 rounded-lg transition-colors ${
-        type === "user" ? "bg-mauve-surface/30 ml-12" : "bg-mauve-dark/20"
+      className={`group flex gap-4 rounded-lg p-4 transition-colors ${
+        type === "user" ? "ml-12 bg-mauve-surface/30" : "bg-mauve-dark/20"
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -160,16 +171,16 @@ export function ChatMessage({
         {type === "user" ? (
           <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
         ) : (
-          <div className="w-full h-full bg-mauve-accent/20 flex items-center justify-center">
+          <div className="flex h-full w-full items-center justify-center bg-mauve-accent/20">
             <span className="text-xs font-bold text-mauve-bright">AI</span>
           </div>
         )}
         <AvatarFallback>{type === "user" ? "U" : "AI"}</AvatarFallback>
       </Avatar>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="font-semibold text-sm">{type === "user" ? "You" : "Assistant"}</span>
+      <div className="min-w-0 flex-1">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="text-sm font-semibold">{type === "user" ? "You" : "Assistant"}</span>
           {model && type === "assistant" && (
             <Badge variant="outline" className="text-xs">
               {model}
@@ -191,7 +202,7 @@ export function ChatMessage({
                 e.target.style.height = "auto"
                 e.target.style.height = `${e.target.scrollHeight}px`
               }}
-              className="w-full bg-mauve-dark/50 border-mauve-dark text-sm resize-none min-h-[100px]"
+              className="min-h-[100px] w-full resize-none border-mauve-dark bg-mauve-dark/50 text-sm"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   e.preventDefault()
@@ -210,13 +221,15 @@ export function ChatMessage({
                 Cancel
               </Button>
             </div>
-            <div className="text-xs text-mauve-subtle/50">Press Cmd+Enter to save, Esc to cancel</div>
+            <div className="text-xs text-mauve-subtle/50">
+              Press Cmd+Enter to save, Esc to cancel
+            </div>
           </div>
         ) : showDeleteConfirm ? (
-          <div className="space-y-3 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+          <div className="space-y-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4">
             <p className="text-sm text-foreground">
-              Are you sure you want to delete this message? This action cannot be undone and will remove the message
-              from the conversation history.
+              Are you sure you want to delete this message? This action cannot be undone and will
+              remove the message from the conversation history.
             </p>
             <div className="flex gap-2">
               <Button size="sm" variant="destructive" onClick={confirmDelete}>
@@ -234,14 +247,19 @@ export function ChatMessage({
                 {block.type === "text" ? (
                   <div className="whitespace-pre-wrap text-sm text-foreground">{block.content}</div>
                 ) : (
-                  <div className="relative group/code">
-                    <div className="flex items-center justify-between bg-mauve-dark/50 px-4 py-2 rounded-t-lg border-b border-mauve-dark">
+                  <div className="group/code relative">
+                    <div className="flex items-center justify-between rounded-t-lg border-b border-mauve-dark bg-mauve-dark/50 px-4 py-2">
                       <Badge variant="outline" className="text-xs">
-                        <Code className="w-3 h-3 mr-1" />
+                        <Code className="mr-1 h-3 w-3" />
                         {block.language}
                       </Badge>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onCopy?.(block.content)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => onCopy?.(block.content)}
+                        >
                           <Copy className="h-3 w-3" />
                         </Button>
                         <Button
@@ -275,14 +293,24 @@ export function ChatMessage({
 
         {/* Enhanced Action Buttons */}
         {(isHovered || isEditMode) && !isEditMode && !showDeleteConfirm && (
-          <div className="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onCopy?.(content)}>
+          <div className="mt-3 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => onCopy?.(content)}
+            >
               <Copy className="h-3 w-3" />
             </Button>
 
             {type === "assistant" && (
               <>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRegenerate?.(id)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => onRegenerate?.(id)}
+                >
                   <RefreshCw className="h-3 w-3" />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7">

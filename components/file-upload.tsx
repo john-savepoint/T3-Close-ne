@@ -4,7 +4,13 @@ import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Paperclip, Upload, File, ImageIcon, FileText, Code, X, FolderOpen } from "lucide-react"
 import { useDropzone } from "react-dropzone"
@@ -53,18 +59,26 @@ export function FileUpload({ onFilesUploaded, maxFiles = 10 }: FileUploadProps) 
           // Simulate upload progress
           for (let progress = 0; progress <= 100; progress += 10) {
             await new Promise((resolve) => setTimeout(resolve, 100))
-            setFiles((prev) => prev.map((f) => (f.id === file.id ? { ...f, uploadProgress: progress } : f)))
+            setFiles((prev) =>
+              prev.map((f) => (f.id === file.id ? { ...f, uploadProgress: progress } : f))
+            )
           }
 
-          setFiles((prev) => prev.map((f) => (f.id === file.id ? { ...f, content, status: "completed" as const } : f)))
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === file.id ? { ...f, content, status: "completed" as const } : f
+            )
+          )
         } catch (error) {
-          setFiles((prev) => prev.map((f) => (f.id === file.id ? { ...f, status: "error" as const } : f)))
+          setFiles((prev) =>
+            prev.map((f) => (f.id === file.id ? { ...f, status: "error" as const } : f))
+          )
         }
       }
 
       onFilesUploaded(files.filter((f) => f.status === "completed"))
     },
-    [files, onFilesUploaded],
+    [files, onFilesUploaded]
   )
 
   const readFileContent = (file: File): Promise<string> => {
@@ -120,7 +134,7 @@ export function FileUpload({ onFilesUploaded, maxFiles = 10 }: FileUploadProps) 
           <Paperclip className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-mauve-surface border-mauve-dark max-w-2xl">
+      <DialogContent className="max-w-2xl border-mauve-dark bg-mauve-surface">
         <DialogHeader>
           <DialogTitle className="text-foreground">Upload Files</DialogTitle>
         </DialogHeader>
@@ -129,17 +143,19 @@ export function FileUpload({ onFilesUploaded, maxFiles = 10 }: FileUploadProps) 
           {/* Upload Area */}
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-              isDragActive ? "border-mauve-accent bg-mauve-accent/10" : "border-mauve-dark hover:border-mauve-accent/50"
+            className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+              isDragActive
+                ? "border-mauve-accent bg-mauve-accent/10"
+                : "border-mauve-dark hover:border-mauve-accent/50"
             }`}
           >
             <input {...getInputProps()} />
-            <Upload className="w-12 h-12 mx-auto mb-4 text-mauve-subtle" />
+            <Upload className="mx-auto mb-4 h-12 w-12 text-mauve-subtle" />
             {isDragActive ? (
               <p className="text-mauve-bright">Drop the files here...</p>
             ) : (
               <div>
-                <p className="text-foreground mb-2">Drag & drop files here, or click to select</p>
+                <p className="mb-2 text-foreground">Drag & drop files here, or click to select</p>
                 <p className="text-sm text-mauve-subtle">
                   Supports: TXT, JSON, XML, CSV, Excel, Word, PowerPoint, Images
                 </p>
@@ -154,11 +170,14 @@ export function FileUpload({ onFilesUploaded, maxFiles = 10 }: FileUploadProps) 
                 {files.map((file) => {
                   const Icon = getFileIcon(file.type)
                   return (
-                    <div key={file.id} className="flex items-center gap-3 p-3 bg-mauve-dark/30 rounded-lg">
-                      <Icon className="w-5 h-5 text-mauve-subtle" />
-                      <div className="flex-1 min-w-0">
+                    <div
+                      key={file.id}
+                      className="flex items-center gap-3 rounded-lg bg-mauve-dark/30 p-3"
+                    >
+                      <Icon className="h-5 w-5 text-mauve-subtle" />
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium truncate">{file.name}</span>
+                          <span className="truncate text-sm font-medium">{file.name}</span>
                           <Badge variant="outline" className="text-xs">
                             {formatFileSize(file.size)}
                           </Badge>
@@ -175,14 +194,21 @@ export function FileUpload({ onFilesUploaded, maxFiles = 10 }: FileUploadProps) 
                             {file.status}
                           </Badge>
                         </div>
-                        {file.status === "uploading" && <Progress value={file.uploadProgress} className="mt-2 h-1" />}
+                        {file.status === "uploading" && (
+                          <Progress value={file.uploadProgress} className="mt-2 h-1" />
+                        )}
                         {file.content && (
-                          <p className="text-xs text-mauve-subtle/70 mt-1 truncate">
+                          <p className="mt-1 truncate text-xs text-mauve-subtle/70">
                             {file.content.substring(0, 100)}...
                           </p>
                         )}
                       </div>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeFile(file.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => removeFile(file.id)}
+                      >
                         <X className="h-3 w-3" />
                       </Button>
                     </div>
@@ -195,7 +221,7 @@ export function FileUpload({ onFilesUploaded, maxFiles = 10 }: FileUploadProps) 
           {/* Actions */}
           <div className="flex justify-between">
             <Button variant="outline" className="bg-mauve-dark/50">
-              <FolderOpen className="w-4 h-4 mr-2" />
+              <FolderOpen className="mr-2 h-4 w-4" />
               Upload Directory
             </Button>
             <div className="flex gap-2">

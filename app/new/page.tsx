@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useTools } from "@/hooks/use-tools"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,7 +17,7 @@ export default function NewChatPage() {
   const filteredTools = tools.filter(
     (tool) =>
       tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tool.description.toLowerCase().includes(searchQuery.toLowerCase()),
+      tool.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleToolClick = (toolId: string) => {
@@ -25,16 +25,20 @@ export default function NewChatPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">T3Chat Tools</h1>
-        <p className="text-mauve-subtle/70 max-w-2xl mx-auto">
-          Choose a specialized tool to help you accomplish specific tasks, or start a general conversation.
+        <h1 className="mb-2 text-3xl font-bold">T3Chat Tools</h1>
+        <p className="mx-auto max-w-2xl text-mauve-subtle/70">
+          Choose a specialized tool to help you accomplish specific tasks, or start a general
+          conversation.
         </p>
       </div>
 
-      <div className="relative mb-6 max-w-md mx-auto">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-mauve-subtle/50" size={18} />
+      <div className="relative mx-auto mb-6 max-w-md">
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 transform text-mauve-subtle/50"
+          size={18}
+        />
         <Input
           type="text"
           placeholder="Search tools..."
@@ -48,37 +52,49 @@ export default function NewChatPage() {
         <>
           {searchQuery.length === 0 && (
             <div className="mb-8">
-              <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-medium">
                 <span>Popular Tools</span>
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {tools
                   .filter((tool) => tool.isPopular)
                   .map((tool) => (
-                    <ToolCard key={tool.id} tool={tool} onClick={() => handleToolClick(tool.id)} getToolIcon={getToolIcon} />
+                    <ToolCard
+                      key={tool.id}
+                      tool={tool}
+                      onClick={handleToolClick}
+                      getToolIcon={getToolIcon}
+                    />
                   ))}
               </div>
             </div>
           )}
 
           <div>
-            <h2 className="text-lg font-medium mb-4">{searchQuery.length > 0 ? "Search Results" : "All Tools"}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h2 className="mb-4 text-lg font-medium">
+              {searchQuery.length > 0 ? "Search Results" : "All Tools"}
+            </h2>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredTools.map((tool) => (
-                <ToolCard key={tool.id} tool={tool} onClick={() => handleToolClick(tool.id)} getToolIcon={getToolIcon} />
+                <ToolCard
+                  key={tool.id}
+                  tool={tool}
+                  onClick={handleToolClick}
+                  getToolIcon={getToolIcon}
+                />
               ))}
             </div>
           </div>
         </>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-mauve-subtle/70 mb-4">No tools match your search.</p>
+        <div className="py-12 text-center">
+          <p className="mb-4 text-mauve-subtle/70">No tools match your search.</p>
           <Button onClick={() => setSearchQuery("")}>Clear Search</Button>
         </div>
       )}
 
       <div className="mt-12 text-center">
-        <p className="text-mauve-subtle/70 mb-4">Want to start a general conversation instead?</p>
+        <p className="mb-4 text-mauve-subtle/70">Want to start a general conversation instead?</p>
         <Button variant="outline" onClick={() => router.push("/chat/new")}>
           Start General Chat
         </Button>
@@ -89,7 +105,7 @@ export default function NewChatPage() {
 
 interface ToolCardProps {
   tool: any
-  onClick: () => void
+  onClick: (toolId: string) => void
   getToolIcon: (icon: string) => React.ComponentType
 }
 
@@ -98,18 +114,20 @@ function ToolCard({ tool, onClick, getToolIcon }: ToolCardProps) {
 
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-all border border-mauve-subtle/20 hover:border-mauve-subtle/40"
-      onClick={onClick}
+      className="cursor-pointer border border-mauve-subtle/20 transition-all hover:border-mauve-subtle/40 hover:shadow-md"
+      onClick={() => onClick(tool.id)}
     >
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
-          <div className="bg-mauve-subtle/10 p-3 rounded-lg">
+          <div className="rounded-lg bg-mauve-subtle/10 p-3">
             {React.createElement(Icon as any, { className: "h-6 w-6 text-mauve-subtle", size: 24 })}
           </div>
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="mb-1 flex items-center gap-2">
               <h3 className="font-medium">{tool.name}</h3>
-              {tool.isNew && <Badge className="bg-green-500/20 text-green-500 hover:bg-green-500/30">New</Badge>}
+              {tool.isNew && (
+                <Badge className="bg-green-500/20 text-green-500 hover:bg-green-500/30">New</Badge>
+              )}
               {tool.isBeta && (
                 <Badge variant="outline" className="text-xs">
                   Beta

@@ -62,7 +62,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const firstUserMessage = chat.messages.find((m) => m.type === "user")?.content || ""
-  const preview = firstUserMessage.length > 150 ? firstUserMessage.substring(0, 150) + "..." : firstUserMessage
+  const preview =
+    firstUserMessage.length > 150 ? firstUserMessage.substring(0, 150) + "..." : firstUserMessage
 
   return {
     title: `${chat.title} - Shared on T3Chat`,
@@ -86,10 +87,12 @@ export default async function SharedChatPage({ params }: PageProps) {
 
   if (!chat?.isActive) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="space-y-4 text-center">
           <h1 className="text-2xl font-bold text-foreground">Chat Not Found</h1>
-          <p className="text-mauve-subtle/70">This shared chat link is no longer active or doesn't exist.</p>
+          <p className="text-mauve-subtle/70">
+            This shared chat link is no longer active or doesn't exist.
+          </p>
         </div>
       </div>
     )

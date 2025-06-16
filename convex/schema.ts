@@ -2,13 +2,25 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  // Users table - enhanced with auth and storage tracking
   users: defineTable({
+    // Auth fields from PR #1
     tokenIdentifier: v.string(),
     email: v.optional(v.string()),
     name: v.optional(v.string()),
     pictureUrl: v.optional(v.string()),
-  }).index("by_token", ["tokenIdentifier"]),
+    // Storage tracking from PR #3
+    storageUsed: v.optional(v.number()), // bytes
+    storageLimit: v.optional(v.number()), // bytes
+    // Additional fields
+    createdAt: v.optional(v.number()),
+    lastActiveAt: v.optional(v.number()),
+    plan: v.optional(v.union(v.literal("free"), v.literal("pro"))),
+  })
+    .index("by_token", ["tokenIdentifier"])
+    .index("by_email", ["email"]),
 
+  // Projects table from PR #1
   projects: defineTable({
     name: v.string(),
     systemPrompt: v.optional(v.string()),
@@ -20,6 +32,112 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_parent", ["parentProjectId"]),
 
+  // Chats table - merged from both PRs
+  chats: defineTable({
+    title: v.string(),
+    userId: v.id("users"),
+    // From PR #1
+    projectId: v.optional(v.id("projects")),
+    activeLeafMessageId: v.optional(v.string()),
+    status: v.union(v.literal("active"), v.literal("archived"), v.literal("trashed")),
+    statusChangedAt: v.number(),
+    // From PR #3
+    isPublic: v.optional(v.boolean()),
+    model: v.optional(v.string()),
+    systemPrompt: v.optional(v.string()),
+    // Common fields
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_project", ["projectId"])
+    .index("by_status", ["status"])
+    .index("by_user_status", ["userId", "status"]),
+
+  // Messages table - merged from both PRs
+  messages: defineTable({
+    chatId: v.id("chats"),
+    content: v.string(),
+    // From PR #1
+    type: v.union(v.literal("user"), v.literal("assistant")),
+    model: v.optional(v.string()),
+    parentMessageId: v.optional(v.string()),
+    isEdited: v.optional(v.boolean()),
+    editedAt: v.optional(v.number()),
+    // From PR #3
+    userId: v.optional(v.id("users")),
+    attachments: v.optional(v.array(v.id("attachments"))),
+    metadata: v.optional(
+      v.object({
+        model: v.optional(v.string()),
+        tokens: v.optional(v.number()),
+        cost: v.optional(v.number()),
+      })
+    ),
+    // Common fields
+    timestamp: v.number(),
+  })
+    .index("by_chat", ["chatId"])
+    .index("by_parent", ["parentMessageId"])
+    .index("by_chat_parent", ["chatId", "parentMessageId"])
+    .index("by_user", ["userId"]),
+
+  // Attachments table - enhanced version from PR #3
+  attachments: defineTable({
+    // Core file information
+    storageId: v.id("_storage"),
+    filename: v.string(),
+    originalFilename: v.optional(v.string()),
+    contentType: v.string(),
+    size: v.number(),
+    category: v.optional(v.string()), // images, documents, code, etc.
+    
+    // Legacy fields from PR #1 for compatibility
+    name: v.optional(v.string()),
+    type: v.optional(v.string()),
+    content: v.optional(v.string()),
+
+    // Ownership and timestamps
+    userId: v.id("users"), // uploadedBy from PR #3, but keeping userId for consistency
+    uploadedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    lastAccessedAt: v.optional(v.number()),
+
+    // Relationships
+    chatId: v.optional(v.id("chats")),
+    messageId: v.optional(v.id("messages")),
+
+    // Metadata
+    description: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    extractedText: v.optional(v.string()),
+
+    // Access control
+    isPublic: v.optional(v.boolean()),
+    shareToken: v.optional(v.string()),
+
+    // Status
+    status: v.optional(v.union(
+      v.literal("uploading"),
+      v.literal("processing"),
+      v.literal("ready"),
+      v.literal("error")
+    )),
+    processingError: v.optional(v.string()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_chat", ["chatId"])
+    .index("by_message", ["messageId"])
+    .index("by_status", ["status"])
+    .index("by_category", ["category"])
+    .index("by_type", ["type"])
+    .index("by_share_token", ["shareToken"])
+    .searchIndex("search_files", {
+      searchField: "filename",
+      filterFields: ["userId", "isPublic", "status", "category"],
+    }),
+
+  // Project attachments table from PR #1
   projectAttachments: defineTable({
     projectId: v.id("projects"),
     attachmentId: v.id("attachments"),
@@ -31,47 +149,7 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_attachment", ["attachmentId"]),
 
-  chats: defineTable({
-    title: v.string(),
-    userId: v.id("users"),
-    projectId: v.optional(v.id("projects")),
-    activeLeafMessageId: v.optional(v.string()),
-    status: v.union(v.literal("active"), v.literal("archived"), v.literal("trashed")),
-    statusChangedAt: v.number(),
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  })
-    .index("by_user", ["userId"])
-    .index("by_project", ["projectId"])
-    .index("by_status", ["status"])
-    .index("by_user_status", ["userId", "status"]),
-
-  messages: defineTable({
-    chatId: v.id("chats"),
-    type: v.union(v.literal("user"), v.literal("assistant")),
-    content: v.string(),
-    timestamp: v.number(),
-    model: v.optional(v.string()),
-    parentMessageId: v.optional(v.string()),
-    isEdited: v.optional(v.boolean()),
-    editedAt: v.optional(v.number()),
-  })
-    .index("by_chat", ["chatId"])
-    .index("by_parent", ["parentMessageId"])
-    .index("by_chat_parent", ["chatId", "parentMessageId"]),
-
-  attachments: defineTable({
-    name: v.string(),
-    type: v.string(),
-    size: v.number(),
-    storageId: v.optional(v.id("_storage")),
-    content: v.optional(v.string()),
-    userId: v.id("users"),
-    createdAt: v.number(),
-  })
-    .index("by_user", ["userId"])
-    .index("by_type", ["type"]),
-
+  // User memories table from PR #1
   userMemories: defineTable({
     userId: v.id("users"),
     projectId: v.optional(v.id("projects")),
@@ -91,6 +169,7 @@ export default defineSchema({
     .index("by_user_project", ["userId", "projectId"])
     .index("by_category", ["category"]),
 
+  // Memory suggestions table from PR #1
   memorySuggestions: defineTable({
     userId: v.id("users"),
     content: v.string(),
@@ -102,6 +181,7 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_dismissed", ["dismissed"]),
 
+  // RAG results table from PR #1
   ragResults: defineTable({
     content: v.string(),
     chatId: v.id("chats"),
@@ -112,6 +192,7 @@ export default defineSchema({
     .index("by_chat", ["chatId"])
     .index("by_relevance", ["relevanceScore"]),
 
+  // Share links table from PR #1
   shareLinks: defineTable({
     chatId: v.id("chats"),
     token: v.string(),
@@ -124,6 +205,7 @@ export default defineSchema({
     .index("by_chat", ["chatId"])
     .index("by_user", ["createdBy"]),
 
+  // Temporary chats table from PR #1
   temporaryChats: defineTable({
     sessionId: v.string(),
     title: v.string(),

@@ -41,4 +41,8 @@ export interface DiagrammerOptions {
   type: "flowchart" | "sequence" | "class" | "entity-relationship"
 }
 
-export type ToolOptions = EmailResponderOptions | SocialMediaOptions | SummarizerOptions | DiagrammerOptions
+export type ToolOptions =
+  | EmailResponderOptions
+  | SocialMediaOptions
+  | SummarizerOptions
+  | DiagrammerOptions

@@ -40,7 +40,7 @@ export default function SummarizerPage() {
       // Sample response based on format
       if (format === "paragraph") {
         setSummary(
-          `The text discusses the importance of artificial intelligence in modern business operations. It highlights how AI technologies are transforming various sectors by automating routine tasks, providing data-driven insights, and enabling personalized customer experiences. The author emphasizes that companies implementing AI solutions are seeing significant improvements in efficiency, cost reduction, and competitive advantage. However, challenges remain, including data privacy concerns, the need for specialized talent, and potential workforce disruption. The conclusion suggests that businesses should develop strategic AI implementation plans that balance innovation with ethical considerations and proper staff training to maximize benefits while minimizing risks.`,
+          `The text discusses the importance of artificial intelligence in modern business operations. It highlights how AI technologies are transforming various sectors by automating routine tasks, providing data-driven insights, and enabling personalized customer experiences. The author emphasizes that companies implementing AI solutions are seeing significant improvements in efficiency, cost reduction, and competitive advantage. However, challenges remain, including data privacy concerns, the need for specialized talent, and potential workforce disruption. The conclusion suggests that businesses should develop strategic AI implementation plans that balance innovation with ethical considerations and proper staff training to maximize benefits while minimizing risks.`
         )
       } else {
         setSummary(`• AI is transforming modern businesses across multiple sectors
@@ -66,20 +66,22 @@ export default function SummarizerPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold flex items-center gap-2 mb-2">
+        <h1 className="mb-2 flex items-center gap-2 text-3xl font-bold">
           <FileText className="h-8 w-8" />
           <span>Summarizer</span>
         </h1>
-        <p className="text-mauve-subtle/70">Condense long content into concise, easy-to-digest summaries.</p>
+        <p className="text-mauve-subtle/70">
+          Condense long content into concise, easy-to-digest summaries.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <Card>
             <CardContent className="p-6">
-              <label className="block text-sm font-medium mb-2">Content to Summarize</label>
+              <label className="mb-2 block text-sm font-medium">Content to Summarize</label>
               <Textarea
                 placeholder="Paste the text you want to summarize here..."
                 className="min-h-[300px]"
@@ -93,7 +95,7 @@ export default function SummarizerPage() {
             <CardContent className="p-6">
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-medium mb-3">Summary Length</h3>
+                  <h3 className="mb-3 text-sm font-medium">Summary Length</h3>
                   <RadioGroup value={length} onValueChange={(value: any) => setLength(value)}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="short" id="short" />
@@ -111,7 +113,7 @@ export default function SummarizerPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-medium mb-3">Format</h3>
+                  <h3 className="mb-3 text-sm font-medium">Format</h3>
                   <RadioGroup value={format} onValueChange={(value: any) => setFormat(value)}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="paragraph" id="paragraph" />
@@ -124,7 +126,11 @@ export default function SummarizerPage() {
                   </RadioGroup>
                 </div>
 
-                <Button className="w-full" onClick={handleGenerate} disabled={isGenerating || !content}>
+                <Button
+                  className="w-full"
+                  onClick={handleGenerate}
+                  disabled={isGenerating || !content}
+                >
                   {isGenerating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -144,23 +150,27 @@ export default function SummarizerPage() {
 
         <div>
           <Card className="h-full">
-            <CardContent className="p-6 h-full flex flex-col">
-              <h3 className="font-medium mb-4">Summary</h3>
+            <CardContent className="flex h-full flex-col p-6">
+              <h3 className="mb-4 font-medium">Summary</h3>
 
               {!summary ? (
-                <div className="flex-1 flex items-center justify-center border-2 border-dashed border-mauve-subtle/20 rounded-lg p-8">
+                <div className="flex flex-1 items-center justify-center rounded-lg border-2 border-dashed border-mauve-subtle/20 p-8">
                   <div className="text-center text-mauve-subtle/50">
-                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
                     <p>Your generated summary will appear here</p>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div className="flex-1 border border-mauve-subtle/20 rounded-lg p-4 mb-4 whitespace-pre-wrap overflow-auto">
+                  <div className="mb-4 flex-1 overflow-auto whitespace-pre-wrap rounded-lg border border-mauve-subtle/20 p-4">
                     {summary}
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" className="flex-1" onClick={() => navigator.clipboard.writeText(summary)}>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => navigator.clipboard.writeText(summary)}
+                    >
                       Copy to Clipboard
                     </Button>
                     <Button className="flex-1" onClick={handleContinueInChat}>

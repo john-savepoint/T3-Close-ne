@@ -7,13 +7,14 @@ Copy and paste these prompts into ClaudeSquad instances. Each prompt is designed
 ## 🏗️ **CORE INFRASTRUCTURE (Day 1)**
 
 ### **Task 01: Convex Setup & Schema**
+
 ```
-You are working on Z6Chat, our T3Chat competition clone. 
+You are working on Z6Chat, our T3Chat competition clone.
 
 TASK: Set up Convex database with schema matching our existing TypeScript types.
 
 DELIVERABLES:
-- Install convex dependencies 
+- Install convex dependencies
 - Create convex/ directory with schema definitions
 - Set up convex.config.ts
 - Create database schema matching types/chat.ts, types/project.ts, types/memory.ts
@@ -46,6 +47,7 @@ IMPORTANT: use context7
 ```
 
 ### **Task 02: Convex Auth Integration**
+
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
@@ -86,6 +88,7 @@ IMPORTANT: use context7
 ```
 
 ### **Task 03: OpenRouter API Integration**
+
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
@@ -124,6 +127,7 @@ IMPORTANT: use context7
 ```
 
 ### **Task 04: Real-time Chat Streaming**
+
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
@@ -163,6 +167,7 @@ IMPORTANT: use context7
 ```
 
 ### **Task 05: File Upload Infrastructure**
+
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
@@ -206,6 +211,7 @@ IMPORTANT: use context7
 ## 🚀 **COMPETITION WINNERS (Day 2)**
 
 ### **Task 06: Resumable Streams**
+
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
@@ -246,6 +252,7 @@ IMPORTANT: use context7
 ```
 
 ### **Task 07: Image Generation**
+
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
@@ -284,6 +291,7 @@ IMPORTANT: use context7
 ```
 
 ### **Task 08: Syntax Highlighting Enhancement**
+
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
@@ -322,6 +330,7 @@ IMPORTANT: use context7
 ```
 
 ### **Task 09: BYOK System**
+
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
@@ -360,6 +369,7 @@ IMPORTANT: use context7
 ```
 
 ### **Task 10: Web Search Integration**
+
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
@@ -402,6 +412,7 @@ IMPORTANT: use context7
 ## ✨ **POLISH & PERFORMANCE (Final Hours)**
 
 ### **Task 11: Performance Optimization**
+
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
