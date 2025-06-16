@@ -46,7 +46,7 @@ export function TeamManagementDashboard() {
       setInviteEmail("")
       setIsInviteModalOpen(false)
     } catch (error) {
-      alert(error.message || "Failed to send invitation")
+      alert((error as Error).message || "Failed to send invitation")
     }
   }
 
@@ -57,7 +57,7 @@ export function TeamManagementDashboard() {
       try {
         await removeMember(userTeam.id, userId)
       } catch (error) {
-        alert(error.message || "Failed to remove member")
+        alert((error as Error).message || "Failed to remove member")
       }
     }
   }

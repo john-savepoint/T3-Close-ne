@@ -347,15 +347,15 @@ export function useAttachments() {
 
       // File type filter
       if (filters.fileType !== "all") {
-        const typeMap = {
+        const typeMap: Record<string, string[]> = {
           documents: Object.keys(SUPPORTED_FILE_TYPES.documents),
           code: Object.keys(SUPPORTED_FILE_TYPES.code),
           data: Object.keys(SUPPORTED_FILE_TYPES.data),
           images: Object.keys(SUPPORTED_FILE_TYPES.images),
         }
 
-        if (typeMap[filters.fileType]) {
-          filtered = filtered.filter((att) => typeMap[filters.fileType].includes(att.fileType))
+        if (filters.fileType in typeMap) {
+          filtered = filtered.filter((att) => typeMap[filters.fileType]!.includes(att.fileType))
         }
       }
 
@@ -398,8 +398,9 @@ export function useAttachments() {
 
   const getFileTypeInfo = useCallback((mimeType: string) => {
     for (const [category, types] of Object.entries(SUPPORTED_FILE_TYPES)) {
-      if (types[mimeType]) {
-        return { category, ...types[mimeType] }
+      const typesRecord = types as Record<string, { ext: string; name: string }>
+      if (typesRecord[mimeType]) {
+        return { category, ...typesRecord[mimeType] }
       }
     }
     return { category: "other", ext: "", name: "Unknown File" }

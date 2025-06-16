@@ -99,7 +99,7 @@ export function AttachmentLibrary({
     const input = document.createElement("input")
     input.type = "file"
     input.accept = Object.keys(SUPPORTED_FILE_TYPES)
-      .flatMap((cat) => Object.keys(SUPPORTED_FILE_TYPES[cat]))
+      .flatMap((cat) => Object.keys((SUPPORTED_FILE_TYPES as any)[cat]))
       .join(",")
 
     input.onchange = async (e) => {
@@ -255,7 +255,7 @@ function AttachmentCard({
   getUsages,
 }: AttachmentCardProps) {
   const fileInfo = getFileTypeInfo(attachment.fileType)
-  const Icon = categoryIcons[fileInfo.category] || File
+  const Icon = (categoryIcons as any)[fileInfo.category] || File
   const usages = getUsages(attachment.id)
 
   return (

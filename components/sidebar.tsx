@@ -97,8 +97,14 @@ const yesterdayThreads = [
   },
 ]
 
+interface ThreadItemProps {
+  chat: any
+  parent?: boolean
+  isActive?: boolean
+}
+
 // Thread Item Component
-const ThreadItem = ({ chat, parent = false, isActive = false }) => {
+const ThreadItem = ({ chat, parent = false, isActive = false }: ThreadItemProps) => {
   const { moveToTrash, moveToArchive } = useChatLifecycle()
 
   return (
@@ -114,8 +120,12 @@ const ThreadItem = ({ chat, parent = false, isActive = false }) => {
   )
 }
 
+interface GroupLabelProps {
+  label: string
+}
+
 // Group Label Component
-const GroupLabel = ({ label }) => (
+const GroupLabel = ({ label }: GroupLabelProps) => (
   <div className="px-3 py-2 text-xs font-semibold text-mauve-accent uppercase tracking-wider">{label}</div>
 )
 

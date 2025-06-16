@@ -55,7 +55,7 @@ export default function NewChatPage() {
                 {tools
                   .filter((tool) => tool.isPopular)
                   .map((tool) => (
-                    <ToolCard key={tool.id} tool={tool} onClick={handleToolClick} getToolIcon={getToolIcon} />
+                    <ToolCard key={tool.id} tool={tool} onClick={() => handleToolClick(tool.id)} getToolIcon={getToolIcon} />
                   ))}
               </div>
             </div>
@@ -65,7 +65,7 @@ export default function NewChatPage() {
             <h2 className="text-lg font-medium mb-4">{searchQuery.length > 0 ? "Search Results" : "All Tools"}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredTools.map((tool) => (
-                <ToolCard key={tool.id} tool={tool} onClick={handleToolClick} getToolIcon={getToolIcon} />
+                <ToolCard key={tool.id} tool={tool} onClick={() => handleToolClick(tool.id)} getToolIcon={getToolIcon} />
               ))}
             </div>
           </div>
@@ -87,18 +87,24 @@ export default function NewChatPage() {
   )
 }
 
-function ToolCard({ tool, onClick, getToolIcon }) {
+interface ToolCardProps {
+  tool: any
+  onClick: () => void
+  getToolIcon: (icon: string) => React.ComponentType
+}
+
+function ToolCard({ tool, onClick, getToolIcon }: ToolCardProps) {
   const Icon = getToolIcon(tool.icon)
 
   return (
     <Card
       className="cursor-pointer hover:shadow-md transition-all border border-mauve-subtle/20 hover:border-mauve-subtle/40"
-      onClick={() => onClick(tool.id)}
+      onClick={onClick}
     >
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
           <div className="bg-mauve-subtle/10 p-3 rounded-lg">
-            <Icon className="h-6 w-6 text-mauve-subtle" />
+            {React.createElement(Icon as any, { className: "h-6 w-6 text-mauve-subtle", size: 24 })}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">

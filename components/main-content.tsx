@@ -11,6 +11,17 @@ import { TemporaryChatBanner } from "@/components/temporary-chat-banner"
 import { TemporaryChatStarter } from "@/components/temporary-chat-starter"
 import { ToolsGrid } from "@/components/tools-grid"
 import { useState } from "react"
+
+interface Message {
+  id: string
+  type: "user" | "assistant"
+  content: string
+  timestamp: Date
+  model?: string
+  toolUsed?: string
+  isEdited?: boolean
+  editedAt?: Date
+}
 import { useMemory } from "@/hooks/use-memory"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { ShareChatModal } from "@/components/share-chat-modal"
@@ -21,8 +32,8 @@ import { useConversationTree } from "@/hooks/use-conversation-tree"
 
 export function MainContent() {
   const isMobile = useIsMobile()
-  const [messages, setMessages] = useState([])
-  const [currentMessageId, setCurrentMessageId] = useState(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
   const [selectedModel, setSelectedModel] = useState("gpt-4o")
   const { suggestions } = useMemory()
   const { temporaryChat, isTemporaryMode } = useTemporaryChat()
@@ -184,8 +195,8 @@ export function MainContent() {
           />
           <ThreadNavigator
             messages={displayMessages}
-            currentMessageId={currentMessageId}
-            onMessageSelect={setCurrentMessageId}
+            currentMessageId={currentMessageId || undefined}
+            onMessageSelect={(messageId: string) => setCurrentMessageId(messageId)}
             onBranchSelect={handleBranchSelect}
             onBranchRename={renameBranch}
           />
