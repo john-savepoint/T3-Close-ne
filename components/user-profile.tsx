@@ -24,13 +24,16 @@ export function UserProfile() {
     );
   }
 
-  const userInitials = user.name
-    ? user.name
+  const userName = typeof user.name === 'string' ? user.name : undefined;
+  const userEmail = typeof user.email === 'string' ? user.email : undefined;
+  
+  const userInitials = userName
+    ? userName
         .split(" ")
         .map((n: string) => n[0])
         .join("")
         .toUpperCase()
-    : user.email?.[0]?.toUpperCase() || "U";
+    : userEmail?.[0]?.toUpperCase() || "U";
 
   const handleSignOut = async () => {
     try {
@@ -46,14 +49,17 @@ export function UserProfile() {
         <Button variant="ghost" className="w-full justify-start p-2 h-auto">
           <div className="flex items-center gap-3 w-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.image} alt={user.name || "User"} />
+              <AvatarImage 
+                src={typeof user.image === 'string' ? user.image : undefined} 
+                alt={userName || "User"} 
+              />
               <AvatarFallback className="bg-mauve-accent text-mauve-bright">
                 {userInitials}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col text-left">
               <span className="font-semibold text-sm text-white">
-                {user.name || user.email || "Anonymous"}
+                {userName || userEmail || "Anonymous"}
               </span>
               <Badge
                 variant="outline"
