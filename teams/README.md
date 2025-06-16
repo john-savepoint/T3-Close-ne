@@ -112,4 +112,15 @@ Each agent updates their `STATUS.md` with:
 - [`task-prompts.md`](./task-prompts.md) - Copy-paste prompts for ClaudeSquad
 - [`SHARED.md`](./SHARED.md) - Cross-task communication
 - [`PROGRESS.md`](./PROGRESS.md) - Overall competition progress
+- [`FUTURE-IMPROVEMENTS.md`](./FUTURE-IMPROVEMENTS.md) - Post-review enhancement tasks
 - [`/docs`](../docs/) - Technical documentation
+
+## 🔮 **Future Improvements**
+
+Based on comprehensive PR reviews, we've identified 20+ potential improvements categorized by priority:
+
+- **High Priority**: Security enhancements, error handling, API validation
+- **Medium Priority**: Performance monitoring, code organization, UX improvements
+- **Low Priority**: Advanced testing, analytics, production optimizations
+
+See [`FUTURE-IMPROVEMENTS.md`](./FUTURE-IMPROVEMENTS.md) for detailed task descriptions, implementation guidance, and prioritization.

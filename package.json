@@ -1,6 +1,6 @@
 {
   "name": "z6chat",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -18,7 +18,14 @@
     "pre-commit": "lint-staged",
     "convex:deploy": "npx convex deploy",
     "convex:import": "npx convex import",
-    "convex:dashboard": "npx convex dashboard"
+    "convex:dashboard": "npx convex dashboard",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "changeset publish",
+    "changeset:status": "changeset status",
+    "release": "pnpm changeset:version && git add . && git commit -m 'chore: version packages' && git push",
+    "test:visual": "playwright test",
+    "test:visual:ui": "playwright test --ui"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -87,8 +94,10 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.4",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "@playwright/test": "^1.53.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

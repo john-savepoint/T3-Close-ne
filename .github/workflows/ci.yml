@@ -28,6 +28,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Security audit
+        run: pnpm audit --audit-level moderate
+        continue-on-error: true
+
       - name: Type check
         run: pnpm type-check
 
@@ -39,6 +43,15 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: build-logs
+          path: |
+            .next/
+            *.log
 
   deploy-preview:
     runs-on: ubuntu-latest

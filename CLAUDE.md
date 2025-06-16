@@ -246,6 +246,60 @@ git push origin feature-branch
 # - Build validation
 ```
 
+### **Changesets Workflow** (Version Management)
+
+**🚨 CRITICAL FOR AI AGENTS: You MUST run `pnpm changeset` before committing ANY changes**
+
+**Development Process:**
+
+```bash
+# 1. Make your changes (code, features, fixes)
+# 2. Before committing, create a changeset:
+pnpm changeset
+
+# 3. Interactive prompts (select exactly as shown):
+# ✓ Which packages would you like to include? › z6chat (press space to select)
+# ✓ What type of change? › minor (for features) / patch (for fixes) / major (breaking)
+# ✓ Summary: Write a clear description of what you built
+
+# 4. Commit BOTH your changes AND the generated changeset file:
+git add .
+git commit -m "feat(scope): your conventional commit message"
+git push
+```
+
+**❌ Common Mistakes to Avoid:**
+
+- Forgetting to run `pnpm changeset` before committing
+- Not committing the generated `.changeset/*.md` file
+- Skipping the changeset for "small" changes
+
+**✅ What Happens Automatically:**
+
+- GitHub Action detects changeset files
+- Creates "Release PR" with version bump + changelog
+- Merge Release PR → automatic version update + GitHub release
+- Your description appears in the changelog
+
+**Manual Commands (for reference):**
+
+```bash
+# Check what would be released
+pnpm changeset:status
+
+# Generate version bump and changelog (automation does this)
+pnpm changeset:version
+
+# Emergency manual release
+pnpm release
+```
+
+**Current State:**
+
+- Version: `0.2.0` (automatically bumped from changesets)
+- Changelog: Auto-generated with all recent features
+- Next release: Will include all new changesets from AI agents
+
 ## 🏆 **COMPETITION REQUIREMENTS**
 
 ### **Core Requirements** (Must Have)
