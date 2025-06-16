@@ -16,6 +16,7 @@ import { GiftPurchaseModal } from "@/components/gift-purchase-modal"
 import { EnhancedChatItem } from "@/components/enhanced-chat-item"
 import { useChatLifecycle } from "@/hooks/use-chat-lifecycle"
 import { Separator } from "@/components/ui/separator"
+import { UserProfile } from "@/components/user-profile"
 import Link from "next/link"
 
 // Mock data for standalone chats (not in projects)
@@ -283,21 +284,7 @@ export function Sidebar() {
             <Separator className="bg-mauve-dark" />
 
             {/* User Profile */}
-            <a href="#" className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder.svg?height=32&width=32" alt="@johndoe" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="font-semibold text-sm">John Zealand-Doyle</span>
-                <Badge
-                  variant="outline"
-                  className="w-fit text-xs bg-mauve-accent/20 border-mauve-accent/50 text-mauve-bright"
-                >
-                  Pro
-                </Badge>
-              </div>
-            </a>
+            <UserProfile />
           </div>
         </aside>
       )}
