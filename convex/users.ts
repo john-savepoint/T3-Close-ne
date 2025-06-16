@@ -1,10 +1,15 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { GenericQueryCtx, GenericMutationCtx } from "convex/server";
+import { GenericDataModel } from "convex/server";
+
+type QueryCtx = GenericQueryCtx<GenericDataModel>;
+type MutationCtx = GenericMutationCtx<GenericDataModel>;
 
 export const getCurrentUser = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: QueryCtx) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       return null;
@@ -19,13 +24,18 @@ export const updateUserProfile = mutation({
     name: v.optional(v.string()),
     image: v.optional(v.string()),
   },
-  handler: async (ctx, { name, image }) => {
+  handler: async (ctx: MutationCtx, { name, image }: { name?: string; image?: string }) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       throw new Error("Not authenticated");
     }
     
-    const updateData: any = {};
+    interface UserUpdateData {
+      name?: string;
+      image?: string;
+    }
+    
+    const updateData: UserUpdateData = {};
     if (name !== undefined) updateData.name = name;
     if (image !== undefined) updateData.image = image;
     

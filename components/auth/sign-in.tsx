@@ -13,14 +13,50 @@ export function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
+
+  const validateForm = () => {
+    const errors: { email?: string; password?: string } = {};
+    
+    if (!email) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Please enter a valid email address";
+    }
+    
+    if (!password) {
+      errors.password = "Password is required";
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handlePasswordSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
+    setError(null);
+    
     try {
       await signIn("password", { email, password, flow: "signIn" });
     } catch (error) {
       console.error("Sign in failed:", error);
+      if (error instanceof Error) {
+        setError(error.message || "Failed to sign in. Please check your credentials.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -28,10 +64,17 @@ export function SignIn() {
 
   const handleOAuthSignIn = async (provider: "github" | "google") => {
     setIsLoading(true);
+    setError(null);
+    
     try {
       await signIn(provider);
     } catch (error) {
       console.error(`${provider} sign in failed:`, error);
+      if (error instanceof Error) {
+        setError(`Failed to sign in with ${provider}. Please try again.`);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -46,26 +89,48 @@ export function SignIn() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {error && (
+          <div className="bg-destructive/15 border border-destructive/50 text-destructive text-sm p-3 rounded-lg">
+            {error}
+          </div>
+        )}
+        
         <form onSubmit={handlePasswordSignIn} className="space-y-4">
           <div className="space-y-2">
             <Input
               type="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (validationErrors.email) {
+                  setValidationErrors(prev => ({ ...prev, email: undefined }));
+                }
+              }}
               disabled={isLoading}
+              className={validationErrors.email ? "border-destructive" : ""}
             />
+            {validationErrors.email && (
+              <p className="text-destructive text-xs">{validationErrors.email}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Input
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (validationErrors.password) {
+                  setValidationErrors(prev => ({ ...prev, password: undefined }));
+                }
+              }}
               disabled={isLoading}
+              className={validationErrors.password ? "border-destructive" : ""}
             />
+            {validationErrors.password && (
+              <p className="text-destructive text-xs">{validationErrors.password}</p>
+            )}
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             <Mail className="w-4 h-4 mr-2" />

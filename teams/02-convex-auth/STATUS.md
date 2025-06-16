@@ -7,7 +7,7 @@
 **Started**: June 16, 2025  
 **Completed**: June 16, 2025 14:30 UTC  
 **Commit**: 4de7d5b  
-**PR**: [Pending creation]  
+**PR**: https://github.com/john-savepoint/T3-Close-ne/pull/4  
 
 ## ✅ **Progress Checklist**
 

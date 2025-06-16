@@ -14,14 +14,22 @@ export function SignUp() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handlePasswordSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
+    
     try {
       await signIn("password", { email, password, name, flow: "signUp" });
     } catch (error) {
       console.error("Sign up failed:", error);
+      if (error instanceof Error) {
+        setError(error.message || "Failed to create account. Please try again.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -29,10 +37,17 @@ export function SignUp() {
 
   const handleOAuthSignIn = async (provider: "github" | "google") => {
     setIsLoading(true);
+    setError(null);
+    
     try {
       await signIn(provider);
     } catch (error) {
       console.error(`${provider} sign up failed:`, error);
+      if (error instanceof Error) {
+        setError(`Failed to sign up with ${provider}. Please try again.`);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -47,6 +62,12 @@ export function SignUp() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {error && (
+          <div className="bg-destructive/15 border border-destructive/50 text-destructive text-sm p-3 rounded-lg">
+            {error}
+          </div>
+        )}
+        
         <form onSubmit={handlePasswordSignUp} className="space-y-4">
           <div className="space-y-2">
             <Input

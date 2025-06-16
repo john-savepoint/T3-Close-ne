@@ -9,7 +9,7 @@ export interface AuthState {
 }
 
 export interface AuthActions {
-  signIn: (provider: string, credentials?: any) => Promise<void>;
+  signIn: (provider: string, credentials?: SignInCredentials | OAuthCredentials) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -18,4 +18,20 @@ export interface SignInCredentials {
   password: string;
   flow: "signIn" | "signUp";
   name?: string;
+}
+
+export interface OAuthCredentials {
+  provider: "github" | "google";
+  redirectTo?: string;
+}
+
+export interface UserUpdateData {
+  name?: string;
+  image?: string;
+}
+
+export interface AuthError {
+  code: string;
+  message: string;
+  details?: string;
 }

@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { LogOut, Settings, User } from "lucide-react";
 import Link from "next/link";
@@ -14,10 +15,10 @@ export function UserProfile() {
   if (!isAuthenticated || !user) {
     return (
       <div className="flex items-center gap-3 p-2">
-        <div className="w-8 h-8 bg-mauve-dark rounded-full animate-pulse" />
+        <Skeleton className="w-8 h-8 rounded-full" />
         <div className="flex flex-col gap-1">
-          <div className="w-20 h-3 bg-mauve-dark rounded animate-pulse" />
-          <div className="w-12 h-2 bg-mauve-dark rounded animate-pulse" />
+          <Skeleton className="w-20 h-3" />
+          <Skeleton className="w-12 h-2" />
         </div>
       </div>
     );
