@@ -9,6 +9,8 @@ export interface ChatMessage {
   editedAt?: Date
 }
 
+export type ChatStatus = "active" | "archived" | "trashed"
+
 export interface Chat {
   id: string
   title: string
@@ -17,6 +19,8 @@ export interface Chat {
   updatedAt: Date
   projectId?: string
   activeLeafMessageId?: string | null
+  status: ChatStatus
+  statusChangedAt: Date
 }
 
 export interface ConversationBranch {
@@ -30,4 +34,10 @@ export interface ConversationBranch {
 export interface ConversationTree {
   branches: ConversationBranch[]
   activeBranchId: string
+}
+
+export interface ChatFilters {
+  status?: ChatStatus
+  projectId?: string
+  searchQuery?: string
 }

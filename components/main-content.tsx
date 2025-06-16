@@ -1,6 +1,4 @@
 "use client"
-
-import { BrainCircuit, Code, GraduationCap, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ChatInput } from "@/components/chat-input"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -11,6 +9,7 @@ import { MemoryContextIndicator } from "@/components/memory-context-indicator"
 import { MemorySuggestionBanner } from "@/components/memory-suggestion-banner"
 import { TemporaryChatBanner } from "@/components/temporary-chat-banner"
 import { TemporaryChatStarter } from "@/components/temporary-chat-starter"
+import { ToolsGrid } from "@/components/tools-grid"
 import { useState } from "react"
 import { useMemory } from "@/hooks/use-memory"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
@@ -75,6 +74,25 @@ export function MainContent() {
     element?.scrollIntoView({ behavior: "smooth", block: "center" })
   }
 
+  const handleToolSelect = (toolId: string, result: any) => {
+    // When a tool generates content, add it as the first message in the chat
+    const newMessage = {
+      id: `msg-${Date.now()}`,
+      type: "assistant" as const,
+      content: result.content,
+      timestamp: new Date(),
+      model: selectedModel,
+      toolUsed: toolId,
+    }
+
+    if (isTemporaryMode) {
+      // Handle temporary chat
+      console.log("Add tool result to temporary chat:", newMessage)
+    } else {
+      setMessages([newMessage])
+    }
+  }
+
   return (
     <main className={`flex-1 flex ${isMobile ? "ml-0" : ""}`}>
       {/* Main chat area */}
@@ -91,33 +109,28 @@ export function MainContent() {
         <div className="relative flex-1 flex flex-col overflow-y-auto">
           <div className="flex-1" />
           {displayMessages.length === 0 ? (
-            // Welcome screen
+            // Welcome screen with tools
             <div className="flex flex-col items-center justify-center p-4 md:p-8 text-center space-y-8">
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground">How can I help you, John?</h2>
-                <div className="mt-6 flex flex-wrap justify-center gap-3 md:gap-4">
-                  <Button variant="outline" className="bg-mauve-surface/50 border-mauve-dark hover:bg-mauve-surface/80">
-                    <Sparkles className="mr-2 h-4 w-4" /> Create
-                  </Button>
-                  <Button variant="outline" className="bg-mauve-surface/50 border-mauve-dark hover:bg-mauve-surface/80">
-                    <BrainCircuit className="mr-2 h-4 w-4" /> Explore
-                  </Button>
-                  <Button variant="outline" className="bg-mauve-surface/50 border-mauve-dark hover:bg-mauve-surface/80">
-                    <Code className="mr-2 h-4 w-4" /> Code
-                  </Button>
-                  <Button variant="outline" className="bg-mauve-surface/50 border-mauve-dark hover:bg-mauve-surface/80">
-                    <GraduationCap className="mr-2 h-4 w-4" /> Learn
-                  </Button>
-                </div>
+                <p className="text-lg text-mauve-subtle/80 mt-2">Choose a specialized tool or start a conversation</p>
               </div>
 
+              {/* Tools Grid */}
+              <div className="w-full max-w-4xl">
+                <ToolsGrid onToolSelect={handleToolSelect} />
+              </div>
+
+              {/* Temporary Chat Starter - only show when not in temporary mode */}
               {!isTemporaryMode && (
                 <div className="w-full max-w-md">
                   <TemporaryChatStarter />
                 </div>
               )}
 
+              {/* Quick Start Prompts */}
               <div className="flex flex-col w-full max-w-2xl mx-auto space-y-2">
+                <div className="text-sm text-mauve-subtle/60 mb-2">Or try these quick prompts:</div>
                 <Button variant="ghost" className="justify-start p-3 bg-mauve-surface/30 hover:bg-mauve-surface/50">
                   How does AI work?
                 </Button>

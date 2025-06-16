@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Pin, Search, Trash2, GitBranch, Menu, EyeOff, Plus, Gift } from "lucide-react"
+import { Search, Trash2, Menu, EyeOff, Plus, Gift, Archive } from "lucide-react"
 import { T3Logo } from "@/components/t3-logo"
 import { useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -13,45 +13,106 @@ import { ProjectList } from "@/components/project-list"
 import { useProjects } from "@/hooks/use-projects"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { GiftPurchaseModal } from "@/components/gift-purchase-modal"
+import { EnhancedChatItem } from "@/components/enhanced-chat-item"
+import { useChatLifecycle } from "@/hooks/use-chat-lifecycle"
+import { Separator } from "@/components/ui/separator"
+import Link from "next/link"
 
 // Mock data for standalone chats (not in projects)
 const pinnedThreads = [
-  { id: "1", title: "Gmail Chrome Extension Project Brief: Labeling...", timestamp: "2 hours ago" },
-  { id: "2", title: "Next.js SaaS website and mobile project brief...", timestamp: "Yesterday" },
+  {
+    id: "1",
+    title: "Gmail Chrome Extension Project Brief: Labeling...",
+    timestamp: "2 hours ago",
+    status: "active" as const,
+    statusChangedAt: new Date(),
+    messages: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "2",
+    title: "Next.js SaaS website and mobile project brief...",
+    timestamp: "Yesterday",
+    status: "active" as const,
+    statusChangedAt: new Date(),
+    messages: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
 ]
 const todayThreads = [
-  { id: "3", title: "Free Adobe Acrobat Reader Alternative", timestamp: "Today" },
-  { id: "4", title: "T3Chat Feature Requests Documentation Project", timestamp: "Today" },
-  { id: "5", title: "Removing a threaded Shimano chain pin", parent: true, timestamp: "Today" },
+  {
+    id: "3",
+    title: "Free Adobe Acrobat Reader Alternative",
+    timestamp: "Today",
+    status: "active" as const,
+    statusChangedAt: new Date(),
+    messages: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "4",
+    title: "T3Chat Feature Requests Documentation Project",
+    timestamp: "Today",
+    status: "active" as const,
+    statusChangedAt: new Date(),
+    messages: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "5",
+    title: "Removing a threaded Shimano chain pin",
+    parent: true,
+    timestamp: "Today",
+    status: "active" as const,
+    statusChangedAt: new Date(),
+    messages: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
 ]
 const yesterdayThreads = [
-  { id: "6", title: "How to optimize React performance", timestamp: "Yesterday" },
-  { id: "7", title: "Best practices for API design", timestamp: "Yesterday" },
+  {
+    id: "6",
+    title: "How to optimize React performance",
+    timestamp: "Yesterday",
+    status: "active" as const,
+    statusChangedAt: new Date(),
+    messages: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "7",
+    title: "Best practices for API design",
+    timestamp: "Yesterday",
+    status: "active" as const,
+    statusChangedAt: new Date(),
+    messages: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
 ]
 
 // Thread Item Component
-const ThreadItem = ({ title, parent = false, timestamp, isActive = false }) => (
-  <a
-    href="#"
-    className={`group flex items-center p-2 rounded-lg hover:bg-white/5 transition-colors ${isActive ? "bg-mauve-accent/10" : ""}`}
-  >
-    <div className="flex-1 overflow-hidden">
-      {parent && <GitBranch className="inline-block w-4 h-4 mr-2 text-mauve-subtle/50" />}
-      <span className="truncate text-sm text-mauve-subtle">{title}</span>
-      <div className="text-xs text-mauve-subtle/50 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {timestamp}
-      </div>
-    </div>
-    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-      <Button variant="ghost" size="icon" className="h-7 w-7">
-        <Pin className="h-4 w-4" />
-      </Button>
-      <Button variant="ghost" size="icon" className="h-7 w-7">
-        <Trash2 className="h-4 w-4" />
-      </Button>
-    </div>
-  </a>
-)
+const ThreadItem = ({ chat, parent = false, isActive = false }) => {
+  const { moveToTrash, moveToArchive } = useChatLifecycle()
+
+  return (
+    <EnhancedChatItem
+      chat={chat}
+      isActive={isActive}
+      onMoveToTrash={() => moveToTrash(chat.id)}
+      onMoveToArchive={() => moveToArchive(chat.id)}
+      onRestore={() => {}}
+      onDeletePermanently={() => {}}
+      showParentIcon={parent}
+    />
+  )
+}
 
 // Group Label Component
 const GroupLabel = ({ label }) => (
@@ -64,6 +125,7 @@ export function Sidebar() {
   const [searchQuery, setSearchQuery] = useState("")
   const { activeProject } = useProjects()
   const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
+  const { archivedChats, trashedChats } = useChatLifecycle()
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
@@ -174,29 +236,53 @@ export function Sidebar() {
               <div className="mt-4">
                 <GroupLabel label="Pinned" />
                 {pinnedThreads.map((thread) => (
-                  <ThreadItem key={thread.id} title={thread.title} timestamp={thread.timestamp} />
+                  <ThreadItem key={thread.id} chat={thread} />
                 ))}
 
                 <GroupLabel label="Today" />
                 {todayThreads.map((thread) => (
-                  <ThreadItem
-                    key={thread.id}
-                    title={thread.title}
-                    parent={thread.parent}
-                    timestamp={thread.timestamp}
-                  />
+                  <ThreadItem key={thread.id} chat={thread} parent={thread.parent} />
                 ))}
 
                 <GroupLabel label="Yesterday" />
                 {yesterdayThreads.map((thread) => (
-                  <ThreadItem key={thread.id} title={thread.title} timestamp={thread.timestamp} />
+                  <ThreadItem key={thread.id} chat={thread} />
                 ))}
               </div>
             </nav>
           </ScrollArea>
 
-          {/* Footer */}
-          <div className="mt-auto pt-2 border-t border-mauve-dark">
+          {/* Archive & Trash Navigation */}
+          <div className="mt-auto pt-2 border-t border-mauve-dark space-y-2">
+            <div className="space-y-1">
+              <Link href="/archive">
+                <Button variant="ghost" className="w-full justify-start text-mauve-subtle hover:text-mauve-bright">
+                  <Archive className="w-4 h-4 mr-2" />
+                  Archive
+                  {archivedChats.length > 0 && (
+                    <Badge variant="outline" className="ml-auto text-xs">
+                      {archivedChats.length}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
+
+              <Link href="/trash">
+                <Button variant="ghost" className="w-full justify-start text-mauve-subtle hover:text-mauve-bright">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Trash
+                  {trashedChats.length > 0 && (
+                    <Badge variant="outline" className="ml-auto text-xs">
+                      {trashedChats.length}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
+            </div>
+
+            <Separator className="bg-mauve-dark" />
+
+            {/* User Profile */}
             <a href="#" className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors">
               <Avatar className="h-8 w-8">
                 <AvatarImage src="/placeholder.svg?height=32&width=32" alt="@johndoe" />
