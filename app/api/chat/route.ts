@@ -21,6 +21,29 @@ export async function POST(req: NextRequest) {
 
     const selectedModel = (model as SupportedModel) || 'openai/gpt-4o-mini';
     
+    // Validate model is supported
+    const SUPPORTED_MODELS = [
+      'openai/gpt-4o',
+      'openai/gpt-4o-mini',
+      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-3-haiku',
+      'google/gemini-pro-1.5',
+      'meta-llama/llama-3.1-405b-instruct',
+    ];
+    
+    if (!SUPPORTED_MODELS.includes(selectedModel)) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid model specified',
+          supportedModels: SUPPORTED_MODELS 
+        }), 
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     // Create OpenAI client configured for OpenRouter
     const openRouterClient = openai({
       baseURL: 'https://openrouter.ai/api/v1',
@@ -47,6 +70,50 @@ export async function POST(req: NextRequest) {
     console.error('Chat API error:', error);
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    // Handle specific error types for better UX
+    if (errorMessage.toLowerCase().includes('rate limit')) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded',
+          details: 'Please wait a moment before sending another message',
+          retryAfter: 60
+        }), 
+        { 
+          status: 429,
+          headers: { 
+            'Content-Type': 'application/json',
+            'Retry-After': '60'
+          }
+        }
+      );
+    }
+    
+    if (errorMessage.toLowerCase().includes('unauthorized') || errorMessage.toLowerCase().includes('api key')) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid API key',
+          details: 'Please check your OpenRouter API key configuration'
+        }), 
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
+    if (errorMessage.toLowerCase().includes('timeout')) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Request timeout',
+          details: 'The request took too long to process. Please try again.'
+        }), 
+        { 
+          status: 408,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
     
     return new Response(
       JSON.stringify({ 
