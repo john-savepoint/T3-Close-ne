@@ -3,9 +3,10 @@
 ## 📊 **Current Status**: ✅ COMPLETED
 
 **Agent**: Claude Code  
-**Branch**: `feat/chat-streaming`  
+**Branch**: `session/feat/chat-streaming`  
 **Started**: June 16, 2025  
 **Completed**: June 16, 2025  
+**PR**: https://github.com/john-savepoint/T3-Close-ne/pull/5  
 
 ## ✅ **Progress Checklist**
 
