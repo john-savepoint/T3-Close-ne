@@ -1,12 +1,30 @@
 {
-  "name": "my-v0-project",
+  "name": "z6chat",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:convex": "npx convex dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "type-check": "tsc --noEmit",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "quality:check": "pnpm type-check && pnpm lint && pnpm format:check",
+    "quality:fix": "pnpm lint:fix && pnpm format",
+    "prepare": "husky",
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -62,10 +80,20 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@typescript-eslint/eslint-plugin": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.0",
+    "commitlint": "^19.8.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
     "postcss": "^8.5",
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.12",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }
