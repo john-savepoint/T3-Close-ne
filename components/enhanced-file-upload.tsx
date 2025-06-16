@@ -5,7 +5,13 @@ import React from "react"
 import { useState, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -34,9 +40,20 @@ interface EnhancedFileUploadProps {
   targetType?: "chat" | "project"
 }
 
-export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, targetType }: EnhancedFileUploadProps) {
-  const { uploadFiles, uploadDirectory, uploadProgress, addAttachmentToContext, SUPPORTED_FILE_TYPES, loading } =
-    useAttachments()
+export function EnhancedFileUpload({
+  onFilesAttached,
+  maxFiles = 20,
+  targetId,
+  targetType,
+}: EnhancedFileUploadProps) {
+  const {
+    uploadFiles,
+    uploadDirectory,
+    uploadProgress,
+    addAttachmentToContext,
+    SUPPORTED_FILE_TYPES,
+    loading,
+  } = useAttachments()
 
   const [isOpen, setIsOpen] = useState(false)
   const [directoryUpload, setDirectoryUpload] = useState<DirectoryUpload | null>(null)
@@ -66,7 +83,7 @@ export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, t
               attachment.id,
               targetId,
               targetType,
-              targetType === "project" ? "Project Context" : "Chat Context",
+              targetType === "project" ? "Project Context" : "Chat Context"
             )
           }
         }
@@ -77,7 +94,7 @@ export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, t
         console.error("Upload failed:", error)
       }
     },
-    [uploadFiles, onFilesAttached, targetId, targetType, addAttachmentToContext],
+    [uploadFiles, onFilesAttached, targetId, targetType, addAttachmentToContext]
   )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -88,7 +105,7 @@ export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, t
         acc[type.trim()] = []
         return acc
       },
-      {} as Record<string, string[]>,
+      {} as Record<string, string[]>
     ),
   })
 
@@ -173,7 +190,7 @@ export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, t
             <Paperclip className="h-4 w-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="bg-mauve-surface border-mauve-dark max-w-4xl max-h-[80vh]">
+        <DialogContent className="max-h-[80vh] max-w-4xl border-mauve-dark bg-mauve-surface">
           <DialogHeader>
             <DialogTitle className="text-foreground">Attach Files</DialogTitle>
           </DialogHeader>
@@ -182,12 +199,12 @@ export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, t
             <TabsList className="grid w-full grid-cols-2 bg-mauve-dark/50">
               <TabsTrigger value="upload">Upload Files</TabsTrigger>
               <TabsTrigger value="library">
-                <Library className="w-4 h-4 mr-2" />
+                <Library className="mr-2 h-4 w-4" />
                 Choose from Library
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="upload" className="space-y-4 mt-4">
+            <TabsContent value="upload" className="mt-4 space-y-4">
               {/* Upload Progress */}
               {uploadProgress.length > 0 && (
                 <div className="space-y-2">
@@ -203,23 +220,23 @@ export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, t
               )}
 
               {/* Upload Options */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {/* File Upload */}
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                  className={`cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
                     isDragActive
                       ? "border-mauve-accent bg-mauve-accent/10"
                       : "border-mauve-dark hover:border-mauve-accent/50"
                   }`}
                 >
                   <input {...getInputProps()} />
-                  <Upload className="w-8 h-8 mx-auto mb-3 text-mauve-subtle" />
+                  <Upload className="mx-auto mb-3 h-8 w-8 text-mauve-subtle" />
                   {isDragActive ? (
                     <p className="text-mauve-bright">Drop files here...</p>
                   ) : (
                     <div>
-                      <p className="text-foreground mb-2">Drag & drop files</p>
+                      <p className="mb-2 text-foreground">Drag & drop files</p>
                       <Button variant="outline" size="sm" onClick={handleFileSelect}>
                         Or browse files
                       </Button>
@@ -228,9 +245,9 @@ export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, t
                 </div>
 
                 {/* Directory Upload */}
-                <div className="border-2 border-dashed border-mauve-dark rounded-lg p-6 text-center">
-                  <FolderOpen className="w-8 h-8 mx-auto mb-3 text-mauve-subtle" />
-                  <p className="text-foreground mb-2">Upload entire folder</p>
+                <div className="rounded-lg border-2 border-dashed border-mauve-dark p-6 text-center">
+                  <FolderOpen className="mx-auto mb-3 h-8 w-8 text-mauve-subtle" />
+                  <p className="mb-2 text-foreground">Upload entire folder</p>
                   <Button variant="outline" size="sm" onClick={handleDirectorySelect}>
                     Select Folder
                   </Button>
@@ -240,7 +257,7 @@ export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, t
               {/* Supported File Types */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium">Supported File Types</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                <div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
                   {Object.entries(SUPPORTED_FILE_TYPES).map(([category, types]) => (
                     <div key={category} className="space-y-1">
                       <div className="font-medium capitalize text-mauve-accent">{category}</div>
@@ -288,13 +305,13 @@ export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, t
       {/* Directory Upload Confirmation */}
       {showDirectoryConfirm && directoryUpload && (
         <Dialog open={showDirectoryConfirm} onOpenChange={setShowDirectoryConfirm}>
-          <DialogContent className="bg-mauve-surface border-mauve-dark">
+          <DialogContent className="border-mauve-dark bg-mauve-surface">
             <DialogHeader>
               <DialogTitle className="text-foreground">Confirm Directory Upload</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4">
-              <Alert className="bg-blue-500/10 border-blue-500/20">
+              <Alert className="border-blue-500/20 bg-blue-500/10">
                 <FolderOpen className="h-4 w-4 text-blue-400" />
                 <AlertDescription className="text-blue-300">
                   You're about to upload <strong>{directoryUpload.fileCount} files</strong> from the{" "}
@@ -317,13 +334,15 @@ export function EnhancedFileUpload({ onFilesAttached, maxFiles = 20, targetId, t
                 <div className="space-y-1">
                   {directoryUpload.files.slice(0, 10).map((file, index) => (
                     <div key={index} className="flex items-center gap-2 text-xs">
-                      {React.createElement(getFileIcon(file.type), { className: "w-3 h-3 text-mauve-subtle" })}
+                      {React.createElement(getFileIcon(file.type), {
+                        className: "w-3 h-3 text-mauve-subtle",
+                      })}
                       <span className="truncate">{file.webkitRelativePath}</span>
                       <span className="text-mauve-subtle/70">{formatFileSize(file.size)}</span>
                     </div>
                   ))}
                   {directoryUpload.files.length > 10 && (
-                    <div className="text-xs text-mauve-subtle/70 text-center">
+                    <div className="text-center text-xs text-mauve-subtle/70">
                       ... and {directoryUpload.files.length - 10} more files
                     </div>
                   )}
@@ -354,15 +373,15 @@ function UploadProgressItem({ progress }: UploadProgressItemProps) {
   const getStatusIcon = () => {
     switch (progress.status) {
       case "uploading":
-        return <Upload className="w-4 h-4 text-blue-400" />
+        return <Upload className="h-4 w-4 text-blue-400" />
       case "processing":
-        return <Code className="w-4 h-4 text-yellow-400" />
+        return <Code className="h-4 w-4 text-yellow-400" />
       case "completed":
-        return <Check className="w-4 h-4 text-green-400" />
+        return <Check className="h-4 w-4 text-green-400" />
       case "error":
-        return <X className="w-4 h-4 text-red-400" />
+        return <X className="h-4 w-4 text-red-400" />
       default:
-        return <File className="w-4 h-4 text-mauve-subtle" />
+        return <File className="h-4 w-4 text-mauve-subtle" />
     }
   }
 
@@ -382,17 +401,19 @@ function UploadProgressItem({ progress }: UploadProgressItemProps) {
   }
 
   return (
-    <div className="flex items-center gap-3 p-2 bg-mauve-dark/30 rounded">
+    <div className="flex items-center gap-3 rounded bg-mauve-dark/30 p-2">
       {getStatusIcon()}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between">
-          <span className="text-sm truncate">{progress.filename}</span>
+          <span className="truncate text-sm">{progress.filename}</span>
           <span className="text-xs text-mauve-subtle/70">
             {progress.status === "uploading" ? `${progress.progress}%` : progress.status}
           </span>
         </div>
-        {progress.status === "uploading" && <Progress value={progress.progress} className="mt-1 h-1" />}
-        {progress.error && <p className="text-xs text-red-400 mt-1">{progress.error}</p>}
+        {progress.status === "uploading" && (
+          <Progress value={progress.progress} className="mt-1 h-1" />
+        )}
+        {progress.error && <p className="mt-1 text-xs text-red-400">{progress.error}</p>}
       </div>
     </div>
   )

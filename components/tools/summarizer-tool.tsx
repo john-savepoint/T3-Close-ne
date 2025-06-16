@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
 import { Loader2, Copy, Check } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface SummarizerToolProps {
   onComplete: (result: { content: string }) => void
@@ -73,7 +79,8 @@ export function SummarizerTool({ onComplete }: SummarizerToolProps) {
   const handleUse = () => {
     // Format the summary with context
     const styleLabel = summaryStyle === "paragraph" ? "Paragraph" : "Bullet Points"
-    const lengthLabel = summaryLength === "short" ? "Short" : summaryLength === "medium" ? "Medium" : "Detailed"
+    const lengthLabel =
+      summaryLength === "short" ? "Short" : summaryLength === "medium" ? "Medium" : "Detailed"
 
     const contentWithContext = `**${lengthLabel} Summary (${styleLabel}):**\n\n${summary}`
     onComplete({ content: contentWithContext })
@@ -81,9 +88,9 @@ export function SummarizerTool({ onComplete }: SummarizerToolProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium mb-1">Text to Summarize</label>
+          <label className="mb-1 block text-sm font-medium">Text to Summarize</label>
           <Textarea
             placeholder="Paste your text here..."
             className="min-h-[250px]"
@@ -91,9 +98,9 @@ export function SummarizerTool({ onComplete }: SummarizerToolProps) {
             onChange={(e) => setText(e.target.value)}
           />
 
-          <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Length</label>
+              <label className="mb-1 block text-sm font-medium">Length</label>
               <Select value={summaryLength} onValueChange={setSummaryLength}>
                 <SelectTrigger>
                   <SelectValue placeholder="Length" />
@@ -107,7 +114,7 @@ export function SummarizerTool({ onComplete }: SummarizerToolProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Format</label>
+              <label className="mb-1 block text-sm font-medium">Format</label>
               <Select value={summaryStyle} onValueChange={setSummaryStyle}>
                 <SelectTrigger>
                   <SelectValue placeholder="Format" />
@@ -120,7 +127,7 @@ export function SummarizerTool({ onComplete }: SummarizerToolProps) {
             </div>
           </div>
 
-          <Button onClick={handleSummarize} disabled={!text || isLoading} className="w-full mt-4">
+          <Button onClick={handleSummarize} disabled={!text || isLoading} className="mt-4 w-full">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Summarizing...
@@ -132,7 +139,7 @@ export function SummarizerTool({ onComplete }: SummarizerToolProps) {
         </div>
 
         <div>
-          <div className="flex justify-between items-center mb-1">
+          <div className="mb-1 flex items-center justify-between">
             <label className="block text-sm font-medium">Summary</label>
             {summary && (
               <Button variant="ghost" size="icon" onClick={handleCopy} className="h-6 w-6">
@@ -141,14 +148,14 @@ export function SummarizerTool({ onComplete }: SummarizerToolProps) {
             )}
           </div>
 
-          <Card className="p-4 min-h-[250px] bg-mauve-surface/30">
+          <Card className="min-h-[250px] bg-mauve-surface/30 p-4">
             {summary ? (
               <div className="whitespace-pre-line">{summary}</div>
             ) : (
-              <div className="h-full flex items-center justify-center text-mauve-subtle/70 text-sm">
+              <div className="flex h-full items-center justify-center text-sm text-mauve-subtle/70">
                 {isLoading ? (
                   <div className="flex flex-col items-center">
-                    <Loader2 className="h-5 w-5 animate-spin mb-2" />
+                    <Loader2 className="mb-2 h-5 w-5 animate-spin" />
                     <p>Analyzing and summarizing...</p>
                   </div>
                 ) : (
@@ -159,7 +166,7 @@ export function SummarizerTool({ onComplete }: SummarizerToolProps) {
           </Card>
 
           {summary && (
-            <Button onClick={handleUse} className="w-full mt-4">
+            <Button onClick={handleUse} className="mt-4 w-full">
               Use This Summary
             </Button>
           )}

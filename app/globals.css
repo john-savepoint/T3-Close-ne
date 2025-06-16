@@ -64,7 +64,8 @@
   .main-background::before {
     content: "";
     @apply absolute inset-0 bg-mauve-deep opacity-100;
-    background-image: radial-gradient(closest-corner at 120px 36px, rgba(255, 1, 111, 0.19), rgba(255, 1, 111, 0)),
+    background-image:
+      radial-gradient(closest-corner at 120px 36px, rgba(255, 1, 111, 0.19), rgba(255, 1, 111, 0)),
       linear-gradient(hsl(285, 30%, 15%) 15%, hsl(285, 50%, 5%));
     opacity: 0.4;
   }

@@ -13,10 +13,18 @@ import { ConfirmationModal } from "@/components/confirmation-modal"
 export function TrashView() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showEmptyTrashModal, setShowEmptyTrashModal] = useState(false)
-  const { trashedChats, loading, restoreFromTrash, deletePermanently, emptyTrash, getDaysUntilAutoPurge } =
-    useChatLifecycle()
+  const {
+    trashedChats,
+    loading,
+    restoreFromTrash,
+    deletePermanently,
+    emptyTrash,
+    getDaysUntilAutoPurge,
+  } = useChatLifecycle()
 
-  const filteredChats = trashedChats.filter((chat) => chat.title.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredChats = trashedChats.filter((chat) =>
+    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   const handleRestore = async (chatId: string) => {
     try {
@@ -51,21 +59,21 @@ export function TrashView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="text-mauve-subtle">Loading trash...</div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-mauve-dark">
-        <div className="flex items-center justify-between mb-4">
+      <div className="border-b border-mauve-dark p-6">
+        <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Trash2 className="h-6 w-6 text-red-400" />
             <h1 className="text-2xl font-bold text-foreground">Trash</h1>
-            <Badge variant="outline" className="bg-red-500/10 border-red-500/50 text-red-400">
+            <Badge variant="outline" className="border-red-500/50 bg-red-500/10 text-red-400">
               {trashedChats.length} {trashedChats.length === 1 ? "chat" : "chats"}
             </Badge>
           </div>
@@ -74,32 +82,32 @@ export function TrashView() {
             <Button
               variant="destructive"
               onClick={() => setShowEmptyTrashModal(true)}
-              className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/50"
+              className="border-red-500/50 bg-red-500/20 text-red-400 hover:bg-red-500/30"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="mr-2 h-4 w-4" />
               Empty Trash
             </Button>
           )}
         </div>
 
-        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4 mb-4">
+        <div className="mb-4 rounded-lg border border-orange-500/20 bg-orange-500/10 p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-400" />
             <div>
-              <p className="text-orange-400 font-medium mb-1">Auto-deletion Policy</p>
-              <p className="text-orange-300/80 text-sm">
-                Items in Trash are automatically deleted after 30 days. This helps keep your account storage optimized
-                while giving you time to recover accidentally deleted chats.
+              <p className="mb-1 font-medium text-orange-400">Auto-deletion Policy</p>
+              <p className="text-sm text-orange-300/80">
+                Items in Trash are automatically deleted after 30 days. This helps keep your account
+                storage optimized while giving you time to recover accidentally deleted chats.
               </p>
             </div>
           </div>
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-mauve-subtle" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mauve-subtle" />
           <Input
             placeholder="Search trash..."
-            className="pl-9 bg-black/20 border-mauve-dark focus-visible:ring-mauve-accent"
+            className="border-mauve-dark bg-black/20 pl-9 focus-visible:ring-mauve-accent"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -109,12 +117,12 @@ export function TrashView() {
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {filteredChats.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <Trash2 className="h-16 w-16 text-mauve-subtle/30 mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
+          <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+            <Trash2 className="mb-4 h-16 w-16 text-mauve-subtle/30" />
+            <h3 className="mb-2 text-lg font-semibold text-foreground">
               {searchQuery ? "No matching items in trash" : "Trash is empty"}
             </h3>
-            <p className="text-mauve-subtle max-w-md">
+            <p className="max-w-md text-mauve-subtle">
               {searchQuery
                 ? "Try adjusting your search terms to find what you're looking for."
                 : "When you delete chats, they'll appear here for 30 days before being permanently removed."}
@@ -127,14 +135,14 @@ export function TrashView() {
           </div>
         ) : (
           <ScrollArea className="h-full">
-            <div className="p-4 space-y-2">
+            <div className="space-y-2 p-4">
               {filteredChats.map((chat) => (
                 <EnhancedChatItem
                   key={chat.id}
                   chat={chat}
                   onRestore={() => handleRestore(chat.id)}
                   onDeletePermanently={() => handleDeletePermanently(chat.id)}
-                  className="bg-red-500/5 hover:bg-red-500/10 border border-red-500/20"
+                  className="border border-red-500/20 bg-red-500/5 hover:bg-red-500/10"
                 />
               ))}
             </div>

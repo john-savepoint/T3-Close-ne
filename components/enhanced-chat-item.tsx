@@ -9,7 +9,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, Pin, Archive, Trash2, GitBranch, Edit, Share, RotateCcw, AlertTriangle } from "lucide-react"
+import {
+  MoreHorizontal,
+  Pin,
+  Archive,
+  Trash2,
+  GitBranch,
+  Edit,
+  Share,
+  RotateCcw,
+  AlertTriangle,
+} from "lucide-react"
 import type { Chat } from "@/types/chat"
 import { formatDistanceToNow } from "date-fns"
 import { useState } from "react"
@@ -47,13 +57,16 @@ export function EnhancedChatItem({
     switch (chat.status) {
       case "archived":
         return (
-          <Badge variant="outline" className="text-xs bg-blue-500/10 border-blue-500/50 text-blue-400">
+          <Badge
+            variant="outline"
+            className="border-blue-500/50 bg-blue-500/10 text-xs text-blue-400"
+          >
             Archived
           </Badge>
         )
       case "trashed":
         return (
-          <Badge variant="outline" className="text-xs bg-red-500/10 border-red-500/50 text-red-400">
+          <Badge variant="outline" className="border-red-500/50 bg-red-500/10 text-xs text-red-400">
             Trashed
           </Badge>
         )
@@ -66,7 +79,7 @@ export function EnhancedChatItem({
     if (chat.status === "trashed" && chat.statusChangedAt) {
       const daysLeft = Math.max(
         0,
-        30 - Math.floor((Date.now() - chat.statusChangedAt.getTime()) / (1000 * 60 * 60 * 24)),
+        30 - Math.floor((Date.now() - chat.statusChangedAt.getTime()) / (1000 * 60 * 60 * 24))
       )
       return `${daysLeft} days left`
     }
@@ -83,12 +96,12 @@ export function EnhancedChatItem({
       return (
         <>
           <DropdownMenuItem onClick={onRestore} className="text-green-400">
-            <RotateCcw className="h-4 w-4 mr-2" />
+            <RotateCcw className="mr-2 h-4 w-4" />
             Restore
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onDeletePermanently} className="text-red-400">
-            <AlertTriangle className="h-4 w-4 mr-2" />
+            <AlertTriangle className="mr-2 h-4 w-4" />
             Delete Permanently
           </DropdownMenuItem>
         </>
@@ -99,20 +112,20 @@ export function EnhancedChatItem({
       return (
         <>
           <DropdownMenuItem onClick={onRestore} className="text-green-400">
-            <RotateCcw className="h-4 w-4 mr-2" />
+            <RotateCcw className="mr-2 h-4 w-4" />
             Unarchive
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onMoveToTrash}>
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="mr-2 h-4 w-4" />
             Move to Trash
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onRename}>
-            <Edit className="h-4 w-4 mr-2" />
+            <Edit className="mr-2 h-4 w-4" />
             Rename
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onShare}>
-            <Share className="h-4 w-4 mr-2" />
+            <Share className="mr-2 h-4 w-4" />
             Share
           </DropdownMenuItem>
         </>
@@ -123,25 +136,25 @@ export function EnhancedChatItem({
     return (
       <>
         <DropdownMenuItem onClick={onPin}>
-          <Pin className="h-4 w-4 mr-2" />
+          <Pin className="mr-2 h-4 w-4" />
           Pin
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onRename}>
-          <Edit className="h-4 w-4 mr-2" />
+          <Edit className="mr-2 h-4 w-4" />
           Rename
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onMoveToArchive}>
-          <Archive className="h-4 w-4 mr-2" />
+          <Archive className="mr-2 h-4 w-4" />
           Archive
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onMoveToTrash}>
-          <Trash2 className="h-4 w-4 mr-2" />
+          <Trash2 className="mr-2 h-4 w-4" />
           Move to Trash
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onShare}>
-          <Share className="h-4 w-4 mr-2" />
+          <Share className="mr-2 h-4 w-4" />
           Share
         </DropdownMenuItem>
       </>
@@ -150,15 +163,17 @@ export function EnhancedChatItem({
 
   return (
     <div
-      className={`group flex items-center p-2 rounded-lg hover:bg-white/5 transition-colors ${
+      className={`group flex items-center rounded-lg p-2 transition-colors hover:bg-white/5 ${
         isActive ? "bg-mauve-accent/10" : ""
       } ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex-1 overflow-hidden min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          {showParentIcon && <GitBranch className="inline-block w-4 h-4 text-mauve-subtle/50 flex-shrink-0" />}
+      <div className="min-w-0 flex-1 overflow-hidden">
+        <div className="mb-1 flex items-center gap-2">
+          {showParentIcon && (
+            <GitBranch className="inline-block h-4 w-4 flex-shrink-0 text-mauve-subtle/50" />
+          )}
           <span className="truncate text-sm text-mauve-subtle">{chat.title}</span>
           {getStatusBadge()}
         </div>
@@ -172,7 +187,9 @@ export function EnhancedChatItem({
             {getTimeDisplay()}
           </div>
 
-          {chat.status === "trashed" && <AlertTriangle className="h-3 w-3 text-red-400 flex-shrink-0" />}
+          {chat.status === "trashed" && (
+            <AlertTriangle className="h-3 w-3 flex-shrink-0 text-red-400" />
+          )}
         </div>
       </div>
 

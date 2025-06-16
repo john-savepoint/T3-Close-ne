@@ -60,7 +60,11 @@ export function useTeams() {
   }
 
   const createTeam = useCallback(
-    async (data: { name: string; planType: "family" | "team"; maxSeats: number }): Promise<Team> => {
+    async (data: {
+      name: string
+      planType: "family" | "team"
+      maxSeats: number
+    }): Promise<Team> => {
       setLoading(true)
 
       try {
@@ -103,7 +107,7 @@ export function useTeams() {
         setLoading(false)
       }
     },
-    [],
+    []
   )
 
   const inviteMember = useCallback(
@@ -142,7 +146,7 @@ export function useTeams() {
         setLoading(false)
       }
     },
-    [teams],
+    [teams]
   )
 
   const acceptInvitation = useCallback(
@@ -153,7 +157,9 @@ export function useTeams() {
         // Simulate API call
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        const invitation = invitations.find((inv) => inv.invitationCode === invitationCode && inv.status === "pending")
+        const invitation = invitations.find(
+          (inv) => inv.invitationCode === invitationCode && inv.status === "pending"
+        )
 
         if (!invitation) {
           throw new Error("Invalid or expired invitation")
@@ -165,7 +171,9 @@ export function useTeams() {
 
         // Update invitation status
         setInvitations((prev) =>
-          prev.map((inv) => (inv.id === invitation.id ? { ...inv, status: "accepted" as const } : inv)),
+          prev.map((inv) =>
+            inv.id === invitation.id ? { ...inv, status: "accepted" as const } : inv
+          )
         )
 
         // Add member to team
@@ -184,8 +192,10 @@ export function useTeams() {
         // Update team used seats
         setTeams((prev) =>
           prev.map((team) =>
-            team.id === invitation.teamId ? { ...team, usedSeats: team.usedSeats + 1, updatedAt: new Date() } : team,
-          ),
+            team.id === invitation.teamId
+              ? { ...team, usedSeats: team.usedSeats + 1, updatedAt: new Date() }
+              : team
+          )
         )
       } catch (error) {
         console.error("Failed to accept invitation:", error)
@@ -194,7 +204,7 @@ export function useTeams() {
         setLoading(false)
       }
     },
-    [invitations],
+    [invitations]
   )
 
   const removeMember = useCallback(async (teamId: string, userId: string): Promise<void> => {
@@ -207,15 +217,19 @@ export function useTeams() {
       // Update member status
       setTeamMembers((prev) =>
         prev.map((member) =>
-          member.teamId === teamId && member.userId === userId ? { ...member, status: "removed" as const } : member,
-        ),
+          member.teamId === teamId && member.userId === userId
+            ? { ...member, status: "removed" as const }
+            : member
+        )
       )
 
       // Update team used seats
       setTeams((prev) =>
         prev.map((team) =>
-          team.id === teamId ? { ...team, usedSeats: Math.max(1, team.usedSeats - 1), updatedAt: new Date() } : team,
-        ),
+          team.id === teamId
+            ? { ...team, usedSeats: Math.max(1, team.usedSeats - 1), updatedAt: new Date() }
+            : team
+        )
       )
     } catch (error) {
       console.error("Failed to remove member:", error)
@@ -229,17 +243,19 @@ export function useTeams() {
     (teamId: string): TeamMember[] => {
       return teamMembers.filter((member) => member.teamId === teamId && member.status === "active")
     },
-    [teamMembers],
+    [teamMembers]
   )
 
   const getUserTeam = useCallback(
     (userId: string): Team | null => {
-      const memberRecord = teamMembers.find((member) => member.userId === userId && member.status === "active")
+      const memberRecord = teamMembers.find(
+        (member) => member.userId === userId && member.status === "active"
+      )
       if (!memberRecord) return null
 
       return teams.find((team) => team.id === memberRecord.teamId) || null
     },
-    [teams, teamMembers],
+    [teams, teamMembers]
   )
 
   return {

@@ -2,7 +2,12 @@
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Send, Palette, Globe } from "lucide-react"
 import { useRef, useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -46,12 +51,12 @@ export function ChatInput() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-2 bg-mauve-surface/40 backdrop-blur-xl border border-t-white/10 border-l-white/10 border-r-black/20 border-b-black/20 rounded-2xl shadow-2xl shadow-black/30">
+    <div className="mx-auto w-full max-w-3xl rounded-2xl border border-b-black/20 border-l-white/10 border-r-black/20 border-t-white/10 bg-mauve-surface/40 p-2 shadow-2xl shadow-black/30 backdrop-blur-xl">
       <div className="flex flex-col">
         <Textarea
           ref={textareaRef}
           placeholder="Type your message here..."
-          className="bg-transparent border-none focus-visible:ring-0 text-base resize-none p-2 text-foreground placeholder:text-mauve-subtle/70 min-h-[40px] max-h-[200px] overflow-y-auto"
+          className="max-h-[200px] min-h-[40px] resize-none overflow-y-auto border-none bg-transparent p-2 text-base text-foreground placeholder:text-mauve-subtle/70 focus-visible:ring-0"
           rows={1}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -59,14 +64,23 @@ export function ChatInput() {
 
         {/* Attached Files */}
         {attachedFiles.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2 p-2 bg-mauve-dark/20 rounded-lg">
+          <div className="mb-2 flex flex-wrap gap-2 rounded-lg bg-mauve-dark/20 p-2">
             {attachedFiles.map((file) => (
-              <Badge key={file.id} variant="outline" className="text-xs bg-mauve-accent/20 border-mauve-accent/50 pr-1">
-                <span className="truncate max-w-32" title={file.filename}>
+              <Badge
+                key={file.id}
+                variant="outline"
+                className="border-mauve-accent/50 bg-mauve-accent/20 pr-1 text-xs"
+              >
+                <span className="max-w-32 truncate" title={file.filename}>
                   {file.filename}
                 </span>
-                <span className="text-mauve-subtle/70 ml-1">({formatFileSize(file.sizeBytes)})</span>
-                <button onClick={() => removeAttachment(file.id)} className="ml-1 hover:text-red-400 transition-colors">
+                <span className="ml-1 text-mauve-subtle/70">
+                  ({formatFileSize(file.sizeBytes)})
+                </span>
+                <button
+                  onClick={() => removeAttachment(file.id)}
+                  className="ml-1 transition-colors hover:text-red-400"
+                >
                   ×
                 </button>
               </Badge>
@@ -74,13 +88,14 @@ export function ChatInput() {
           </div>
         )}
 
-        <div className="flex flex-wrap justify-between items-center mt-2 gap-2">
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1 md:gap-2">
             <ModelSwitcher selectedModel={selectedModel} onModelChange={setSelectedModel} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-mauve-subtle text-xs">
-                  <Palette className="mr-1 md:mr-2 h-4 w-4" /> High <span className="sr-only">Creativity</span>
+                <Button variant="ghost" size="sm" className="text-xs text-mauve-subtle">
+                  <Palette className="mr-1 h-4 w-4 md:mr-2" /> High{" "}
+                  <span className="sr-only">Creativity</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -90,13 +105,16 @@ export function ChatInput() {
               </DropdownMenuContent>
             </DropdownMenu>
             {!isMobile && (
-              <Button variant="ghost" size="sm" className="text-mauve-subtle text-xs">
+              <Button variant="ghost" size="sm" className="text-xs text-mauve-subtle">
                 <Globe className="mr-2 h-4 w-4" /> Search
               </Button>
             )}
             <EnhancedFileUpload onFilesAttached={handleFilesAttached} maxFiles={10} />
           </div>
-          <Button size="icon" className="h-9 w-9 bg-mauve-accent/20 hover:bg-mauve-accent/30 text-mauve-bright">
+          <Button
+            size="icon"
+            className="h-9 w-9 bg-mauve-accent/20 text-mauve-bright hover:bg-mauve-accent/30"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>

@@ -5,6 +5,7 @@
 This guide ensures judges can easily test Z6Chat during competition evaluation.
 
 ### **1. Environment Setup**
+
 ```bash
 # Clone repository
 git clone <repository-url>
@@ -18,7 +19,9 @@ cp .env.local.example .env.local
 ```
 
 ### **2. API Key Configuration (BYOK)**
+
 Add your API keys to `.env.local`:
+
 ```bash
 # OpenRouter (Multi-model support)
 OPENROUTER_API_KEY=your_openrouter_key
@@ -33,6 +36,7 @@ NEXT_PUBLIC_CONVEX_URL=your_convex_url
 ```
 
 ### **3. Development Server**
+
 ```bash
 # Start Convex backend
 pnpm dev:convex
@@ -42,6 +46,7 @@ pnpm dev
 ```
 
 ### **4. Production Testing**
+
 Visit deployed URL: [Will be updated with Vercel deployment]
 
 ---
@@ -49,6 +54,7 @@ Visit deployed URL: [Will be updated with Vercel deployment]
 ## 🔧 **ClaudeSquad Operations**
 
 ### **Starting ClaudeSquad Session**
+
 ```bash
 # Install ClaudeSquad
 brew install claude-squad
@@ -63,6 +69,7 @@ cs
 ```
 
 ### **Task Assignment Workflow**
+
 1. **Check Progress**: Review `teams/PROGRESS.md`
 2. **Select Task**: Choose from available tasks
 3. **Copy Prompt**: From `teams/task-prompts.md`
@@ -70,6 +77,7 @@ cs
 5. **Monitor**: Check task STATUS.md for updates
 
 ### **Integration Workflow**
+
 1. **Agent Completes**: Creates PR from feature branch
 2. **Update Status**: Agent updates their STATUS.md
 3. **Review**: Manual code review
@@ -82,6 +90,7 @@ cs
 ## 📋 **Quality Assurance**
 
 ### **Pre-PR Checklist** (Each Agent)
+
 - [ ] Code builds successfully (`pnpm build`)
 - [ ] TypeScript checks pass (`pnpm type-check`)
 - [ ] Linting passes (`pnpm lint`)
@@ -92,6 +101,7 @@ cs
 - [ ] Documentation updated
 
 ### **CI/CD Pipeline**
+
 - **Automatic**: Type checking, linting, building
 - **Manual**: Code review and approval
 - **Deployment**: Automatic to Vercel on merge
@@ -101,10 +111,11 @@ cs
 ## 🎯 **Competition Demo Strategy**
 
 ### **Demo Flow for Judges**
+
 1. **Landing Page**: Professional UI, clear value proposition
 2. **Quick Setup**: BYOK flow, API key entry
 3. **Basic Chat**: Multi-model conversation
-4. **Advanced Features**: 
+4. **Advanced Features**:
    - Resumable streams demo
    - Image generation
    - File uploads
@@ -113,6 +124,7 @@ cs
 6. **Error Handling**: Graceful failures
 
 ### **Judge Testing Scenarios**
+
 - **Happy Path**: Everything works perfectly
 - **API Failures**: Graceful error messages
 - **Network Issues**: Resumable streams advantage
@@ -124,6 +136,7 @@ cs
 ## 📊 **Monitoring & Debugging**
 
 ### **Development Monitoring**
+
 - **Convex Dashboard**: Real-time database queries
 - **Next.js Dev**: Hot reload and error overlay
 - **Browser DevTools**: Network and console monitoring
@@ -132,6 +145,7 @@ cs
 ### **Common Issues & Solutions**
 
 #### **Convex Connection Issues**
+
 ```bash
 # Check Convex status
 npx convex status
@@ -141,11 +155,13 @@ npx convex dev --run-locally
 ```
 
 #### **API Rate Limits**
+
 - Monitor API usage in dashboard
 - Implement proper error handling
 - Use BYOK for judge testing
 
 #### **Build Failures**
+
 ```bash
 # Clear Next.js cache
 rm -rf .next
@@ -160,11 +176,13 @@ pnpm install
 ## 🔒 **Security & Environment**
 
 ### **Environment Variables**
+
 - **Development**: `.env.local` (gitignored)
 - **Production**: Vercel environment variables
 - **CI/CD**: GitHub Secrets
 
 ### **API Key Security**
+
 - Client-side storage for BYOK
 - No server-side logging of keys
 - Secure transmission only
@@ -177,17 +195,20 @@ pnpm install
 ### **Competition Day Issues**
 
 #### **Major Bug Discovery**
+
 1. Create hotfix branch immediately
 2. Single-agent rapid fix
 3. Emergency PR and deploy
 4. Update all ClaudeSquad agents
 
 #### **Service Outages**
+
 - **Convex Down**: Fall back to mock data
 - **OpenRouter Down**: Direct API fallback
 - **Vercel Down**: GitHub Pages backup
 
 #### **Demo Failures**
+
 - Local development backup
 - Pre-recorded demo video
 - Clear explanation of intended functionality
@@ -197,12 +218,14 @@ pnpm install
 ## 📈 **Performance Targets**
 
 ### **Core Metrics**
+
 - **Initial Load**: < 2 seconds
 - **Chat Response**: < 500ms to start
 - **File Upload**: < 5 seconds for 10MB
 - **Mobile Performance**: 90+ Lighthouse score
 
 ### **Competition Advantages**
+
 - **Professional Polish**: Superior to basic implementations
 - **Advanced Features**: Resumable streams, image generation
 - **Reliability**: Robust error handling

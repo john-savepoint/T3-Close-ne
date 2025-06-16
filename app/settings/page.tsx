@@ -10,33 +10,35 @@ import Link from "next/link"
 
 export default function SettingsPage() {
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto px-4 py-8">
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-mauve-subtle/70">Manage your T3Chat preferences and privacy settings</p>
+          <p className="text-mauve-subtle/70">
+            Manage your T3Chat preferences and privacy settings
+          </p>
         </div>
 
         <Tabs defaultValue="memory" className="space-y-4">
           <TabsList className="grid w-full grid-cols-5 bg-mauve-dark/50">
             <TabsTrigger value="memory">
-              <Brain className="w-4 h-4 mr-2" />
+              <Brain className="mr-2 h-4 w-4" />
               Memory
             </TabsTrigger>
             <TabsTrigger value="temporary">
-              <EyeOff className="w-4 h-4 mr-2" />
+              <EyeOff className="mr-2 h-4 w-4" />
               Temporary
             </TabsTrigger>
             <TabsTrigger value="team">
-              <Users className="w-4 h-4 mr-2" />
+              <Users className="mr-2 h-4 w-4" />
               Team
             </TabsTrigger>
             <TabsTrigger value="gifts">
-              <Gift className="w-4 h-4 mr-2" />
+              <Gift className="mr-2 h-4 w-4" />
               Gifts
             </TabsTrigger>
             <TabsTrigger value="attachments">
-              <FileText className="w-4 h-4 mr-2" />
+              <FileText className="mr-2 h-4 w-4" />
               Files
             </TabsTrigger>
           </TabsList>
@@ -54,19 +56,20 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="gifts">
-            <Card className="bg-mauve-surface/50 border-mauve-dark">
+            <Card className="border-mauve-dark bg-mauve-surface/50">
               <CardHeader>
-                <CardTitle className="text-foreground flex items-center gap-2">
-                  <Gift className="w-5 h-5 text-pink-400" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Gift className="h-5 w-5 text-pink-400" />
                   Gift Management
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-mauve-subtle/70">
-                  Share the power of T3Chat with friends, family, and colleagues through gift subscriptions.
+                  Share the power of T3Chat with friends, family, and colleagues through gift
+                  subscriptions.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-foreground">3</div>
                     <div className="text-sm text-mauve-subtle/70">Gifts Sent</div>
@@ -82,19 +85,25 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Recent Gift Activity</h4>
+                  <h4 className="text-sm font-medium">Recent Gift Activity</h4>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between p-3 bg-mauve-dark/30 rounded-lg">
+                    <div className="flex items-center justify-between rounded-lg bg-mauve-dark/30 p-3">
                       <div>
                         <div className="text-sm font-medium">Gift to alex@example.com</div>
-                        <div className="text-xs text-mauve-subtle/70">Pro Yearly • Redeemed Jan 20, 2024</div>
+                        <div className="text-xs text-mauve-subtle/70">
+                          Pro Yearly • Redeemed Jan 20, 2024
+                        </div>
                       </div>
-                      <Badge className="bg-green-500/20 text-green-400 border-green-500/50">Redeemed</Badge>
+                      <Badge className="border-green-500/50 bg-green-500/20 text-green-400">
+                        Redeemed
+                      </Badge>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-mauve-dark/30 rounded-lg">
+                    <div className="flex items-center justify-between rounded-lg bg-mauve-dark/30 p-3">
                       <div>
                         <div className="text-sm font-medium">Gift to sarah@example.com</div>
-                        <div className="text-xs text-mauve-subtle/70">Pro Monthly • Sent Jan 15, 2024</div>
+                        <div className="text-xs text-mauve-subtle/70">
+                          Pro Monthly • Sent Jan 15, 2024
+                        </div>
                       </div>
                       <Badge variant="outline" className="text-xs">
                         Pending
@@ -104,14 +113,14 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className="flex-1 bg-gradient-to-r from-pink-500/20 to-purple-600/20 hover:from-pink-500/30 hover:to-purple-600/30 text-pink-400 border-pink-500/50">
-                    <Gift className="w-4 h-4 mr-2" />
+                  <Button className="flex-1 border-pink-500/50 bg-gradient-to-r from-pink-500/20 to-purple-600/20 text-pink-400 hover:from-pink-500/30 hover:to-purple-600/30">
+                    <Gift className="mr-2 h-4 w-4" />
                     Send a Gift
                   </Button>
                   <Link href="/redeem">
                     <Button variant="outline" className="flex-1">
                       Redeem Gift Code
-                      <ExternalLink className="w-4 h-4 ml-2" />
+                      <ExternalLink className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
@@ -120,10 +129,10 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="attachments">
-            <Card className="bg-mauve-surface/50 border-mauve-dark">
+            <Card className="border-mauve-dark bg-mauve-surface/50">
               <CardHeader>
-                <CardTitle className="text-foreground flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <FileText className="h-5 w-5" />
                   Attachment Management
                 </CardTitle>
               </CardHeader>
@@ -132,7 +141,7 @@ export default function SettingsPage() {
                   Manage your file library, view usage statistics, and configure upload preferences.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-foreground">24</div>
                     <div className="text-sm text-mauve-subtle/70">Total Files</div>
@@ -148,7 +157,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Supported File Types</h4>
+                  <h4 className="text-sm font-medium">Supported File Types</h4>
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="outline" className="text-xs">
                       Documents (.pdf, .docx, .pptx)
@@ -167,9 +176,9 @@ export default function SettingsPage() {
 
                 <Link href="/settings/attachments">
                   <Button className="w-full bg-mauve-accent/20 hover:bg-mauve-accent/30">
-                    <FileText className="w-4 h-4 mr-2" />
+                    <FileText className="mr-2 h-4 w-4" />
                     Open Attachment Library
-                    <ExternalLink className="w-4 h-4 ml-2" />
+                    <ExternalLink className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
               </CardContent>

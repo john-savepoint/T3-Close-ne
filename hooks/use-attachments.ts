@@ -46,7 +46,8 @@ const mockAttachments: Attachment[] = [
     fileType: "text/typescript",
     sizeBytes: 8192,
     storagePath: "/uploads/userprofile.tsx",
-    extractedText: "import React from 'react';\n\ninterface UserProfileProps {\n  user: User;\n}...",
+    extractedText:
+      "import React from 'react';\n\ninterface UserProfileProps {\n  user: User;\n}...",
     createdAt: new Date("2024-01-12"),
     updatedAt: new Date("2024-01-12"),
     processingStatus: "completed",
@@ -113,13 +114,22 @@ const mockUsages: AttachmentUsage[] = [
 export const SUPPORTED_FILE_TYPES = {
   documents: {
     "application/pdf": { ext: ".pdf", name: "PDF Document" },
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { ext: ".docx", name: "Word Document" },
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation": { ext: ".pptx", name: "PowerPoint" },
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+      ext: ".docx",
+      name: "Word Document",
+    },
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
+      ext: ".pptx",
+      name: "PowerPoint",
+    },
     "text/markdown": { ext: ".md", name: "Markdown" },
     "text/plain": { ext: ".txt", name: "Text File" },
   },
   data: {
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": { ext: ".xlsx", name: "Excel Spreadsheet" },
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+      ext: ".xlsx",
+      name: "Excel Spreadsheet",
+    },
     "text/csv": { ext: ".csv", name: "CSV File" },
     "application/json": { ext: ".json", name: "JSON File" },
     "application/xml": { ext: ".xml", name: "XML File" },
@@ -148,7 +158,11 @@ export function useAttachments() {
   const [loading, setLoading] = useState(false)
 
   const uploadFiles = useCallback(
-    async (files: File[], targetId?: string, targetType?: "chat" | "project"): Promise<Attachment[]> => {
+    async (
+      files: File[],
+      targetId?: string,
+      targetType?: "chat" | "project"
+    ): Promise<Attachment[]> => {
       setLoading(true)
 
       const progressItems: FileUploadProgress[] = files.map((file) => ({
@@ -171,13 +185,15 @@ export function useAttachments() {
           for (let progress = 0; progress <= 100; progress += 20) {
             await new Promise((resolve) => setTimeout(resolve, 200))
             setUploadProgress((prev) =>
-              prev.map((item) => (item.id === progressItem.id ? { ...item, progress } : item)),
+              prev.map((item) => (item.id === progressItem.id ? { ...item, progress } : item))
             )
           }
 
           // Simulate processing
           setUploadProgress((prev) =>
-            prev.map((item) => (item.id === progressItem.id ? { ...item, status: "processing" } : item)),
+            prev.map((item) =>
+              item.id === progressItem.id ? { ...item, status: "processing" } : item
+            )
           )
 
           await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -200,7 +216,9 @@ export function useAttachments() {
           uploadedAttachments.push(newAttachment)
 
           setUploadProgress((prev) =>
-            prev.map((item) => (item.id === progressItem.id ? { ...item, status: "completed", progress: 100 } : item)),
+            prev.map((item) =>
+              item.id === progressItem.id ? { ...item, status: "completed", progress: 100 } : item
+            )
           )
         }
 
@@ -219,14 +237,14 @@ export function useAttachments() {
             ...item,
             status: "error",
             error: "Upload failed",
-          })),
+          }))
         )
         throw error
       } finally {
         setLoading(false)
       }
     },
-    [],
+    []
   )
 
   const extractTextFromFile = async (file: File): Promise<string> => {
@@ -243,7 +261,7 @@ export function useAttachments() {
     async (directoryUpload: DirectoryUpload): Promise<Attachment[]> => {
       return uploadFiles(directoryUpload.files)
     },
-    [uploadFiles],
+    [uploadFiles]
   )
 
   const deleteAttachment = useCallback(async (attachmentId: string): Promise<void> => {
@@ -281,21 +299,23 @@ export function useAttachments() {
           processingStatus: "completed",
         }
 
-        setAttachments((prev) => prev.map((att) => (att.id === attachmentId ? updatedAttachment : att)))
+        setAttachments((prev) =>
+          prev.map((att) => (att.id === attachmentId ? updatedAttachment : att))
+        )
 
         return updatedAttachment
       } finally {
         setLoading(false)
       }
     },
-    [attachments],
+    [attachments]
   )
 
   const getAttachmentUsages = useCallback(
     (attachmentId: string): AttachmentUsage[] => {
       return usages.filter((usage) => usage.attachmentId === attachmentId)
     },
-    [usages],
+    [usages]
   )
 
   const addAttachmentToContext = useCallback(
@@ -303,7 +323,7 @@ export function useAttachments() {
       attachmentId: string,
       contextId: string,
       contextType: "chat" | "project",
-      contextName: string,
+      contextName: string
     ): Promise<void> => {
       const newUsage: AttachmentUsage = {
         id: `usage-${Date.now()}`,
@@ -325,11 +345,11 @@ export function useAttachments() {
                 usageCount: att.usageCount + 1,
                 lastUsedAt: new Date(),
               }
-            : att,
-        ),
+            : att
+        )
       )
     },
-    [],
+    []
   )
 
   const filterAttachments = useCallback(
@@ -341,7 +361,8 @@ export function useAttachments() {
         const searchLower = filters.search.toLowerCase()
         filtered = filtered.filter(
           (att) =>
-            att.filename.toLowerCase().includes(searchLower) || att.extractedText?.toLowerCase().includes(searchLower),
+            att.filename.toLowerCase().includes(searchLower) ||
+            att.extractedText?.toLowerCase().includes(searchLower)
         )
       }
 
@@ -393,7 +414,7 @@ export function useAttachments() {
 
       return filtered
     },
-    [attachments],
+    [attachments]
   )
 
   const getFileTypeInfo = useCallback((mimeType: string) => {

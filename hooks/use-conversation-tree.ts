@@ -121,7 +121,7 @@ export function useConversationTree(messages: ChatMessage[], activeLeafId?: stri
 
       return path
     },
-    [messages],
+    [messages]
   )
 
   return {

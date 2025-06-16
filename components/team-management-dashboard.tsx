@@ -11,7 +11,13 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import {
   Users,
   Plus,
@@ -71,13 +77,15 @@ export function TeamManagementDashboard() {
 
   if (!userTeam) {
     return (
-      <Card className="bg-mauve-surface/50 border-mauve-dark">
+      <Card className="border-mauve-dark bg-mauve-surface/50">
         <CardContent className="p-8 text-center">
-          <Users className="w-12 h-12 mx-auto text-mauve-subtle/50 mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">No Team Plan</h3>
-          <p className="text-mauve-subtle/70 mb-4">Create a family or team plan to manage multiple subscriptions.</p>
+          <Users className="mx-auto mb-4 h-12 w-12 text-mauve-subtle/50" />
+          <h3 className="mb-2 text-lg font-semibold text-foreground">No Team Plan</h3>
+          <p className="mb-4 text-mauve-subtle/70">
+            Create a family or team plan to manage multiple subscriptions.
+          </p>
           <Button className="bg-mauve-accent/20 hover:bg-mauve-accent/30">
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Create Team Plan
           </Button>
         </CardContent>
@@ -91,16 +99,16 @@ export function TeamManagementDashboard() {
         <div>
           <h2 className="text-2xl font-bold text-foreground">{userTeam.name}</h2>
           <p className="text-sm text-mauve-subtle/70">
-            {userTeam.planType === "family" ? "Family Plan" : "Team Plan"} • {userTeam.usedSeats} of {userTeam.maxSeats}{" "}
-            seats used
+            {userTeam.planType === "family" ? "Family Plan" : "Team Plan"} • {userTeam.usedSeats} of{" "}
+            {userTeam.maxSeats} seats used
           </p>
         </div>
         <Badge
           variant="outline"
           className={`${
             userTeam.status === "active"
-              ? "bg-green-500/20 text-green-400 border-green-500/50"
-              : "bg-red-500/20 text-red-400 border-red-500/50"
+              ? "border-green-500/50 bg-green-500/20 text-green-400"
+              : "border-red-500/50 bg-red-500/20 text-red-400"
           }`}
         >
           {userTeam.status}
@@ -116,7 +124,7 @@ export function TeamManagementDashboard() {
             </Badge>
           </TabsTrigger>
           <TabsTrigger value="billing">
-            <CreditCard className="w-4 h-4 mr-2" />
+            <CreditCard className="mr-2 h-4 w-4" />
             Billing
           </TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -124,10 +132,10 @@ export function TeamManagementDashboard() {
 
         <TabsContent value="members" className="space-y-4">
           {/* Team Overview */}
-          <Card className="bg-mauve-surface/50 border-mauve-dark">
+          <Card className="border-mauve-dark bg-mauve-surface/50">
             <CardHeader>
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <Users className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 text-foreground">
+                <Users className="h-5 w-5" />
                 Team Members
               </CardTitle>
             </CardHeader>
@@ -138,7 +146,11 @@ export function TeamManagementDashboard() {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={copyInviteLink}>
-                    {copiedInvite ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                    {copiedInvite ? (
+                      <Check className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Copy className="mr-2 h-4 w-4" />
+                    )}
                     {copiedInvite ? "Copied!" : "Copy Invite Link"}
                   </Button>
                   <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
@@ -148,11 +160,11 @@ export function TeamManagementDashboard() {
                         className="bg-mauve-accent/20 hover:bg-mauve-accent/30"
                         disabled={userTeam.usedSeats >= userTeam.maxSeats}
                       >
-                        <Plus className="w-4 h-4 mr-2" />
+                        <Plus className="mr-2 h-4 w-4" />
                         Invite Member
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-mauve-surface border-mauve-dark">
+                    <DialogContent className="border-mauve-dark bg-mauve-surface">
                       <DialogHeader>
                         <DialogTitle className="text-foreground">Invite Team Member</DialogTitle>
                       </DialogHeader>
@@ -165,7 +177,7 @@ export function TeamManagementDashboard() {
                             placeholder="colleague@example.com"
                             value={inviteEmail}
                             onChange={(e) => setInviteEmail(e.target.value)}
-                            className="bg-mauve-dark/50 border-mauve-dark"
+                            className="border-mauve-dark bg-mauve-dark/50"
                             required
                           />
                         </div>
@@ -176,13 +188,17 @@ export function TeamManagementDashboard() {
                             className="flex-1 bg-mauve-accent/20 hover:bg-mauve-accent/30"
                           >
                             {loading ? (
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
-                              <Mail className="w-4 h-4 mr-2" />
+                              <Mail className="mr-2 h-4 w-4" />
                             )}
                             Send Invitation
                           </Button>
-                          <Button type="button" variant="outline" onClick={() => setIsInviteModalOpen(false)}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsInviteModalOpen(false)}
+                          >
                             Cancel
                           </Button>
                         </div>
@@ -193,10 +209,11 @@ export function TeamManagementDashboard() {
               </div>
 
               {userTeam.usedSeats >= userTeam.maxSeats && (
-                <Alert className="bg-amber-500/10 border-amber-500/20">
+                <Alert className="border-amber-500/20 bg-amber-500/10">
                   <AlertTriangle className="h-4 w-4 text-amber-400" />
                   <AlertDescription className="text-amber-300">
-                    Your team is at maximum capacity. Remove a member or upgrade your plan to invite more people.
+                    Your team is at maximum capacity. Remove a member or upgrade your plan to invite
+                    more people.
                   </AlertDescription>
                 </Alert>
               )}
@@ -206,19 +223,24 @@ export function TeamManagementDashboard() {
                 {teamMembers.map((member) => (
                   <div
                     key={member.userId}
-                    className="flex items-center gap-3 p-3 bg-mauve-dark/30 rounded-lg border border-mauve-dark"
+                    className="flex items-center gap-3 rounded-lg border border-mauve-dark bg-mauve-dark/30 p-3"
                   >
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={member.userName} />
+                      <AvatarImage
+                        src={`/placeholder.svg?height=40&width=40`}
+                        alt={member.userName}
+                      />
                       <AvatarFallback>{member.userName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">{member.userName}</span>
-                        {member.role === "owner" && <Crown className="w-4 h-4 text-yellow-400" />}
+                        <span className="text-sm font-medium">{member.userName}</span>
+                        {member.role === "owner" && <Crown className="h-4 w-4 text-yellow-400" />}
                       </div>
                       <div className="text-xs text-mauve-subtle/70">{member.userEmail}</div>
-                      <div className="text-xs text-mauve-subtle/50">Joined {member.joinedAt.toLocaleDateString()}</div>
+                      <div className="text-xs text-mauve-subtle/50">
+                        Joined {member.joinedAt.toLocaleDateString()}
+                      </div>
                     </div>
                     {member.role !== "owner" && (
                       <Button
@@ -238,15 +260,15 @@ export function TeamManagementDashboard() {
         </TabsContent>
 
         <TabsContent value="billing" className="space-y-4">
-          <Card className="bg-mauve-surface/50 border-mauve-dark">
+          <Card className="border-mauve-dark bg-mauve-surface/50">
             <CardHeader>
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 text-foreground">
+                <CreditCard className="h-5 w-5" />
                 Billing Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-foreground">${userTeam.monthlyPrice}</div>
                   <div className="text-sm text-mauve-subtle/70">Monthly</div>
@@ -272,17 +294,17 @@ export function TeamManagementDashboard() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-mauve-subtle/70">Plan type:</span>
-                  <span className="text-foreground capitalize">{userTeam.planType} Plan</span>
+                  <span className="capitalize text-foreground">{userTeam.planType} Plan</span>
                 </div>
               </div>
 
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1">
-                  <Calendar className="w-4 h-4 mr-2" />
+                  <Calendar className="mr-2 h-4 w-4" />
                   View Billing History
                 </Button>
                 <Button variant="outline" className="flex-1">
-                  <CreditCard className="w-4 h-4 mr-2" />
+                  <CreditCard className="mr-2 h-4 w-4" />
                   Update Payment Method
                 </Button>
               </div>
@@ -291,14 +313,19 @@ export function TeamManagementDashboard() {
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-4">
-          <Card className="bg-mauve-surface/50 border-mauve-dark">
+          <Card className="border-mauve-dark bg-mauve-surface/50">
             <CardHeader>
               <CardTitle className="text-foreground">Team Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="team-name">Team Name</Label>
-                <Input id="team-name" value={userTeam.name} className="bg-mauve-dark/50 border-mauve-dark" readOnly />
+                <Input
+                  id="team-name"
+                  value={userTeam.name}
+                  className="border-mauve-dark bg-mauve-dark/50"
+                  readOnly
+                />
               </div>
 
               <div className="space-y-2">
@@ -310,11 +337,11 @@ export function TeamManagementDashboard() {
                 </div>
               </div>
 
-              <Alert className="bg-red-500/10 border-red-500/20">
+              <Alert className="border-red-500/20 bg-red-500/10">
                 <AlertTriangle className="h-4 w-4 text-red-400" />
                 <AlertDescription className="text-red-300">
-                  <strong>Danger Zone:</strong> Canceling your team plan will remove Pro access for all members at the
-                  end of the current billing cycle.
+                  <strong>Danger Zone:</strong> Canceling your team plan will remove Pro access for
+                  all members at the end of the current billing cycle.
                 </AlertDescription>
               </Alert>
 

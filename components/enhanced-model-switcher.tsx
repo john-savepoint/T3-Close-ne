@@ -5,7 +5,14 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
 import { Check, Zap, Brain, Code, Sparkles } from "lucide-react"
 
 interface Model {
@@ -59,7 +66,12 @@ interface EnhancedModelSwitcherProps {
   onModelChange: (modelId: string) => void
 }
 
-export function EnhancedModelSwitcher({ isOpen, onClose, selectedModel, onModelChange }: EnhancedModelSwitcherProps) {
+export function EnhancedModelSwitcher({
+  isOpen,
+  onClose,
+  selectedModel,
+  onModelChange,
+}: EnhancedModelSwitcherProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -77,7 +89,7 @@ export function EnhancedModelSwitcher({ isOpen, onClose, selectedModel, onModelC
     (model) =>
       model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       model.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      model.description.toLowerCase().includes(searchQuery.toLowerCase()),
+      model.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleModelSelect = (modelId: string) => {
@@ -100,7 +112,7 @@ export function EnhancedModelSwitcher({ isOpen, onClose, selectedModel, onModelC
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] bg-mauve-surface border-mauve-dark">
+      <DialogContent className="border-mauve-dark bg-mauve-surface sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-foreground">Switch Model</DialogTitle>
         </DialogHeader>
@@ -111,7 +123,7 @@ export function EnhancedModelSwitcher({ isOpen, onClose, selectedModel, onModelC
             placeholder="Search models..."
             value={searchQuery}
             onValueChange={setSearchQuery}
-            className="bg-mauve-dark/50 border-mauve-dark"
+            className="border-mauve-dark bg-mauve-dark/50"
           />
           <CommandList className="max-h-[300px]">
             <CommandEmpty>No models found.</CommandEmpty>
@@ -121,9 +133,9 @@ export function EnhancedModelSwitcher({ isOpen, onClose, selectedModel, onModelC
                   key={model.id}
                   value={model.id}
                   onSelect={() => handleModelSelect(model.id)}
-                  className="flex items-center gap-3 p-3 cursor-pointer hover:bg-mauve-dark/50"
+                  className="flex cursor-pointer items-center gap-3 p-3 hover:bg-mauve-dark/50"
                 >
-                  <div className="flex items-center gap-3 flex-1">
+                  <div className="flex flex-1 items-center gap-3">
                     {model.icon}
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -143,7 +155,9 @@ export function EnhancedModelSwitcher({ isOpen, onClose, selectedModel, onModelC
           </CommandList>
         </Command>
 
-        <div className="text-xs text-mauve-subtle/50 mt-2">Use ↑↓ to navigate, Enter to select, Esc to close</div>
+        <div className="mt-2 text-xs text-mauve-subtle/50">
+          Use ↑↓ to navigate, Enter to select, Esc to close
+        </div>
       </DialogContent>
     </Dialog>
   )

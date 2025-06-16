@@ -11,7 +11,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useProjects } from "@/hooks/use-projects"
-import { Loader2, Save, Trash2, File, X, Plus, AlertTriangle, Paperclip, FileText, ImageIcon, Code } from "lucide-react"
+import {
+  Loader2,
+  Save,
+  Trash2,
+  File,
+  X,
+  Plus,
+  AlertTriangle,
+  Paperclip,
+  FileText,
+  ImageIcon,
+  Code,
+} from "lucide-react"
 
 interface ProjectSettingsModalProps {
   projectId: string
@@ -20,8 +32,14 @@ interface ProjectSettingsModalProps {
 }
 
 export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectSettingsModalProps) {
-  const { projects, updateProject, deleteProject, addAttachmentToProject, removeAttachmentFromProject, loading } =
-    useProjects()
+  const {
+    projects,
+    updateProject,
+    deleteProject,
+    addAttachmentToProject,
+    removeAttachmentFromProject,
+    loading,
+  } = useProjects()
   const project = projects.find((p) => p.id === projectId)
 
   const [formData, setFormData] = useState({
@@ -56,7 +74,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
 
     if (
       confirm(
-        `Are you sure you want to delete "${project.name}"? This action cannot be undone. Associated chats will become standalone.`,
+        `Are you sure you want to delete "${project.name}"? This action cannot be undone. Associated chats will become standalone.`
       )
     ) {
       try {
@@ -97,7 +115,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-mauve-surface border-mauve-dark max-w-2xl max-h-[80vh]">
+      <DialogContent className="max-h-[80vh] max-w-2xl border-mauve-dark bg-mauve-surface">
         <DialogHeader>
           <DialogTitle className="text-foreground">Project Settings</DialogTitle>
         </DialogHeader>
@@ -128,7 +146,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                   id="edit-name"
                   value={formData.name}
                   onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                  className="bg-mauve-dark/50 border-mauve-dark focus-visible:ring-mauve-accent"
+                  className="border-mauve-dark bg-mauve-dark/50 focus-visible:ring-mauve-accent"
                 />
               </div>
 
@@ -139,8 +157,10 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                 <Textarea
                   id="edit-prompt"
                   value={formData.systemPrompt}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, systemPrompt: e.target.value }))}
-                  className="bg-mauve-dark/50 border-mauve-dark focus-visible:ring-mauve-accent min-h-[120px]"
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, systemPrompt: e.target.value }))
+                  }
+                  className="min-h-[120px] border-mauve-dark bg-mauve-dark/50 focus-visible:ring-mauve-accent"
                   rows={5}
                   placeholder="Define the AI's role and behavior for this project..."
                 />
@@ -155,8 +175,8 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                   disabled={loading || !formData.name.trim()}
                   className="bg-mauve-accent/20 hover:bg-mauve-accent/30"
                 >
-                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  <Save className="w-4 h-4 mr-2" />
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Save className="mr-2 h-4 w-4" />
                   Save Changes
                 </Button>
               </div>
@@ -171,34 +191,41 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                   </p>
                 </div>
                 <Button size="sm" className="bg-mauve-accent/20 hover:bg-mauve-accent/30">
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="mr-2 h-4 w-4" />
                   Add Files
                 </Button>
               </div>
 
               <ScrollArea className="h-64">
                 {project.attachments.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-32 text-center">
-                    <Paperclip className="w-8 h-8 text-mauve-subtle/50 mb-2" />
+                  <div className="flex h-32 flex-col items-center justify-center text-center">
+                    <Paperclip className="mb-2 h-8 w-8 text-mauve-subtle/50" />
                     <p className="text-sm text-mauve-subtle/70">No files attached</p>
-                    <p className="text-xs text-mauve-subtle/50">Add files to provide context for all project chats</p>
+                    <p className="text-xs text-mauve-subtle/50">
+                      Add files to provide context for all project chats
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {project.attachments.map((attachment) => {
                       const Icon = getFileIcon(attachment.type)
                       return (
-                        <div key={attachment.id} className="flex items-center gap-3 p-3 bg-mauve-dark/30 rounded-lg">
-                          <Icon className="w-5 h-5 text-mauve-subtle" />
-                          <div className="flex-1 min-w-0">
+                        <div
+                          key={attachment.id}
+                          className="flex items-center gap-3 rounded-lg bg-mauve-dark/30 p-3"
+                        >
+                          <Icon className="h-5 w-5 text-mauve-subtle" />
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium truncate">{attachment.name}</span>
+                              <span className="truncate text-sm font-medium">
+                                {attachment.name}
+                              </span>
                               <Badge variant="outline" className="text-xs">
                                 {formatFileSize(attachment.size)}
                               </Badge>
                             </div>
                             {attachment.content && (
-                              <p className="text-xs text-mauve-subtle/70 mt-1 truncate">
+                              <p className="mt-1 truncate text-xs text-mauve-subtle/70">
                                 {attachment.content.substring(0, 60)}...
                               </p>
                             )}
@@ -221,13 +248,14 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
 
             <TabsContent value="danger" className="space-y-4">
               <div className="space-y-4">
-                <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4">
+                  <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-400" />
                   <div className="space-y-2">
                     <h3 className="text-sm font-medium text-red-400">Delete Project</h3>
                     <p className="text-xs text-mauve-subtle/70">
-                      This action cannot be undone. The project and its settings will be permanently deleted. Associated
-                      chats will become standalone chats and will not be deleted.
+                      This action cannot be undone. The project and its settings will be permanently
+                      deleted. Associated chats will become standalone chats and will not be
+                      deleted.
                     </p>
                     <div className="pt-2">
                       <Button
@@ -237,8 +265,8 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                         disabled={loading}
                         className="bg-red-600 hover:bg-red-700"
                       >
-                        {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                        <Trash2 className="w-4 h-4 mr-2" />
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Trash2 className="mr-2 h-4 w-4" />
                         Delete Project
                       </Button>
                     </div>
