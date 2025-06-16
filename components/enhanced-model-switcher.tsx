@@ -6,51 +6,51 @@ import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Check, Zap, Brain, Code, Sparkles } from "lucide-react"
+import { Check, Zap, Brain, Code, Sparkles, Crown } from "lucide-react"
+import { ChatModel, DEFAULT_MODELS } from "@/types/models"
 
-interface Model {
-  id: string
-  name: string
-  provider: string
+interface ModelWithUI extends ChatModel {
   description: string
   icon: React.ReactNode
   tier: "free" | "pro" | "premium"
 }
 
-const models: Model[] = [
-  {
-    id: "gpt-4o",
-    name: "GPT-4o",
-    provider: "OpenAI",
+const modelUIData: Record<string, Omit<ModelWithUI, keyof ChatModel>> = {
+  "openai/gpt-4o": {
     description: "Most capable model for complex reasoning",
     icon: <Brain className="h-4 w-4" />,
     tier: "pro",
   },
-  {
-    id: "gpt-4o-mini",
-    name: "GPT-4o Mini",
-    provider: "OpenAI",
+  "openai/gpt-4o-mini": {
     description: "Fast and efficient for most tasks",
     icon: <Zap className="h-4 w-4" />,
     tier: "free",
   },
-  {
-    id: "claude-3.5-sonnet",
-    name: "Claude 3.5 Sonnet",
-    provider: "Anthropic",
+  "anthropic/claude-3.5-sonnet": {
     description: "Excellent for coding and analysis",
     icon: <Code className="h-4 w-4" />,
     tier: "pro",
   },
-  {
-    id: "gemini-2.0-flash",
-    name: "Gemini 2.0 Flash",
-    provider: "Google",
+  "anthropic/claude-3-haiku": {
+    description: "Fast and affordable Claude model",
+    icon: <Zap className="h-4 w-4" />,
+    tier: "free",
+  },
+  "google/gemini-2.0-flash-exp": {
     description: "Latest multimodal capabilities",
     icon: <Sparkles className="h-4 w-4" />,
     tier: "premium",
   },
-]
+}
+
+const models: ModelWithUI[] = DEFAULT_MODELS.map(model => ({
+  ...model,
+  ...modelUIData[model.id],
+  // Fallback UI data for models not in the map
+  description: modelUIData[model.id]?.description || `${model.provider} language model`,
+  icon: modelUIData[model.id]?.icon || <Brain className="h-4 w-4" />,
+  tier: modelUIData[model.id]?.tier || "pro",
+}))
 
 interface EnhancedModelSwitcherProps {
   isOpen: boolean
