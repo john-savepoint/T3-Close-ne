@@ -328,6 +328,192 @@ git push origin feature-branch
 - **Communication is key** - use teams/SHARED.md for coordination
 - **Context7 is mandatory** - always use latest documentation
 
+## 🆕 **ADDING NEW CLAUDESQUAD TASKS**
+
+### **Task Creation Workflow**
+When adding new ClaudeSquad tasks, follow this exact process:
+
+#### **1. Create Task Directory Structure**
+```bash
+teams/[XX-task-name]/
+├── README.md          # Detailed task specification
+├── STATUS.md          # Progress tracking template
+└── NOTES.md          # Additional context (optional)
+```
+
+#### **2. Task Prompt Template**
+Add to `teams/task-prompts.md` using this exact format:
+
+```markdown
+### **Task XX: [Feature Name]**
+```
+You are working on Z6Chat, our T3Chat competition clone.
+
+TASK: [Clear, specific task description]
+
+DEPENDENCIES: [List any required tasks to be completed first, or "None" if independent]
+
+DELIVERABLES:
+- [Specific deliverable 1]
+- [Specific deliverable 2]
+- [etc.]
+
+FILES TO CREATE/MODIFY:
+- [specific file path 1]
+- [specific file path 2]
+- [etc.]
+
+ACCEPTANCE CRITERIA:
+- [Testable criterion 1]
+- [Testable criterion 2]
+- [etc.]
+
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest [relevant technology] documentation
+- If encountering issues, use Brave Search MCP to find current solutions
+- Use Fire Crawl MCP to scrape official [relevant] docs if needed
+- Reference CLAUDE.md for project context and standards
+
+BRANCH: feat/[task-name]
+DOCUMENTATION: Update teams/[XX-task-name]/STATUS.md when complete
+
+IMPORTANT: use context7
+```
+
+#### **3. Task README.md Template**
+```markdown
+# Task XX: [Feature Name]
+
+## 🎯 **Objective**
+[Detailed description of what this task accomplishes]
+
+## 📋 **Task Details**
+
+### **Priority**: 🔴/🟠/🟡 [Critical/High/Medium] (Day [1/2])
+### **Estimated Time**: [X-Y hours]
+### **Dependencies**: [Task numbers or "None"]
+### **Agent Assignment**: Available
+
+## 🛠️ **Technical Requirements**
+
+### **Dependencies to Install** (if any)
+```bash
+pnpm add [dependencies]
+```
+
+### **Files to Create**
+- `[file-path]` - [description]
+
+### **Files to Modify**  
+- `[file-path]` - [description]
+
+## ✅ **Acceptance Criteria**
+
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
+- [ ] [etc.]
+
+## 🚀 **Getting Started**
+
+1. [Step 1]
+2. [Step 2]
+3. [etc.]
+
+## 🔗 **Useful Links**
+
+- [Official Documentation]
+- [Related Examples]
+```
+
+#### **4. STATUS.md Template**
+```markdown
+# Task XX: [Feature Name] - Status
+
+## 📊 **Current Status**: 🔴 Not Started
+
+**Agent**: Unassigned  
+**Branch**: `feat/[task-name]`  
+**Started**: Not started  
+**Last Updated**: Not started  
+
+## ✅ **Progress Checklist**
+
+### **[Phase 1 Name]**
+- [ ] [Checkpoint 1]
+- [ ] [Checkpoint 2]
+
+### **[Phase 2 Name]**
+- [ ] [Checkpoint 3]
+- [ ] [Checkpoint 4]
+
+## 🚧 **Current Work**
+
+**No active work** - Task available for assignment
+
+## ✅ **Completed**
+
+**None** - Task not started
+
+## ❌ **Blockers**
+
+**None currently identified**
+
+## 📝 **Notes**
+
+[Any additional context or considerations]
+
+## 🔗 **Related Tasks**
+
+- **Task XX**: [Relationship description]
+
+---
+
+**Last Updated**: [Agent should update this when working on task]  
+**Next Update**: [Agent should commit to next update time]
+```
+
+#### **5. Update Documentation Files**
+
+**teams/README.md**: Add task to appropriate priority section
+**teams/PROGRESS.md**: Add to progress dashboard
+**teams/SHARED.md**: Note any shared dependencies
+
+#### **6. MCP Server Requirements**
+
+**Every task MUST include:**
+- **Context7 MCP**: For latest official documentation
+- **Brave Search MCP**: For current solutions and troubleshooting  
+- **Fire Crawl MCP**: For scraping official docs when needed
+- **Ending requirement**: "IMPORTANT: use context7"
+
+#### **7. Task Naming Convention**
+- **Format**: `XX-feature-name` (e.g., `12-voice-input`, `13-mobile-app`)
+- **Numbers**: Sequential based on existing tasks
+- **Names**: Kebab-case, descriptive, concise
+
+#### **8. Integration Considerations**
+- **File conflicts**: Ensure minimal overlap with existing tasks
+- **Dependencies**: Clearly identify any blocking relationships
+- **Types**: Only additive changes to TypeScript interfaces
+- **Testing**: Include acceptance criteria that can be verified
+
+### **Quick Task Addition Checklist**
+- [ ] Created task directory with README.md and STATUS.md
+- [ ] Added prompt to `teams/task-prompts.md` with Context7 requirements
+- [ ] Updated `teams/README.md` with task priority
+- [ ] Updated `teams/PROGRESS.md` dashboard
+- [ ] Verified no file conflicts with existing tasks
+- [ ] Included "IMPORTANT: use context7" requirement
+- [ ] Committed and pushed changes
+
+### **Emergency Task Addition**
+For urgent competition needs:
+1. Create minimal prompt in `teams/task-prompts.md`
+2. Ensure Context7 requirement included
+3. Create basic STATUS.md for tracking
+4. Document in `teams/SHARED.md` for coordination
+5. Commit immediately for ClaudeSquad access
+
 ---
 
 **Last Updated**: [Update when modifying this file]  
