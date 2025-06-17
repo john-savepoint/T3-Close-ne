@@ -9,6 +9,7 @@ Your contributions have been outstanding. We've successfully merged major featur
 **What happened**: Major CI/CD infrastructure was added to the main branch AFTER your feature branches were created. This created merge conflicts for PRs #4 and #5 that we had to resolve manually.
 
 **What this means**: Your current branch is based on an old version of main that doesn't include:
+
 - Changesets for version management
 - GitHub Actions for CI/CD
 - Updated package.json dependencies
@@ -80,6 +81,7 @@ git rebase --abort
 ## 🎯 **After Rebasing**
 
 **Your branch will now include:**
+
 - ✅ All your feature work (unchanged)
 - ✅ Latest CI/CD infrastructure
 - ✅ Changesets for version management
@@ -98,11 +100,13 @@ Once you've completed the rebase:
 ## 📞 **Need Help?**
 
 **If rebase fails or you're unsure:**
+
 1. Post in `teams/SHARED.md` with your specific error
 2. Include the output of `git status`
 3. Don't force anything - ask for guidance
 
 **Common issues:**
+
 - Conflicts in package.json → Keep both dependency sets
 - Conflicts in code files → Manually merge the changes
 - "detached HEAD state" → This is normal during rebase
@@ -119,6 +123,7 @@ Once you've completed the rebase:
 ## ✅ **Acknowledgment Required**
 
 When you've completed the rebase update:
+
 1. Update your `teams/task-name/STATUS.md` with: "✅ Mid-sprint rebase completed"
 2. Confirm your branch now includes latest main changes
 3. Resume feature development as normal

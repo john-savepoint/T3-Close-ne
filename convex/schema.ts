@@ -1,11 +1,11 @@
-import { defineSchema, defineTable } from "convex/server";
-import { authTables } from "@convex-dev/auth/server";
-import { v } from "convex/values";
+import { defineSchema, defineTable } from "convex/server"
+import { authTables } from "@convex-dev/auth/server"
+import { v } from "convex/values"
 
 const schema = defineSchema({
   // Include auth tables from @convex-dev/auth
   ...authTables,
-  
+
   // Users table - enhanced with auth and storage tracking
   users: defineTable({
     // Auth fields from PR #1
@@ -95,7 +95,7 @@ const schema = defineSchema({
     contentType: v.string(),
     size: v.number(),
     category: v.optional(v.string()), // images, documents, code, etc.
-    
+
     // Legacy fields from PR #1 for compatibility
     name: v.optional(v.string()),
     type: v.optional(v.string()),
@@ -121,12 +121,14 @@ const schema = defineSchema({
     shareToken: v.optional(v.string()),
 
     // Status
-    status: v.optional(v.union(
-      v.literal("uploading"),
-      v.literal("processing"),
-      v.literal("ready"),
-      v.literal("error")
-    )),
+    status: v.optional(
+      v.union(
+        v.literal("uploading"),
+        v.literal("processing"),
+        v.literal("ready"),
+        v.literal("error")
+      )
+    ),
     processingError: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
@@ -234,11 +236,7 @@ const schema = defineSchema({
     giftType: v.union(v.literal("pro_month"), v.literal("pro_year")),
     amount: v.number(),
     message: v.optional(v.string()),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("claimed"),
-      v.literal("expired")
-    ),
+    status: v.union(v.literal("pending"), v.literal("claimed"), v.literal("expired")),
     claimToken: v.string(),
     purchasedAt: v.number(),
     claimedAt: v.optional(v.number()),
@@ -249,6 +247,6 @@ const schema = defineSchema({
     .index("by_to_email", ["toEmail"])
     .index("by_claim_token", ["claimToken"])
     .index("by_status", ["status"]),
-});
+})
 
-export default schema;
+export default schema

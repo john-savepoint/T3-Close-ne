@@ -49,9 +49,9 @@ jobs:
           name: Release v${{ fromJson(steps.changesets.outputs.publishedPackages)[0].version }}
           body: |
             ## What's Changed
-            
+
             See [CHANGELOG.md](./CHANGELOG.md) for detailed changes.
-            
+
             **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ fromJson(steps.changesets.outputs.publishedPackages)[0].version }}...HEAD
           draft: false
           prerelease: false

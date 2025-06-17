@@ -127,7 +127,9 @@ interface GroupLabelProps {
 
 // Group Label Component
 const GroupLabel = ({ label }: GroupLabelProps) => (
-  <div className="px-3 py-2 text-xs font-semibold text-mauve-accent uppercase tracking-wider">{label}</div>
+  <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-mauve-accent">
+    {label}
+  </div>
 )
 
 export function Sidebar() {

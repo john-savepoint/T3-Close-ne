@@ -470,21 +470,25 @@ git rebase --abort  # Cancels the rebase
 
 ### **📋 Updated Development Workflow**
 
-1. **Start Session**: 
+1. **Start Session**:
+
    - Run `git status` to check your environment
    - If on feature branch, run the 4 rebase commands above
 
 2. **Task Assignment**: Copy prompts from `teams/task-prompts.md`
 
-3. **Before Starting Code**: 
+3. **Before Starting Code**:
+
    - Ensure you're on latest main via rebase
    - Check `teams/SHARED.md` for coordination needs
 
-4. **Development**: 
+4. **Development**:
+
    - Make your changes as normal
    - Commit regularly with conventional commit format
 
 5. **Before Creating PR**:
+
    - Run rebase workflow again (ensures latest main)
    - Run quality checks: `pnpm type-check && pnpm lint`
    - Create PR with `gh pr create`
@@ -500,7 +504,7 @@ git rebase --abort  # Cancels the rebase
 ### **Conflict Prevention**
 
 - **File Ownership**: Clear assignment per task
-- **Type Safety**: Additive only, no modifications  
+- **Type Safety**: Additive only, no modifications
 - **Shared Communication**: Use `teams/SHARED.md`
 - **Progress Tracking**: Monitor `teams/PROGRESS.md`
 - **⭐ NEW: Always Rebase**: Prevents 99% of merge conflicts

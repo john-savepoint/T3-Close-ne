@@ -2,7 +2,7 @@
  * Message and SSE streaming utilities
  */
 
-import type { StreamingMessage, StreamChunk } from './types'
+import type { StreamingMessage, StreamChunk } from "./types"
 
 /**
  * Message streaming utilities
@@ -12,8 +12,8 @@ export const MessageStreamUtils = {
    * Create a new streaming message
    */
   createStreamingMessage(
-    role: 'user' | 'assistant',
-    content: string = '',
+    role: "user" | "assistant",
+    content: string = "",
     model?: string
   ): StreamingMessage {
     return {
@@ -22,7 +22,7 @@ export const MessageStreamUtils = {
       content,
       timestamp: new Date(),
       model,
-      isStreaming: role === 'assistant' && content === '',
+      isStreaming: role === "assistant" && content === "",
     }
   },
 
@@ -44,10 +44,7 @@ export const MessageStreamUtils = {
   /**
    * Append content to streaming message
    */
-  appendStreamingContent(
-    message: StreamingMessage,
-    chunk: string
-  ): StreamingMessage {
+  appendStreamingContent(message: StreamingMessage, chunk: string): StreamingMessage {
     return {
       ...message,
       content: message.content + chunk,
@@ -74,12 +71,12 @@ export const SSEUtils = {
    */
   parseSSEChunk(chunk: string): StreamChunk | null {
     try {
-      if (chunk.startsWith('data: ')) {
+      if (chunk.startsWith("data: ")) {
         const data = chunk.slice(6).trim()
-        
-        if (data === '[DONE]') {
+
+        if (data === "[DONE]") {
           return {
-            content: '',
+            content: "",
             timestamp: Date.now(),
             isComplete: true,
           }
@@ -87,13 +84,13 @@ export const SSEUtils = {
 
         const parsed = JSON.parse(data)
         return {
-          content: parsed.content || '',
+          content: parsed.content || "",
           timestamp: Date.now(),
           isComplete: false,
         }
       }
     } catch (error) {
-      console.warn('Failed to parse SSE chunk:', chunk, error)
+      console.warn("Failed to parse SSE chunk:", chunk, error)
     }
     return null
   },
@@ -109,6 +106,6 @@ export const SSEUtils = {
    * Create SSE completion marker
    */
   createSSEComplete(): string {
-    return 'data: [DONE]\n\n'
+    return "data: [DONE]\n\n"
   },
 }

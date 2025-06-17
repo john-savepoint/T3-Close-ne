@@ -1,47 +1,42 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
-import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { getAuthUserId } from "@convex-dev/auth/server"
+import { query, mutation } from "./_generated/server"
+import { v } from "convex/values"
 
 // Auth-based queries using @convex-dev/auth
 export const getCurrentUser = query({
   args: {},
-  handler: async (ctx: any) => {
-    const userId = await getAuthUserId(ctx);
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx)
     if (!userId) {
-      return null;
+      return null
     }
-    
-    return await ctx.db.get(userId);
+
+    return await ctx.db.get(userId)
   },
-});
+})
 
 export const updateUserProfile = mutation({
   args: {
     name: v.optional(v.string()),
     image: v.optional(v.string()),
   },
-  handler: async (ctx: any, { name, image }: { name?: string; image?: string }) => {
-    const userId = await getAuthUserId(ctx);
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
     if (!userId) {
-      throw new Error("Not authenticated");
+      throw new Error("Not authenticated")
     }
-    
-    interface UserUpdateData {
-      name?: string;
-      image?: string;
-    }
-    
-    const updateData: UserUpdateData = {};
-    if (name !== undefined) updateData.name = name;
-    if (image !== undefined) updateData.image = image;
-    
+
+    const updateData: { name?: string; image?: string } = {}
+    if (args.name !== undefined) updateData.name = args.name
+    if (args.image !== undefined) updateData.image = args.image
+
     if (Object.keys(updateData).length === 0) {
-      return;
+      return
     }
-    
-    await ctx.db.patch(userId, updateData);
+
+    await ctx.db.patch(userId, updateData)
   },
-});
+})
 
 // Legacy user functions for backwards compatibility
 export const create = mutation({
@@ -55,10 +50,10 @@ export const create = mutation({
     const existingUser = await ctx.db
       .query("users")
       .withIndex("by_token", (q) => q.eq("tokenIdentifier", args.tokenIdentifier))
-      .unique();
+      .unique()
 
     if (existingUser) {
-      return existingUser._id;
+      return existingUser._id
     }
 
     return await ctx.db.insert("users", {
@@ -68,9 +63,9 @@ export const create = mutation({
       plan: "free",
       storageUsed: 0,
       storageLimit: 1024 * 1024 * 100, // 100MB default
-    });
+    })
   },
-});
+})
 
 export const get = query({
   args: { tokenIdentifier: v.string() },
@@ -78,6 +73,6 @@ export const get = query({
     return await ctx.db
       .query("users")
       .withIndex("by_token", (q) => q.eq("tokenIdentifier", args.tokenIdentifier))
-      .unique();
+      .unique()
   },
-});
+})

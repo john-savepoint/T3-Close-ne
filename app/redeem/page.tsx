@@ -17,7 +17,10 @@ export default function RedeemGiftPage() {
   const [redemptionCode, setRedemptionCode] = useState("")
   const [redemptionComplete, setRedemptionComplete] = useState(false)
   const [error, setError] = useState("")
-  const [redeemedGift, setRedeemedGift] = useState<{ durationMonths: number; planName: string } | null>(null)
+  const [redeemedGift, setRedeemedGift] = useState<{
+    durationMonths: number
+    planName: string
+  } | null>(null)
 
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault()

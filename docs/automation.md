@@ -5,6 +5,7 @@
 ✅ **RESOLVED**: Updated Husky hooks to remove deprecated functionality
 
 **What was fixed:**
+
 - Removed deprecated `#!/usr/bin/env sh` and `. "$(dirname -- "$0")/_/husky.sh"` from hooks
 - Updated `.husky/pre-commit` and `.husky/commit-msg` for Husky v10 compatibility
 
@@ -22,7 +23,7 @@ Use the automated changeset generator for non-interactive environments:
 # Generate a patch changeset
 ./scripts/generate-changeset.sh patch "Fix authentication bug"
 
-# Generate a minor changeset  
+# Generate a minor changeset
 ./scripts/generate-changeset.sh minor "Add new chat feature"
 
 # Generate a major changeset
@@ -55,7 +56,7 @@ Updated package.json with safe scripts:
 {
   "scripts": {
     "changeset:add": "./scripts/safe-commands.sh add",
-    "changeset:generate": "./scripts/safe-commands.sh generate", 
+    "changeset:generate": "./scripts/safe-commands.sh generate",
     "changeset:status": "./scripts/safe-commands.sh status",
     "changeset:version": "./scripts/safe-commands.sh version"
   }
@@ -146,14 +147,14 @@ Scripts include validation and helpful error messages:
 
 ## 📋 **Quick Reference**
 
-| Task | Command | Use Case |
-|------|---------|----------|
-| Interactive add | `pnpm changeset:add` | Human development |
-| Automated patch | `pnpm changeset:generate patch "fix"` | Bug fixes |
-| Automated minor | `pnpm changeset:generate minor "feat"` | New features |
-| Check status | `pnpm changeset:status` | Release planning |
-| Generate version | `pnpm changeset:version` | Create changelog |
-| Full release | `pnpm release` | Publish changes |
+| Task             | Command                                | Use Case          |
+| ---------------- | -------------------------------------- | ----------------- |
+| Interactive add  | `pnpm changeset:add`                   | Human development |
+| Automated patch  | `pnpm changeset:generate patch "fix"`  | Bug fixes         |
+| Automated minor  | `pnpm changeset:generate minor "feat"` | New features      |
+| Check status     | `pnpm changeset:status`                | Release planning  |
+| Generate version | `pnpm changeset:version`               | Create changelog  |
+| Full release     | `pnpm release`                         | Publish changes   |
 
 ---
 

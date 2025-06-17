@@ -14,10 +14,10 @@ export class StreamManager {
   startStream(id: string): AbortController {
     // Cancel existing stream if any
     this.cancelStream(id)
-    
+
     const controller = new AbortController()
     this.activeStreams.set(id, controller)
-    
+
     return controller
   }
 

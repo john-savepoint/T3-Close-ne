@@ -9,7 +9,7 @@ on:
 jobs:
   visual-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,13 +56,13 @@ jobs:
           mkdir -p tests
           cat > tests/visual.spec.ts << 'EOF'
           import { test, expect } from '@playwright/test';
-          
+
           test('homepage visual test', async ({ page }) => {
             await page.goto('http://localhost:3000');
             await page.waitForLoadState('networkidle');
             await expect(page).toHaveScreenshot('homepage.png');
           });
-          
+
           test('chat interface visual test', async ({ page }) => {
             await page.goto('http://localhost:3000');
             await page.waitForLoadState('networkidle');
@@ -76,11 +76,11 @@ jobs:
             await expect(page).toHaveScreenshot('chat-interface.png');
           });
           EOF
-          
+
           # Create playwright config if it doesn't exist
           cat > playwright.config.ts << 'EOF'
           import { defineConfig } from '@playwright/test';
-          
+
           export default defineConfig({
             testDir: './tests',
             use: {
@@ -101,7 +101,7 @@ jobs:
             },
           });
           EOF
-          
+
           pnpm exec playwright test
 
       - name: Upload visual test results
