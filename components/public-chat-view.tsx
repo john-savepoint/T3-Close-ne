@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-
+import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -161,10 +161,10 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
               </Button>
 
               <Button asChild size="sm">
-                <a href="/" className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-2">
                   Sign Up
                   <ExternalLink className="h-3 w-3" />
-                </a>
+                </Link>
               </Button>
             </div>
           </div>
@@ -299,7 +299,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
                 {isForking ? "Creating..." : "Fork Conversation"}
               </Button>
               <Button variant="outline" asChild>
-                <a href="/">Learn More</a>
+                <Link href="/">Learn More</Link>
               </Button>
             </div>
           </div>
@@ -311,9 +311,9 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
         <div className="container mx-auto px-4 py-8 text-center text-sm text-mauve-subtle/70">
           <p>
             Powered by{" "}
-            <a href="/" className="text-mauve-accent transition-colors hover:text-mauve-bright">
+            <Link href="/" className="text-mauve-accent transition-colors hover:text-mauve-bright">
               T3Chat
-            </a>{" "}
+            </Link>{" "}
             • Build better with AI
           </p>
         </div>

@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { PublicChatView } from "@/components/public-chat-view"
 
 interface PageProps {
-  params: { token: string }
+  params: Promise<{ token: string }>
 }
 
 // This would normally fetch from your API
@@ -52,7 +52,8 @@ async function getSharedChat(token: string) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const chat = await getSharedChat(params.token)
+  const { token } = await params
+  const chat = await getSharedChat(token)
 
   if (!chat?.isActive) {
     return {
@@ -83,7 +84,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function SharedChatPage({ params }: PageProps) {
-  const chat = await getSharedChat(params.token)
+  const { token } = await params
+  const chat = await getSharedChat(token)
 
   if (!chat?.isActive) {
     return (
