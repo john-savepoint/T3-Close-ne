@@ -30,6 +30,12 @@ const languageRegistrations = {
   yml: () => import("react-syntax-highlighter/dist/cjs/languages/prism/yaml"),
   markdown: () => import("react-syntax-highlighter/dist/cjs/languages/prism/markdown"),
   md: () => import("react-syntax-highlighter/dist/cjs/languages/prism/markdown"),
+  go: () => import("react-syntax-highlighter/dist/cjs/languages/prism/go"),
+  rust: () => import("react-syntax-highlighter/dist/cjs/languages/prism/rust"),
+  php: () => import("react-syntax-highlighter/dist/cjs/languages/prism/php"),
+  ruby: () => import("react-syntax-highlighter/dist/cjs/languages/prism/ruby"),
+  swift: () => import("react-syntax-highlighter/dist/cjs/languages/prism/swift"),
+  kotlin: () => import("react-syntax-highlighter/dist/cjs/languages/prism/kotlin"),
 }
 
 // Keep track of registered languages
@@ -72,8 +78,13 @@ export function CodeBlockEnhanced({
       
       try {
         const languageModule = await languageRegistrations[detectedLanguage as keyof typeof languageRegistrations]()
-        SyntaxHighlighter.registerLanguage(detectedLanguage, languageModule.default)
-        registeredLanguages.add(detectedLanguage)
+        // Ensure the module has the expected structure
+        if (languageModule.default) {
+          SyntaxHighlighter.registerLanguage(detectedLanguage, languageModule.default)
+          registeredLanguages.add(detectedLanguage)
+        } else {
+          console.warn(`Language module for ${detectedLanguage} missing default export`)
+        }
         setLanguageReady(true)
       } catch (error) {
         console.warn(`Could not register language: ${detectedLanguage}`, error)
@@ -200,6 +211,15 @@ export function CodeBlockEnhanced({
               textAlign: 'right',
               userSelect: 'none',
             }}
+            // Enhanced accessibility attributes
+            PreTag={(props) => (
+              <pre 
+                {...props} 
+                role="code"
+                aria-label={`Code block in ${detectedLanguage}`}
+                tabIndex={0}
+              />
+            )}
           >
             {code}
           </SyntaxHighlighter>

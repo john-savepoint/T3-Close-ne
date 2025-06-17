@@ -7,32 +7,61 @@ import { useCallback } from "react"
  */
 export function useCodeActions() {
   /**
-   * Copy code to clipboard with fallback for older browsers
+   * Enhanced clipboard copy with proper security checks
    */
   const copyToClipboard = useCallback(async (code: string): Promise<boolean> => {
+    // Security check: Must be in secure context (HTTPS)
+    if (!window.isSecureContext) {
+      console.warn('Clipboard API requires secure context (HTTPS)')
+      return copyFallback(code)
+    }
+
+    // Check for clipboard API support
+    if (!navigator.clipboard) {
+      console.warn('Clipboard API not supported, using fallback')
+      return copyFallback(code)
+    }
+
     try {
-      // Modern approach using Clipboard API
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(code)
-        return true
-      }
-      
-      // Fallback for older browsers or non-secure contexts
+      // Modern Clipboard API - requires user activation
+      await navigator.clipboard.writeText(code)
+      return true
+    } catch (err) {
+      console.error('Clipboard API failed:', err)
+      // Fallback to older method
+      return copyFallback(code)
+    }
+  }, [])
+
+  /**
+   * Secure fallback for clipboard operations
+   */
+  const copyFallback = useCallback((code: string): boolean => {
+    try {
       const textArea = document.createElement('textarea')
       textArea.value = code
+      
+      // Security: Hide the textarea but make it accessible
       textArea.style.position = 'fixed'
-      textArea.style.left = '-999999px'
-      textArea.style.top = '-999999px'
+      textArea.style.left = '-9999px'
+      textArea.style.top = '-9999px'
+      textArea.style.opacity = '0'
+      textArea.setAttribute('readonly', '')
+      textArea.setAttribute('aria-hidden', 'true')
+      
       document.body.appendChild(textArea)
+      
+      // Focus and select for better cross-browser compatibility
       textArea.focus()
       textArea.select()
+      textArea.setSelectionRange(0, 99999) // For mobile devices
       
       const successful = document.execCommand('copy')
       document.body.removeChild(textArea)
       
       return successful
     } catch (err) {
-      console.error('Failed to copy code:', err)
+      console.error('Fallback copy failed:', err)
       return false
     }
   }, [])
@@ -90,16 +119,21 @@ export function useCodeActions() {
   }, [])
 
   /**
-   * Generate appropriate filename for code snippet
+   * Generate appropriate filename for code snippet with security sanitization
    */
   const generateFilename = useCallback((language: string, customFilename?: string): string => {
+    // Sanitize filename to prevent directory traversal and invalid characters
+    const sanitize = (name: string) => 
+      name.replace(/[^a-z0-9\-_\.]/gi, '_').replace(/_{2,}/g, '_').slice(0, 100)
+
     if (customFilename) {
+      const sanitized = sanitize(customFilename)
       // If custom filename already has extension, use it as-is
-      if (customFilename.includes('.')) {
-        return customFilename
+      if (sanitized.includes('.')) {
+        return sanitized
       }
       // Otherwise, add appropriate extension
-      return `${customFilename}.${getFileExtension(language)}`
+      return `${sanitized}.${getFileExtension(language)}`
     }
 
     // Generate default filename based on language
@@ -110,7 +144,7 @@ export function useCodeActions() {
   }, [getFileExtension])
 
   /**
-   * Download code as a file
+   * Enhanced download with better MIME type handling and security
    */
   const downloadCode = useCallback((
     code: string, 
@@ -118,27 +152,41 @@ export function useCodeActions() {
     filename?: string
   ): void => {
     try {
+      const mimeType = getMimeType(language)
       const finalFilename = generateFilename(language, filename)
-      const blob = new Blob([code], { type: 'text/plain;charset=utf-8' })
       
-      // Create download link
+      // Create blob with proper MIME type
+      const blob = new Blob([code], { 
+        type: `${mimeType};charset=utf-8` 
+      })
+      
+      // Security: Validate blob size (prevent memory exhaustion)
+      if (blob.size > 50 * 1024 * 1024) { // 50MB limit
+        console.error('File too large for download')
+        return
+      }
+      
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
+      
+      // Security attributes
       link.href = url
       link.download = finalFilename
       link.style.display = 'none'
+      link.setAttribute('rel', 'noopener noreferrer')
       
-      // Trigger download
       document.body.appendChild(link)
       link.click()
       
       // Cleanup
       document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      
+      // Clean up object URL to prevent memory leaks
+      setTimeout(() => URL.revokeObjectURL(url), 100)
     } catch (err) {
       console.error('Failed to download code:', err)
     }
-  }, [generateFilename])
+  }, [generateFilename, getMimeType])
 
   /**
    * Share code via Web Share API (if supported)

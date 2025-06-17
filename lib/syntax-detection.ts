@@ -199,6 +199,98 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /\[.*\]\(.*\)/
     ],
     fileExtensions: ['md', 'markdown', 'mdown', 'mkdown']
+  },
+
+  go: {
+    keywords: ['func', 'package', 'import', 'var', 'const', 'type', 'struct', 'interface', 'range', 'go', 'defer'],
+    patterns: [
+      /package\s+\w+/,
+      /func\s+\w+\s*\(/,
+      /fmt\.(Print|Println|Printf)/,
+      /\bgo\s+func/,
+      /\bmake\(/,
+      /\brange\b/,
+      /\bdefer\b/,
+      /\berr\s*:=/,
+      /\bnil\b/
+    ],
+    fileExtensions: ['go']
+  },
+
+  rust: {
+    keywords: ['fn', 'let', 'mut', 'use', 'mod', 'struct', 'enum', 'impl', 'trait', 'match', 'pub'],
+    patterns: [
+      /fn\s+\w+\s*\(/,
+      /let\s+(mut\s+)?\w+/,
+      /\buse\s+\w+::/,
+      /\bmatch\s+\w+/,
+      /\bResult<.*>/,
+      /\bOption<.*>/,
+      /\bpub\s+(fn|struct|enum)/,
+      /\b&str\b/,
+      /\bString::/
+    ],
+    fileExtensions: ['rs']
+  },
+
+  php: {
+    keywords: ['<?php', 'function', 'class', 'public', 'private', 'protected', 'namespace', 'use'],
+    patterns: [
+      /^<\?php/,
+      /\$\w+/,
+      /function\s+\w+\s*\(/,
+      /class\s+\w+/,
+      /echo\s+/,
+      /\$this->/,
+      /->/,
+      /namespace\s+\w+/
+    ],
+    fileExtensions: ['php', 'phtml']
+  },
+
+  ruby: {
+    keywords: ['def', 'class', 'module', 'require', 'include', 'attr_accessor', 'attr_reader', 'attr_writer'],
+    patterns: [
+      /def\s+\w+/,
+      /class\s+\w+/,
+      /module\s+\w+/,
+      /@\w+/,
+      /\bdo\s*\|.*\|/,
+      /\bend\b/,
+      /puts\s+/,
+      /require\s+['"`]/
+    ],
+    fileExtensions: ['rb', 'ruby']
+  },
+
+  swift: {
+    keywords: ['func', 'class', 'struct', 'enum', 'protocol', 'extension', 'import', 'var', 'let'],
+    patterns: [
+      /func\s+\w+\s*\(/,
+      /class\s+\w+/,
+      /struct\s+\w+/,
+      /\bvar\s+\w+:\s*\w+/,
+      /\blet\s+\w+\s*=/,
+      /print\(/,
+      /\bswitch\s+\w+/,
+      /\bguard\s+let/
+    ],
+    fileExtensions: ['swift']
+  },
+
+  kotlin: {
+    keywords: ['fun', 'class', 'object', 'interface', 'data', 'sealed', 'abstract', 'open', 'val', 'var'],
+    patterns: [
+      /fun\s+\w+\s*\(/,
+      /class\s+\w+/,
+      /data\s+class/,
+      /\bval\s+\w+\s*=/,
+      /\bvar\s+\w+:\s*\w+/,
+      /println\(/,
+      /\bwhen\s*\(/,
+      /\bnull\b/
+    ],
+    fileExtensions: ['kt', 'kts']
   }
 }
 
