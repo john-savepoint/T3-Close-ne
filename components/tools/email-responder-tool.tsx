@@ -56,9 +56,9 @@ Best regards,
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium mb-1">Email History</label>
+          <label className="mb-1 block text-sm font-medium">Email History</label>
           <Textarea
             placeholder="Paste the previous email thread or context here..."
             className="min-h-[200px]"
@@ -68,7 +68,7 @@ Best regards,
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Your Instructions</label>
+          <label className="mb-1 block text-sm font-medium">Your Instructions</label>
           <Textarea
             placeholder="Explain what you want to say in your response..."
             className="min-h-[200px]"
@@ -77,7 +77,7 @@ Best regards,
           />
 
           <div className="mt-4">
-            <label className="block text-sm font-medium mb-2">Tone</label>
+            <label className="mb-2 block text-sm font-medium">Tone</label>
             <div className="flex flex-wrap gap-2">
               {toneOptions.map((option) => (
                 <Button

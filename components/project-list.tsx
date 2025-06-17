@@ -4,7 +4,12 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   ChevronDown,
   ChevronRight,
@@ -50,7 +55,11 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
   }
 
   const handleDeleteProject = async (projectId: string) => {
-    if (confirm("Are you sure you want to delete this project? Associated chats will become standalone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this project? Associated chats will become standalone."
+      )
+    ) {
       await deleteProject(projectId)
     }
   }
@@ -64,17 +73,22 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="p-0 h-auto font-semibold text-mauve-accent uppercase tracking-wider text-xs"
+              className="h-auto p-0 text-xs font-semibold uppercase tracking-wider text-mauve-accent"
             >
               {isProjectsExpanded ? (
-                <ChevronDown className="w-3 h-3 mr-1" />
+                <ChevronDown className="mr-1 h-3 w-3" />
               ) : (
-                <ChevronRight className="w-3 h-3 mr-1" />
+                <ChevronRight className="mr-1 h-3 w-3" />
               )}
               Projects
             </Button>
           </CollapsibleTrigger>
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsCreateModalOpen(true)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
             <Plus className="h-3 w-3" />
           </Button>
         </div>
@@ -89,10 +103,10 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
               <div key={project.id} className="space-y-1">
                 {/* Project Item */}
                 <div
-                  className={`group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                  className={`group flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${
                     activeProjectId === project.id
                       ? "bg-mauve-accent/20 text-mauve-bright"
-                      : "hover:bg-white/5 text-mauve-subtle"
+                      : "text-mauve-subtle hover:bg-white/5"
                   }`}
                   onClick={() => handleProjectClick(project.id)}
                 >
@@ -118,12 +132,12 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
                     <Folder className="h-4 w-4" />
                   )}
 
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium truncate">{project.name}</span>
+                      <span className="truncate text-sm font-medium">{project.name}</span>
                       {project.attachments.length > 0 && (
-                        <Badge variant="outline" className="text-xs h-4">
-                          <Paperclip className="w-2 h-2 mr-1" />
+                        <Badge variant="outline" className="h-4 text-xs">
+                          <Paperclip className="mr-1 h-2 w-2" />
                           {project.attachments.length}
                         </Badge>
                       )}
@@ -146,16 +160,16 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
                         <MoreHorizontal className="h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-mauve-surface border-mauve-dark">
+                    <DropdownMenuContent align="end" className="border-mauve-dark bg-mauve-surface">
                       <DropdownMenuItem onClick={() => setSettingsProjectId(project.id)}>
-                        <Settings className="w-4 h-4 mr-2" />
+                        <Settings className="mr-2 h-4 w-4" />
                         Settings
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDeleteProject(project.id)}
                         className="text-red-400 focus:text-red-300"
                       >
-                        <Trash2 className="w-4 h-4 mr-2" />
+                        <Trash2 className="mr-2 h-4 w-4" />
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -166,17 +180,19 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
                 {expandedProjects.has(project.id) && (
                   <div className="ml-6 space-y-1">
                     {project.chats.length === 0 ? (
-                      <div className="px-2 py-1 text-xs text-mauve-subtle/50">No chats in this project</div>
+                      <div className="px-2 py-1 text-xs text-mauve-subtle/50">
+                        No chats in this project
+                      </div>
                     ) : (
                       project.chats.map((chat) => (
                         <div
                           key={chat.id}
-                          className="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-white/5 transition-colors group"
+                          className="group flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/5"
                           onClick={() => onChatSelect?.(chat.id, project.id)}
                         >
                           <MessageSquare className="h-3 w-3 text-mauve-subtle/70" />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm truncate">{chat.title}</div>
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm">{chat.title}</div>
                             <div className="text-xs text-mauve-subtle/70">
                               {chat.messageCount} messages • {chat.updatedAt.toLocaleDateString()}
                             </div>

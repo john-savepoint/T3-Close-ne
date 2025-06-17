@@ -14,7 +14,11 @@ interface MemorySuggestionBannerProps {
   onDismiss?: () => void
 }
 
-export function MemorySuggestionBanner({ suggestion, onAccept, onDismiss }: MemorySuggestionBannerProps) {
+export function MemorySuggestionBanner({
+  suggestion,
+  onAccept,
+  onDismiss,
+}: MemorySuggestionBannerProps) {
   const [isVisible, setIsVisible] = useState(true)
   const { acceptSuggestion, dismissSuggestion } = useMemory()
 
@@ -33,18 +37,18 @@ export function MemorySuggestionBanner({ suggestion, onAccept, onDismiss }: Memo
   if (!isVisible) return null
 
   return (
-    <Card className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-500/20 mb-4">
+    <Card className="mb-4 border-yellow-500/20 bg-gradient-to-r from-yellow-500/10 to-orange-500/10">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+          <Lightbulb className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
           <div className="flex-1">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-sm font-medium">Remember this for future chats?</p>
-                <p className="text-sm text-mauve-subtle/80 mt-1">{suggestion.content}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-500/50">
-                    <Lightbulb className="w-3 h-3 mr-1" />
+                <p className="mt-1 text-sm text-mauve-subtle/80">{suggestion.content}</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <Badge variant="outline" className="border-yellow-500/50 text-xs text-yellow-400">
+                    <Lightbulb className="mr-1 h-3 w-3" />
                     AI Suggestion
                   </Badge>
                   <Badge variant="outline" className="text-xs">
@@ -52,20 +56,25 @@ export function MemorySuggestionBanner({ suggestion, onAccept, onDismiss }: Memo
                   </Badge>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={handleDismiss}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 flex-shrink-0"
+                onClick={handleDismiss}
+              >
                 <X className="h-3 w-3" />
               </Button>
             </div>
-            <div className="flex gap-2 mt-3">
+            <div className="mt-3 flex gap-2">
               <Button size="sm" variant="outline" onClick={handleDismiss} className="text-xs">
                 Not now
               </Button>
               <Button
                 size="sm"
                 onClick={handleAccept}
-                className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 border-yellow-500/50 text-xs"
+                className="border-yellow-500/50 bg-yellow-500/20 text-xs text-yellow-400 hover:bg-yellow-500/30"
               >
-                <Check className="w-3 h-3 mr-1" />
+                <Check className="mr-1 h-3 w-3" />
                 Save Memory
               </Button>
             </div>

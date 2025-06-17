@@ -98,8 +98,14 @@ const yesterdayThreads = [
   },
 ]
 
+interface ThreadItemProps {
+  chat: any
+  parent?: boolean
+  isActive?: boolean
+}
+
 // Thread Item Component
-const ThreadItem = ({ chat, parent = false, isActive = false }) => {
+const ThreadItem = ({ chat, parent = false, isActive = false }: ThreadItemProps) => {
   const { moveToTrash, moveToArchive } = useChatLifecycle()
 
   return (
@@ -115,8 +121,12 @@ const ThreadItem = ({ chat, parent = false, isActive = false }) => {
   )
 }
 
+interface GroupLabelProps {
+  label: string
+}
+
 // Group Label Component
-const GroupLabel = ({ label }) => (
+const GroupLabel = ({ label }: GroupLabelProps) => (
   <div className="px-3 py-2 text-xs font-semibold text-mauve-accent uppercase tracking-wider">{label}</div>
 )
 
@@ -162,7 +172,7 @@ export function Sidebar() {
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-50 bg-mauve-surface/50 text-mauve-bright"
+          className="fixed left-4 top-4 z-50 bg-mauve-surface/50 text-mauve-bright"
           onClick={toggleSidebar}
         >
           <Menu className="h-5 w-5" />
@@ -171,7 +181,7 @@ export function Sidebar() {
 
       {showSidebar && (
         <aside
-          className={`${isMobile ? "fixed inset-y-0 left-0 z-40 w-64" : "w-64 flex-shrink-0"} bg-black/30 backdrop-blur-sm border-r border-mauve-dark p-2 flex flex-col transition-all duration-300 ease-in-out`}
+          className={`${isMobile ? "fixed inset-y-0 left-0 z-40 w-64" : "w-64 flex-shrink-0"} flex flex-col border-r border-mauve-dark bg-black/30 p-2 backdrop-blur-sm transition-all duration-300 ease-in-out`}
         >
           {/* Header */}
           <div className="flex flex-col space-y-2 pb-2">
@@ -183,19 +193,19 @@ export function Sidebar() {
             <div className="space-y-2">
               <Button
                 variant="secondary"
-                className="w-full justify-center bg-mauve-accent/20 hover:bg-mauve-accent/30 text-mauve-bright font-semibold"
+                className="w-full justify-center bg-mauve-accent/20 font-semibold text-mauve-bright hover:bg-mauve-accent/30"
                 disabled={isTemporaryMode}
               >
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 {activeProject ? `New Chat in ${activeProject.name}` : "New Chat"}
               </Button>
 
               <Button
                 variant="outline"
-                className="w-full justify-center bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border-orange-500/50"
+                className="w-full justify-center border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
                 onClick={startTemporaryChat}
               >
-                <EyeOff className="w-4 h-4 mr-2" />
+                <EyeOff className="mr-2 h-4 w-4" />
                 Temporary Chat
               </Button>
 
@@ -203,9 +213,9 @@ export function Sidebar() {
                 trigger={
                   <Button
                     variant="outline"
-                    className="w-full justify-center bg-gradient-to-r from-pink-500/10 to-purple-600/10 hover:from-pink-500/20 hover:to-purple-600/20 text-pink-400 border-pink-500/50"
+                    className="w-full justify-center border-pink-500/50 bg-gradient-to-r from-pink-500/10 to-purple-600/10 text-pink-400 hover:from-pink-500/20 hover:to-purple-600/20"
                   >
-                    <Gift className="w-4 h-4 mr-2" />
+                    <Gift className="mr-2 h-4 w-4" />
                     Gift T3Chat Pro
                   </Button>
                 }
@@ -213,10 +223,10 @@ export function Sidebar() {
             </div>
 
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-mauve-subtle" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mauve-subtle" />
               <Input
                 placeholder="Search your threads..."
-                className="pl-9 bg-black/20 border-mauve-dark focus-visible:ring-mauve-accent"
+                className="border-mauve-dark bg-black/20 pl-9 focus-visible:ring-mauve-accent"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -224,7 +234,7 @@ export function Sidebar() {
           </div>
 
           {/* Content */}
-          <ScrollArea className="flex-1 -mr-2 pr-2">
+          <ScrollArea className="-mr-2 flex-1 pr-2">
             <nav className="flex flex-col gap-1 py-2">
               {/* Projects Section */}
               <ProjectList
@@ -254,11 +264,14 @@ export function Sidebar() {
           </ScrollArea>
 
           {/* Archive & Trash Navigation */}
-          <div className="mt-auto pt-2 border-t border-mauve-dark space-y-2">
+          <div className="mt-auto space-y-2 border-t border-mauve-dark pt-2">
             <div className="space-y-1">
               <Link href="/archive">
-                <Button variant="ghost" className="w-full justify-start text-mauve-subtle hover:text-mauve-bright">
-                  <Archive className="w-4 h-4 mr-2" />
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-mauve-subtle hover:text-mauve-bright"
+                >
+                  <Archive className="mr-2 h-4 w-4" />
                   Archive
                   {archivedChats.length > 0 && (
                     <Badge variant="outline" className="ml-auto text-xs">
@@ -269,8 +282,11 @@ export function Sidebar() {
               </Link>
 
               <Link href="/trash">
-                <Button variant="ghost" className="w-full justify-start text-mauve-subtle hover:text-mauve-bright">
-                  <Trash2 className="w-4 h-4 mr-2" />
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-mauve-subtle hover:text-mauve-bright"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Trash
                   {trashedChats.length > 0 && (
                     <Badge variant="outline" className="ml-auto text-xs">

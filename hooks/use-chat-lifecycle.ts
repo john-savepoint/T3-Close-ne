@@ -165,7 +165,9 @@ export function useChatLifecycle() {
   const getDaysUntilAutoPurge = useCallback((chat: Chat): number => {
     if (chat.status !== "trashed" || !chat.statusChangedAt) return 0
 
-    const daysSinceTrash = Math.floor((Date.now() - chat.statusChangedAt.getTime()) / (1000 * 60 * 60 * 24))
+    const daysSinceTrash = Math.floor(
+      (Date.now() - chat.statusChangedAt.getTime()) / (1000 * 60 * 60 * 24)
+    )
 
     return Math.max(0, 30 - daysSinceTrash)
   }, [])
@@ -177,7 +179,9 @@ export function useChatLifecycle() {
       const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
 
       setTrashedChats((prev) =>
-        prev.filter((chat) => !chat.statusChangedAt || chat.statusChangedAt.getTime() > thirtyDaysAgo),
+        prev.filter(
+          (chat) => !chat.statusChangedAt || chat.statusChangedAt.getTime() > thirtyDaysAgo
+        )
       )
     }
 

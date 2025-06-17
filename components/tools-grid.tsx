@@ -79,9 +79,11 @@ export function ToolsGrid({ onToolSelect }: ToolsGridProps) {
   return (
     <div className="w-full">
       {activeTool ? (
-        <div className="bg-mauve-surface/20 p-4 rounded-lg border border-mauve-dark/40">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium">{tools.find((tool) => tool.id === activeTool)?.name}</h3>
+        <div className="rounded-lg border border-mauve-dark/40 bg-mauve-surface/20 p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-medium">
+              {tools.find((tool) => tool.id === activeTool)?.name}
+            </h3>
             <Button variant="ghost" size="sm" onClick={() => setActiveTool(null)}>
               Back to tools
             </Button>
@@ -98,7 +100,7 @@ export function ToolsGrid({ onToolSelect }: ToolsGridProps) {
         </div>
       ) : (
         <Tabs defaultValue="popular">
-          <div className="flex justify-between items-center mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <TabsList>
               <TabsTrigger value="popular">Popular</TabsTrigger>
               <TabsTrigger value="all">All Tools</TabsTrigger>
@@ -106,18 +108,18 @@ export function ToolsGrid({ onToolSelect }: ToolsGridProps) {
           </div>
 
           <TabsContent value="popular" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {tools.slice(0, 3).map((tool) => (
                 <Card
                   key={tool.id}
-                  className="p-4 cursor-pointer bg-mauve-surface/20 hover:bg-mauve-surface/30 border-mauve-dark/40 transition-colors"
+                  className="cursor-pointer border-mauve-dark/40 bg-mauve-surface/20 p-4 transition-colors hover:bg-mauve-surface/30"
                   onClick={() => setActiveTool(tool.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-md bg-mauve-surface/30">{tool.icon}</div>
+                    <div className="rounded-md bg-mauve-surface/30 p-2">{tool.icon}</div>
                     <div>
-                      <h3 className="font-medium text-left">{tool.name}</h3>
-                      <p className="text-sm text-mauve-subtle/80 text-left">{tool.description}</p>
+                      <h3 className="text-left font-medium">{tool.name}</h3>
+                      <p className="text-left text-sm text-mauve-subtle/80">{tool.description}</p>
                     </div>
                   </div>
                 </Card>
@@ -126,18 +128,18 @@ export function ToolsGrid({ onToolSelect }: ToolsGridProps) {
           </TabsContent>
 
           <TabsContent value="all" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {tools.map((tool) => (
                 <Card
                   key={tool.id}
-                  className="p-4 cursor-pointer bg-mauve-surface/20 hover:bg-mauve-surface/30 border-mauve-dark/40 transition-colors"
+                  className="cursor-pointer border-mauve-dark/40 bg-mauve-surface/20 p-4 transition-colors hover:bg-mauve-surface/30"
                   onClick={() => setActiveTool(tool.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-md bg-mauve-surface/30">{tool.icon}</div>
+                    <div className="rounded-md bg-mauve-surface/30 p-2">{tool.icon}</div>
                     <div>
-                      <h3 className="font-medium text-left">{tool.name}</h3>
-                      <p className="text-sm text-mauve-subtle/80 text-left">{tool.description}</p>
+                      <h3 className="text-left font-medium">{tool.name}</h3>
+                      <p className="text-left text-sm text-mauve-subtle/80">{tool.description}</p>
                     </div>
                   </div>
                 </Card>

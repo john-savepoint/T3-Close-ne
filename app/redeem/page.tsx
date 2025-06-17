@@ -17,7 +17,7 @@ export default function RedeemGiftPage() {
   const [redemptionCode, setRedemptionCode] = useState("")
   const [redemptionComplete, setRedemptionComplete] = useState(false)
   const [error, setError] = useState("")
-  const [redeemedGift, setRedeemedGift] = useState(null)
+  const [redeemedGift, setRedeemedGift] = useState<{ durationMonths: number; planName: string } | null>(null)
 
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,7 +36,7 @@ export default function RedeemGiftPage() {
       setRedeemedGift(gift)
       setRedemptionComplete(true)
     } catch (error) {
-      setError(error.message || "Failed to redeem gift code")
+      setError((error as Error).message || "Failed to redeem gift code")
     }
   }
 
@@ -57,23 +57,23 @@ export default function RedeemGiftPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-mauve-deep via-mauve-dark to-black flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-mauve-deep via-mauve-dark to-black p-4">
       <div className="w-full max-w-md">
         {redemptionComplete && redeemedGift ? (
           /* Success State */
-          <Card className="bg-mauve-surface/50 border-mauve-dark">
+          <Card className="border-mauve-dark bg-mauve-surface/50">
             <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Check className="w-8 h-8 text-green-400" />
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
+                <Check className="h-8 w-8 text-green-400" />
               </div>
               <CardTitle className="text-foreground">Gift Redeemed Successfully! 🎉</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-center">
-              <Alert className="bg-green-500/10 border-green-500/20">
+              <Alert className="border-green-500/20 bg-green-500/10">
                 <Sparkles className="h-4 w-4 text-green-400" />
                 <AlertDescription className="text-green-300">
-                  <strong>Congratulations!</strong> You've received {redeemedGift.durationMonths} months of T3Chat Pro
-                  access.
+                  <strong>Congratulations!</strong> You've received {redeemedGift.durationMonths}{" "}
+                  months of T3Chat Pro access.
                 </AlertDescription>
               </Alert>
 
@@ -88,7 +88,9 @@ export default function RedeemGiftPage() {
 
               <div className="flex flex-col gap-3">
                 <Link href="/">
-                  <Button className="w-full bg-mauve-accent/20 hover:bg-mauve-accent/30">Start Using T3Chat Pro</Button>
+                  <Button className="w-full bg-mauve-accent/20 hover:bg-mauve-accent/30">
+                    Start Using T3Chat Pro
+                  </Button>
                 </Link>
                 <Link href="/settings">
                   <Button variant="outline" className="w-full">
@@ -100,10 +102,10 @@ export default function RedeemGiftPage() {
           </Card>
         ) : (
           /* Redemption Form */
-          <Card className="bg-mauve-surface/50 border-mauve-dark">
+          <Card className="border-mauve-dark bg-mauve-surface/50">
             <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Gift className="w-8 h-8 text-pink-400" />
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-pink-500/20">
+                <Gift className="h-8 w-8 text-pink-400" />
               </div>
               <CardTitle className="text-foreground">Redeem Your T3Chat Gift</CardTitle>
               <p className="text-sm text-mauve-subtle/70">
@@ -119,7 +121,7 @@ export default function RedeemGiftPage() {
                     placeholder="GIFT-ABCD-1234-EFGH"
                     value={redemptionCode}
                     onChange={handleCodeChange}
-                    className="bg-mauve-dark/50 border-mauve-dark font-mono text-center text-lg tracking-wider"
+                    className="border-mauve-dark bg-mauve-dark/50 text-center font-mono text-lg tracking-wider"
                     maxLength={19} // GIFT-XXXX-XXXX-XXXX format
                   />
                   <p className="text-xs text-mauve-subtle/60">
@@ -128,7 +130,7 @@ export default function RedeemGiftPage() {
                 </div>
 
                 {error && (
-                  <Alert className="bg-red-500/10 border-red-500/20">
+                  <Alert className="border-red-500/20 bg-red-500/10">
                     <AlertTriangle className="h-4 w-4 text-red-400" />
                     <AlertDescription className="text-red-300">{error}</AlertDescription>
                   </Alert>
@@ -141,20 +143,20 @@ export default function RedeemGiftPage() {
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Redeeming Gift...
                     </>
                   ) : (
                     <>
-                      <Gift className="w-4 h-4 mr-2" />
+                      <Gift className="mr-2 h-4 w-4" />
                       Redeem Gift
                     </>
                   )}
                 </Button>
               </form>
 
-              <div className="mt-6 pt-4 border-t border-mauve-dark">
-                <p className="text-xs text-center text-mauve-subtle/60">
+              <div className="mt-6 border-t border-mauve-dark pt-4">
+                <p className="text-center text-xs text-mauve-subtle/60">
                   Don't have an account?{" "}
                   <Link href="/signup" className="text-mauve-accent hover:underline">
                     Sign up here
