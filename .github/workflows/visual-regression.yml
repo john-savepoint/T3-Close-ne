@@ -1,0 +1,114 @@
+name: Visual Regression Testing
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  visual-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build application
+        run: pnpm build
+        env:
+          # Mock environment variables for build
+          CONVEX_DEPLOYMENT: test
+          NEXT_PUBLIC_CONVEX_URL: https://test.convex.cloud
+          OPENROUTER_API_KEY: test-key
+
+      - name: Start application
+        run: pnpm start &
+        env:
+          PORT: 3000
+
+      - name: Wait for application to be ready
+        run: |
+          timeout 60s bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
+
+      - name: Run Playwright visual tests
+        run: |
+          # Create basic visual test if it doesn't exist
+          mkdir -p tests
+          cat > tests/visual.spec.ts << 'EOF'
+          import { test, expect } from '@playwright/test';
+          
+          test('homepage visual test', async ({ page }) => {
+            await page.goto('http://localhost:3000');
+            await page.waitForLoadState('networkidle');
+            await expect(page).toHaveScreenshot('homepage.png');
+          });
+          
+          test('chat interface visual test', async ({ page }) => {
+            await page.goto('http://localhost:3000');
+            await page.waitForLoadState('networkidle');
+            
+            // Click on new chat or navigate to chat interface
+            const newChatButton = page.locator('text=New Chat').first();
+            if (await newChatButton.isVisible()) {
+              await newChatButton.click();
+            }
+            
+            await expect(page).toHaveScreenshot('chat-interface.png');
+          });
+          EOF
+          
+          # Create playwright config if it doesn't exist
+          cat > playwright.config.ts << 'EOF'
+          import { defineConfig } from '@playwright/test';
+          
+          export default defineConfig({
+            testDir: './tests',
+            use: {
+              baseURL: 'http://localhost:3000',
+              headless: true,
+              viewport: { width: 1280, height: 720 },
+            },
+            projects: [
+              {
+                name: 'chromium',
+                use: { ...devices['Desktop Chrome'] },
+              },
+            ],
+            webServer: {
+              command: 'pnpm start',
+              port: 3000,
+              reuseExistingServer: !process.env.CI,
+            },
+          });
+          EOF
+          
+          pnpm exec playwright test
+
+      - name: Upload visual test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/

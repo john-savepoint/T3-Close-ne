@@ -20,7 +20,8 @@ const mockProjects: Project[] = [
         name: "tailwind.config.js",
         type: "application/javascript",
         size: 2048,
-        content: "module.exports = { content: ['./src/**/*.{js,ts,jsx,tsx}'], theme: { extend: {} } }",
+        content:
+          "module.exports = { content: ['./src/**/*.{js,ts,jsx,tsx}'], theme: { extend: {} } }",
       },
       {
         id: "att-2",
@@ -29,7 +30,8 @@ const mockProjects: Project[] = [
         name: "package.json",
         type: "application/json",
         size: 1024,
-        content: '{ "name": "webapp-frontend", "dependencies": { "next": "^14.0.0", "react": "^18.0.0" } }',
+        content:
+          '{ "name": "webapp-frontend", "dependencies": { "next": "^14.0.0", "react": "^18.0.0" } }',
       },
     ],
     chats: [
@@ -156,7 +158,9 @@ export function useProjects() {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 300))
 
-    setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates, updatedAt: new Date() } : p)))
+    setProjects((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, ...updates, updatedAt: new Date() } : p))
+    )
 
     setLoading(false)
   }
@@ -178,7 +182,7 @@ export function useProjects() {
 
   const addAttachmentToProject = async (
     projectId: string,
-    attachment: Omit<ProjectAttachment, "id" | "projectId">,
+    attachment: Omit<ProjectAttachment, "id" | "projectId">
   ): Promise<void> => {
     const newAttachment: ProjectAttachment = {
       id: `att-${Date.now()}`,
@@ -188,18 +192,27 @@ export function useProjects() {
 
     setProjects((prev) =>
       prev.map((p) =>
-        p.id === projectId ? { ...p, attachments: [...p.attachments, newAttachment], updatedAt: new Date() } : p,
-      ),
+        p.id === projectId
+          ? { ...p, attachments: [...p.attachments, newAttachment], updatedAt: new Date() }
+          : p
+      )
     )
   }
 
-  const removeAttachmentFromProject = async (projectId: string, attachmentId: string): Promise<void> => {
+  const removeAttachmentFromProject = async (
+    projectId: string,
+    attachmentId: string
+  ): Promise<void> => {
     setProjects((prev) =>
       prev.map((p) =>
         p.id === projectId
-          ? { ...p, attachments: p.attachments.filter((a) => a.id !== attachmentId), updatedAt: new Date() }
-          : p,
-      ),
+          ? {
+              ...p,
+              attachments: p.attachments.filter((a) => a.id !== attachmentId),
+              updatedAt: new Date(),
+            }
+          : p
+      )
     )
   }
 

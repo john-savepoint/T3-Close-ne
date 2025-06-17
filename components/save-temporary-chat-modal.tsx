@@ -6,8 +6,20 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Save, Loader2, AlertTriangle } from "lucide-react"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
@@ -58,25 +70,26 @@ export function SaveTemporaryChatModal({ open, onOpenChange }: SaveTemporaryChat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-mauve-surface border-mauve-dark">
+      <DialogContent className="border-mauve-dark bg-mauve-surface">
         <DialogHeader>
-          <DialogTitle className="text-foreground flex items-center gap-2">
-            <Save className="w-5 h-5" />
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <Save className="h-5 w-5" />
             Save Temporary Chat
           </DialogTitle>
         </DialogHeader>
 
-        <Alert className="bg-blue-500/10 border-blue-500/20">
+        <Alert className="border-blue-500/20 bg-blue-500/10">
           <AlertTriangle className="h-4 w-4 text-blue-400" />
           <AlertDescription className="text-blue-300">
-            This will convert your temporary chat into a permanent chat that will be saved to your history.
+            This will convert your temporary chat into a permanent chat that will be saved to your
+            history.
           </AlertDescription>
         </Alert>
 
         <div className="space-y-4">
           {/* Chat Summary */}
-          <div className="p-3 bg-mauve-dark/30 rounded-lg">
-            <h4 className="text-sm font-medium mb-2">Chat Summary</h4>
+          <div className="rounded-lg bg-mauve-dark/30 p-3">
+            <h4 className="mb-2 text-sm font-medium">Chat Summary</h4>
             <div className="grid grid-cols-3 gap-4 text-xs">
               <div>
                 <span className="text-mauve-subtle/70">Total Messages:</span>
@@ -92,7 +105,7 @@ export function SaveTemporaryChatModal({ open, onOpenChange }: SaveTemporaryChat
               </div>
             </div>
             {temporaryChat.messages.length > 0 && (
-              <div className="mt-2 p-2 bg-mauve-dark/50 rounded text-xs">
+              <div className="mt-2 rounded bg-mauve-dark/50 p-2 text-xs">
                 <span className="text-mauve-subtle/70">First message:</span>
                 <div className="truncate">
                   {temporaryChat.messages[0].content.substring(0, 100)}
@@ -112,7 +125,7 @@ export function SaveTemporaryChatModal({ open, onOpenChange }: SaveTemporaryChat
                 placeholder="e.g., Git Commands Help, Email Draft Assistance"
                 value={formData.title}
                 onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                className="bg-mauve-dark/50 border-mauve-dark focus-visible:ring-mauve-accent"
+                className="border-mauve-dark bg-mauve-dark/50 focus-visible:ring-mauve-accent"
                 required
               />
             </div>
@@ -125,10 +138,10 @@ export function SaveTemporaryChatModal({ open, onOpenChange }: SaveTemporaryChat
                 value={formData.projectId}
                 onValueChange={(value) => setFormData((prev) => ({ ...prev, projectId: value }))}
               >
-                <SelectTrigger className="bg-mauve-dark/50 border-mauve-dark">
+                <SelectTrigger className="border-mauve-dark bg-mauve-dark/50">
                   <SelectValue placeholder="Select a project or leave as standalone chat" />
                 </SelectTrigger>
-                <SelectContent className="bg-mauve-surface border-mauve-dark">
+                <SelectContent className="border-mauve-dark bg-mauve-surface">
                   <SelectItem value="standalone">Standalone Chat</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
@@ -148,8 +161,8 @@ export function SaveTemporaryChatModal({ open, onOpenChange }: SaveTemporaryChat
                 className="bg-mauve-accent/20 hover:bg-mauve-accent/30"
                 disabled={loading || !formData.title.trim()}
               >
-                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                <Save className="w-4 h-4 mr-2" />
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Save className="mr-2 h-4 w-4" />
                 Save Chat
               </Button>
             </DialogFooter>

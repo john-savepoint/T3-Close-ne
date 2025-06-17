@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Instagram, Twitter, Linkedin, Facebook, Send, Loader2 } from "lucide-react"
@@ -16,7 +22,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 export default function SocialMediaGeneratorPage() {
   const router = useRouter()
   const { generatePrompt } = useTools()
-  const [platform, setPlatform] = useState<"twitter" | "instagram" | "linkedin" | "facebook" | "tiktok">("instagram")
+  const [platform, setPlatform] = useState<
+    "twitter" | "instagram" | "linkedin" | "facebook" | "tiktok"
+  >("instagram")
   const [audience, setAudience] = useState("")
   const [topic, setTopic] = useState("")
   const [callToAction, setCallToAction] = useState("")
@@ -114,22 +122,22 @@ export default function SocialMediaGeneratorPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold flex items-center gap-2 mb-2">
+        <h1 className="mb-2 flex items-center gap-2 text-3xl font-bold">
           {getPlatformIcon()}
           <span>Social Media Generator</span>
         </h1>
         <p className="text-mauve-subtle/70">Create engaging posts for any platform and audience.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div>
           <Card>
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Platform</label>
+                  <label className="mb-2 block text-sm font-medium">Platform</label>
                   <Select value={platform} onValueChange={(value: any) => setPlatform(value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select platform" />
@@ -145,7 +153,7 @@ export default function SocialMediaGeneratorPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Target Audience</label>
+                  <label className="mb-2 block text-sm font-medium">Target Audience</label>
                   <Input
                     placeholder="e.g., Tech-savvy young adults, Business professionals"
                     value={audience}
@@ -154,7 +162,7 @@ export default function SocialMediaGeneratorPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Topic or Product</label>
+                  <label className="mb-2 block text-sm font-medium">Topic or Product</label>
                   <Textarea
                     placeholder="What are you posting about? Be specific."
                     className="min-h-[100px]"
@@ -164,7 +172,9 @@ export default function SocialMediaGeneratorPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Call to Action (Optional)</label>
+                  <label className="mb-2 block text-sm font-medium">
+                    Call to Action (Optional)
+                  </label>
                   <Input
                     placeholder="e.g., Visit our website, Sign up now"
                     value={callToAction}
@@ -173,11 +183,19 @@ export default function SocialMediaGeneratorPage() {
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Switch id="hashtags" checked={includeHashtags} onCheckedChange={setIncludeHashtags} />
+                  <Switch
+                    id="hashtags"
+                    checked={includeHashtags}
+                    onCheckedChange={setIncludeHashtags}
+                  />
                   <Label htmlFor="hashtags">Include relevant hashtags</Label>
                 </div>
 
-                <Button className="w-full" onClick={handleGenerate} disabled={isGenerating || !audience || !topic}>
+                <Button
+                  className="w-full"
+                  onClick={handleGenerate}
+                  disabled={isGenerating || !audience || !topic}
+                >
                   {isGenerating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -197,11 +215,11 @@ export default function SocialMediaGeneratorPage() {
 
         <div>
           <Card className="h-full">
-            <CardContent className="p-6 h-full flex flex-col">
-              <h3 className="font-medium mb-4">Generated Posts</h3>
+            <CardContent className="flex h-full flex-col p-6">
+              <h3 className="mb-4 font-medium">Generated Posts</h3>
 
               {generatedPosts.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center border-2 border-dashed border-mauve-subtle/20 rounded-lg p-8">
+                <div className="flex flex-1 items-center justify-center rounded-lg border-2 border-dashed border-mauve-subtle/20 p-8">
                   <div className="text-center text-mauve-subtle/50">
                     {getPlatformIcon()}
                     <p className="mt-4">Your generated posts will appear here</p>
@@ -209,7 +227,7 @@ export default function SocialMediaGeneratorPage() {
                 </div>
               ) : (
                 <>
-                  <Tabs defaultValue="0" className="flex-1 flex flex-col">
+                  <Tabs defaultValue="0" className="flex flex-1 flex-col">
                     <TabsList className="mb-4">
                       {generatedPosts.map((_, index) => (
                         <TabsTrigger key={index} value={index.toString()}>
@@ -219,8 +237,12 @@ export default function SocialMediaGeneratorPage() {
                     </TabsList>
 
                     {generatedPosts.map((post, index) => (
-                      <TabsContent key={index} value={index.toString()} className="flex-1 flex flex-col">
-                        <div className="flex-1 border border-mauve-subtle/20 rounded-lg p-4 mb-4 whitespace-pre-wrap overflow-auto">
+                      <TabsContent
+                        key={index}
+                        value={index.toString()}
+                        className="flex flex-1 flex-col"
+                      >
+                        <div className="mb-4 flex-1 overflow-auto whitespace-pre-wrap rounded-lg border border-mauve-subtle/20 p-4">
                           {post}
                         </div>
                       </TabsContent>

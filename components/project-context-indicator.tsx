@@ -23,8 +23,8 @@ export function ProjectContextIndicator() {
   }
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-mauve-accent/10 border-b border-mauve-dark">
-      <Folder className="w-4 h-4 text-mauve-accent" />
+    <div className="flex items-center gap-2 border-b border-mauve-dark bg-mauve-accent/10 px-4 py-2">
+      <Folder className="h-4 w-4 text-mauve-accent" />
       <span className="text-sm font-medium">You are in project:</span>
 
       <Popover>
@@ -37,12 +37,12 @@ export function ProjectContextIndicator() {
             {activeProject.name}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 bg-mauve-surface border-mauve-dark" align="start">
+        <PopoverContent className="w-80 border-mauve-dark bg-mauve-surface" align="start">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-sm">Project Context</h3>
+              <h3 className="text-sm font-semibold">Project Context</h3>
               <Badge variant="outline" className="text-xs">
-                <Zap className="w-3 h-3 mr-1" />
+                <Zap className="mr-1 h-3 w-3" />
                 {formatContextSize(contextSize)}
               </Badge>
             </div>
@@ -50,7 +50,7 @@ export function ProjectContextIndicator() {
             {activeProject.systemPrompt && (
               <div className="space-y-2">
                 <h4 className="text-xs font-medium text-mauve-accent">System Prompt</h4>
-                <div className="p-2 bg-mauve-dark/30 rounded text-xs">
+                <div className="rounded bg-mauve-dark/30 p-2 text-xs">
                   {activeProject.systemPrompt.length > 100
                     ? `${activeProject.systemPrompt.substring(0, 100)}...`
                     : activeProject.systemPrompt}
@@ -67,7 +67,7 @@ export function ProjectContextIndicator() {
                   <div className="space-y-1">
                     {activeProject.attachments.map((attachment) => (
                       <div key={attachment.id} className="flex items-center gap-2 text-xs">
-                        <FileText className="w-3 h-3 text-mauve-subtle" />
+                        <FileText className="h-3 w-3 text-mauve-subtle" />
                         <span className="truncate">{attachment.name}</span>
                       </div>
                     ))}
@@ -83,7 +83,12 @@ export function ProjectContextIndicator() {
         </PopoverContent>
       </Popover>
 
-      <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={() => setActiveProjectId(null)}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="ml-auto h-6 w-6"
+        onClick={() => setActiveProjectId(null)}
+      >
         <X className="h-3 w-3" />
       </Button>
     </div>

@@ -6,9 +6,20 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Search,
@@ -99,7 +110,7 @@ export function AttachmentLibrary({
     const input = document.createElement("input")
     input.type = "file"
     input.accept = Object.keys(SUPPORTED_FILE_TYPES)
-      .flatMap((cat) => Object.keys(SUPPORTED_FILE_TYPES[cat]))
+      .flatMap((cat) => Object.keys((SUPPORTED_FILE_TYPES as any)[cat]))
       .join(",")
 
     input.onchange = async (e) => {
@@ -128,23 +139,26 @@ export function AttachmentLibrary({
         </div>
 
         {mode === "select" && selectedIds.length > 0 && (
-          <Button onClick={handleAttachSelected} className="bg-mauve-accent/20 hover:bg-mauve-accent/30">
-            <Check className="w-4 h-4 mr-2" />
+          <Button
+            onClick={handleAttachSelected}
+            className="bg-mauve-accent/20 hover:bg-mauve-accent/30"
+          >
+            <Check className="mr-2 h-4 w-4" />
             Attach {selectedIds.length} File{selectedIds.length !== 1 ? "s" : ""}
           </Button>
         )}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <div className="flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-mauve-subtle" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mauve-subtle" />
             <Input
               placeholder="Search files..."
               value={filters.search}
               onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
-              className="pl-9 bg-mauve-dark/50 border-mauve-dark"
+              className="border-mauve-dark bg-mauve-dark/50 pl-9"
             />
           </div>
         </div>
@@ -153,10 +167,10 @@ export function AttachmentLibrary({
           value={filters.fileType}
           onValueChange={(value) => setFilters((prev) => ({ ...prev, fileType: value as any }))}
         >
-          <SelectTrigger className="w-48 bg-mauve-dark/50 border-mauve-dark">
+          <SelectTrigger className="w-48 border-mauve-dark bg-mauve-dark/50">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-mauve-surface border-mauve-dark">
+          <SelectContent className="border-mauve-dark bg-mauve-surface">
             <SelectItem value="all">All Files</SelectItem>
             <SelectItem value="documents">Documents</SelectItem>
             <SelectItem value="code">Code</SelectItem>
@@ -172,10 +186,10 @@ export function AttachmentLibrary({
             setFilters((prev) => ({ ...prev, sortBy: sortBy as any, sortOrder: sortOrder as any }))
           }}
         >
-          <SelectTrigger className="w-48 bg-mauve-dark/50 border-mauve-dark">
+          <SelectTrigger className="w-48 border-mauve-dark bg-mauve-dark/50">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-mauve-surface border-mauve-dark">
+          <SelectContent className="border-mauve-dark bg-mauve-surface">
             <SelectItem value="date-desc">Newest First</SelectItem>
             <SelectItem value="date-asc">Oldest First</SelectItem>
             <SelectItem value="name-asc">Name A-Z</SelectItem>
@@ -191,8 +205,8 @@ export function AttachmentLibrary({
       {/* File Grid */}
       <ScrollArea className="h-96">
         {filteredAttachments.length === 0 ? (
-          <div className="text-center py-12">
-            <File className="w-12 h-12 mx-auto text-mauve-subtle/50 mb-4" />
+          <div className="py-12 text-center">
+            <File className="mx-auto mb-4 h-12 w-12 text-mauve-subtle/50" />
             <p className="text-mauve-subtle/70">
               {filters.search || filters.fileType !== "all"
                 ? "No files match your filters"
@@ -200,17 +214,17 @@ export function AttachmentLibrary({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredAttachments.map((attachment) => (
               <AttachmentCard
                 key={attachment.id}
                 attachment={attachment}
-                isSelected={selectedIds.includes(attachment.id)}
+                isSelected={selectedIds.includes(attachment.id || attachment._id)}
                 selectionMode={mode === "select"}
-                onSelectionToggle={() => handleSelectionToggle(attachment.id)}
+                onSelectionToggle={() => handleSelectionToggle(attachment.id || attachment._id)}
                 onPreview={() => setPreviewAttachment(attachment)}
-                onReplace={() => handleReplaceFile(attachment.id)}
-                onDelete={() => deleteAttachment(attachment.id)}
+                onReplace={() => handleReplaceFile(attachment.id || attachment._id)}
+                onDelete={() => deleteAttachment(attachment.id || attachment._id)}
                 getFileTypeInfo={getFileTypeInfo}
                 getUsages={getAttachmentUsages}
               />
@@ -254,33 +268,37 @@ function AttachmentCard({
   getFileTypeInfo,
   getUsages,
 }: AttachmentCardProps) {
-  const fileInfo = getFileTypeInfo(attachment.fileType)
-  const Icon = categoryIcons[fileInfo.category] || File
-  const usages = getUsages(attachment.id)
+  const fileInfo = getFileTypeInfo(attachment.fileType || attachment.contentType)
+  const Icon = (categoryIcons as any)[fileInfo.category] || File
+  const usages = getUsages(attachment.id || attachment._id)
 
   return (
     <Card
-      className={`bg-mauve-surface/50 border-mauve-dark transition-all hover:bg-mauve-surface/70 ${
+      className={`border-mauve-dark bg-mauve-surface/50 transition-all hover:bg-mauve-surface/70 ${
         isSelected ? "ring-2 ring-mauve-accent" : ""
       }`}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          {selectionMode && <Checkbox checked={isSelected} onCheckedChange={onSelectionToggle} className="mt-1" />}
+          {selectionMode && (
+            <Checkbox checked={isSelected} onCheckedChange={onSelectionToggle} className="mt-1" />
+          )}
 
-          <Icon className="w-8 h-8 text-mauve-accent flex-shrink-0" />
+          <Icon className="h-8 w-8 flex-shrink-0 text-mauve-accent" />
 
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <h3 className="font-medium text-sm truncate" title={attachment.filename}>
+                <h3 className="truncate text-sm font-medium" title={attachment.filename}>
                   {attachment.filename}
                 </h3>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="mt-1 flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
                     {fileInfo.name}
                   </Badge>
-                  <span className="text-xs text-mauve-subtle/70">{formatFileSize(attachment.sizeBytes)}</span>
+                  <span className="text-xs text-mauve-subtle/70">
+                    {formatFileSize(attachment.sizeBytes || attachment.size)}
+                  </span>
                 </div>
               </div>
 
@@ -291,21 +309,24 @@ function AttachmentCard({
                       <MoreHorizontal className="h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-mauve-surface border-mauve-dark">
+                  <DropdownMenuContent align="end" className="border-mauve-dark bg-mauve-surface">
                     <DropdownMenuItem onClick={onPreview}>
-                      <Eye className="w-4 h-4 mr-2" />
+                      <Eye className="mr-2 h-4 w-4" />
                       Preview
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={onReplace}>
-                      <RefreshCw className="w-4 h-4 mr-2" />
+                      <RefreshCw className="mr-2 h-4 w-4" />
                       Replace
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Download className="w-4 h-4 mr-2" />
+                      <Download className="mr-2 h-4 w-4" />
                       Download
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onDelete} className="text-red-400 focus:text-red-300">
-                      <Trash2 className="w-4 h-4 mr-2" />
+                    <DropdownMenuItem
+                      onClick={onDelete}
+                      className="text-red-400 focus:text-red-300"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -313,28 +334,28 @@ function AttachmentCard({
               )}
             </div>
 
-            <div className="flex items-center gap-4 mt-3 text-xs text-mauve-subtle/70">
+            <div className="mt-3 flex items-center gap-4 text-xs text-mauve-subtle/70">
               <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {attachment.createdAt.toLocaleDateString()}
+                <Calendar className="h-3 w-3" />
+                {attachment.createdAt ? attachment.createdAt.toLocaleDateString() : new Date(attachment._creationTime).toLocaleDateString()}
               </div>
               <div className="flex items-center gap-1">
-                <BarChart3 className="w-3 h-3" />
-                {attachment.usageCount} uses
+                <BarChart3 className="h-3 w-3" />
+                {attachment.usageCount || 0} uses
               </div>
             </div>
 
             {usages.length > 0 && (
               <div className="mt-2">
-                <p className="text-xs text-mauve-subtle/70 mb-1">Used in:</p>
+                <p className="mb-1 text-xs text-mauve-subtle/70">Used in:</p>
                 <div className="flex flex-wrap gap-1">
                   {usages.slice(0, 2).map((usage) => (
-                    <Badge key={usage.id} variant="outline" className="text-xs h-4">
+                    <Badge key={usage.id} variant="outline" className="h-4 text-xs">
                       {usage.contextName}
                     </Badge>
                   ))}
                   {usages.length > 2 && (
-                    <Badge variant="outline" className="text-xs h-4">
+                    <Badge variant="outline" className="h-4 text-xs">
                       +{usages.length - 2} more
                     </Badge>
                   )}
@@ -344,7 +365,7 @@ function AttachmentCard({
 
             {attachment.processingStatus === "pending" && (
               <div className="mt-2">
-                <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-500/50">
+                <Badge variant="outline" className="border-yellow-500/50 text-xs text-yellow-400">
                   Processing...
                 </Badge>
               </div>
@@ -352,7 +373,7 @@ function AttachmentCard({
 
             {attachment.processingStatus === "failed" && (
               <div className="mt-2">
-                <Badge variant="outline" className="text-xs text-red-400 border-red-500/50">
+                <Badge variant="outline" className="border-red-500/50 text-xs text-red-400">
                   Processing Failed
                 </Badge>
               </div>
@@ -371,7 +392,7 @@ interface AttachmentPreviewModalProps {
 }
 
 function AttachmentPreviewModal({ attachment, onClose, getUsages }: AttachmentPreviewModalProps) {
-  const usages = getUsages(attachment.id)
+  const usages = getUsages(attachment.id || attachment._id)
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes"
@@ -383,38 +404,38 @@ function AttachmentPreviewModal({ attachment, onClose, getUsages }: AttachmentPr
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="bg-mauve-surface border-mauve-dark max-w-4xl max-h-[80vh]">
+      <DialogContent className="max-h-[80vh] max-w-4xl border-mauve-dark bg-mauve-surface">
         <DialogHeader>
           <DialogTitle className="text-foreground">{attachment.filename}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* File Info */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-mauve-dark/30 rounded-lg">
+          <div className="grid grid-cols-2 gap-4 rounded-lg bg-mauve-dark/30 p-4 md:grid-cols-4">
             <div>
               <span className="text-xs text-mauve-subtle/70">File Type:</span>
-              <div className="font-medium text-sm">{attachment.fileType}</div>
+              <div className="text-sm font-medium">{attachment.fileType}</div>
             </div>
             <div>
               <span className="text-xs text-mauve-subtle/70">Size:</span>
-              <div className="font-medium text-sm">{formatFileSize(attachment.sizeBytes)}</div>
+              <div className="text-sm font-medium">{formatFileSize(attachment.sizeBytes || attachment.size)}</div>
             </div>
             <div>
               <span className="text-xs text-mauve-subtle/70">Created:</span>
-              <div className="font-medium text-sm">{attachment.createdAt.toLocaleDateString()}</div>
+              <div className="text-sm font-medium">{attachment.createdAt ? attachment.createdAt.toLocaleDateString() : new Date(attachment._creationTime).toLocaleDateString()}</div>
             </div>
             <div>
               <span className="text-xs text-mauve-subtle/70">Usage Count:</span>
-              <div className="font-medium text-sm">{attachment.usageCount}</div>
+              <div className="text-sm font-medium">{attachment.usageCount || 0}</div>
             </div>
           </div>
 
           {/* Content Preview */}
           {attachment.extractedText && (
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Content Preview:</h4>
-              <ScrollArea className="h-64 p-4 bg-mauve-dark/30 rounded-lg">
-                <pre className="text-xs text-mauve-subtle whitespace-pre-wrap">
+              <h4 className="text-sm font-medium">Content Preview:</h4>
+              <ScrollArea className="h-64 rounded-lg bg-mauve-dark/30 p-4">
+                <pre className="whitespace-pre-wrap text-xs text-mauve-subtle">
                   {attachment.extractedText.length > 2000
                     ? `${attachment.extractedText.substring(0, 2000)}...`
                     : attachment.extractedText}
@@ -426,17 +447,22 @@ function AttachmentPreviewModal({ attachment, onClose, getUsages }: AttachmentPr
           {/* Usage Information */}
           {usages.length > 0 && (
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Used In:</h4>
+              <h4 className="text-sm font-medium">Used In:</h4>
               <div className="space-y-2">
                 {usages.map((usage) => (
-                  <div key={usage.id} className="flex items-center justify-between p-2 bg-mauve-dark/30 rounded">
+                  <div
+                    key={usage.id}
+                    className="flex items-center justify-between rounded bg-mauve-dark/30 p-2"
+                  >
                     <div>
                       <span className="text-sm font-medium">{usage.contextName}</span>
                       <Badge variant="outline" className="ml-2 text-xs">
                         {usage.usageType}
                       </Badge>
                     </div>
-                    <span className="text-xs text-mauve-subtle/70">{usage.usedAt.toLocaleDateString()}</span>
+                    <span className="text-xs text-mauve-subtle/70">
+                      {usage.usedAt.toLocaleDateString()}
+                    </span>
                   </div>
                 ))}
               </div>

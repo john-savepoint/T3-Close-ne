@@ -11,6 +11,17 @@ import { TemporaryChatBanner } from "@/components/temporary-chat-banner"
 import { TemporaryChatStarter } from "@/components/temporary-chat-starter"
 import { ToolsGrid } from "@/components/tools-grid"
 import { useState } from "react"
+
+interface Message {
+  id: string
+  type: "user" | "assistant"
+  content: string
+  timestamp: Date
+  model?: string
+  toolUsed?: string
+  isEdited?: boolean
+  editedAt?: Date
+}
 import { useMemory } from "@/hooks/use-memory"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { ShareChatModal } from "@/components/share-chat-modal"
@@ -21,8 +32,8 @@ import { useConversationTree } from "@/hooks/use-conversation-tree"
 
 export function MainContent() {
   const isMobile = useIsMobile()
-  const [messages, setMessages] = useState([])
-  const [currentMessageId, setCurrentMessageId] = useState(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
   const [selectedModel, setSelectedModel] = useState("gpt-4o")
   const { suggestions } = useMemory()
   const { temporaryChat, isTemporaryMode } = useTemporaryChat()
@@ -33,7 +44,7 @@ export function MainContent() {
   // Conversation tree
   const { conversationTree, renameBranch, getMessagePath } = useConversationTree(
     isTemporaryMode ? temporaryChat?.messages || [] : messages,
-    currentMessageId,
+    currentMessageId
   )
 
   // Show the first non-dismissed suggestion (only in non-temporary mode)
@@ -48,7 +59,11 @@ export function MainContent() {
       console.log("Edit temporary message:", messageId, newContent)
     } else {
       setMessages((prev) =>
-        prev.map((m) => (m.id === messageId ? { ...m, content: newContent, isEdited: true, editedAt: new Date() } : m)),
+        prev.map((m) =>
+          m.id === messageId
+            ? { ...m, content: newContent, isEdited: true, editedAt: new Date() }
+            : m
+        )
       )
     }
   }
@@ -94,26 +109,30 @@ export function MainContent() {
   }
 
   return (
-    <main className={`flex-1 flex ${isMobile ? "ml-0" : ""}`}>
+    <main className={`flex flex-1 ${isMobile ? "ml-0" : ""}`}>
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col relative">
+      <div className="relative flex flex-1 flex-col">
         {/* Background and styling */}
-        <div className="absolute inset-0 bg-mauve-dark/50 border-l border-t border-mauve-dark rounded-tl-xl"></div>
-        <div className="absolute inset-0 opacity-20 mix-blend-overlay rounded-tl-xl noise-bg"></div>
+        <div className="absolute inset-0 rounded-tl-xl border-l border-t border-mauve-dark bg-mauve-dark/50"></div>
+        <div className="noise-bg absolute inset-0 rounded-tl-xl opacity-20 mix-blend-overlay"></div>
 
         {/* Context Indicators */}
         {isTemporaryMode ? <TemporaryChatBanner /> : <ProjectContextIndicator />}
         {!isTemporaryMode && <MemoryContextIndicator />}
 
         {/* Content wrapper */}
-        <div className="relative flex-1 flex flex-col overflow-y-auto">
+        <div className="relative flex flex-1 flex-col overflow-y-auto">
           <div className="flex-1" />
           {displayMessages.length === 0 ? (
             // Welcome screen with tools
-            <div className="flex flex-col items-center justify-center p-4 md:p-8 text-center space-y-8">
+            <div className="flex flex-col items-center justify-center space-y-8 p-4 text-center md:p-8">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground">How can I help you, John?</h2>
-                <p className="text-lg text-mauve-subtle/80 mt-2">Choose a specialized tool or start a conversation</p>
+                <h2 className="text-3xl font-bold text-foreground md:text-4xl">
+                  How can I help you, John?
+                </h2>
+                <p className="mt-2 text-lg text-mauve-subtle/80">
+                  Choose a specialized tool or start a conversation
+                </p>
               </div>
 
               {/* Tools Grid */}
@@ -129,18 +148,30 @@ export function MainContent() {
               )}
 
               {/* Quick Start Prompts */}
-              <div className="flex flex-col w-full max-w-2xl mx-auto space-y-2">
-                <div className="text-sm text-mauve-subtle/60 mb-2">Or try these quick prompts:</div>
-                <Button variant="ghost" className="justify-start p-3 bg-mauve-surface/30 hover:bg-mauve-surface/50">
+              <div className="mx-auto flex w-full max-w-2xl flex-col space-y-2">
+                <div className="mb-2 text-sm text-mauve-subtle/60">Or try these quick prompts:</div>
+                <Button
+                  variant="ghost"
+                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
+                >
                   How does AI work?
                 </Button>
-                <Button variant="ghost" className="justify-start p-3 bg-mauve-surface/30 hover:bg-mauve-surface/50">
+                <Button
+                  variant="ghost"
+                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
+                >
                   Are black holes real?
                 </Button>
-                <Button variant="ghost" className="justify-start p-3 bg-mauve-surface/30 hover:bg-mauve-surface/50">
+                <Button
+                  variant="ghost"
+                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
+                >
                   How many Rs are in the word "strawberry"?
                 </Button>
-                <Button variant="ghost" className="justify-start p-3 bg-mauve-surface/30 hover:bg-mauve-surface/50">
+                <Button
+                  variant="ghost"
+                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
+                >
                   What is the meaning of life?
                 </Button>
               </div>
@@ -169,13 +200,13 @@ export function MainContent() {
           <div className="flex-1" />
 
           {/* Chat Input */}
-          <div className="sticky bottom-0 px-4 pb-4 md:pb-8 bg-gradient-to-t from-mauve-dark to-transparent">
+          <div className="sticky bottom-0 bg-gradient-to-t from-mauve-dark to-transparent px-4 pb-4 md:pb-8">
             <ChatInput />
           </div>
         </div>
 
         {/* Top right controls */}
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
           <ExportChatModal messages={displayMessages} chatTitle="Current Chat Title" />
           <ShareChatModal
             chatId="current-chat-id"
@@ -184,8 +215,8 @@ export function MainContent() {
           />
           <ThreadNavigator
             messages={displayMessages}
-            currentMessageId={currentMessageId}
-            onMessageSelect={setCurrentMessageId}
+            currentMessageId={currentMessageId || undefined}
+            onMessageSelect={(messageId: string) => setCurrentMessageId(messageId)}
             onBranchSelect={handleBranchSelect}
             onBranchRename={renameBranch}
           />

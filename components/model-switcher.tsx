@@ -3,8 +3,21 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
 import { ChevronDown, Zap, Brain, Gauge } from "lucide-react"
 
 const models = [
@@ -60,14 +73,14 @@ export function ModelSwitcher({ selectedModel, onModelChange }: ModelSwitcherPro
   return (
     <div className="flex items-center gap-2">
       {/* Quick Select Buttons */}
-      <div className="hidden md:flex items-center gap-1">
+      <div className="hidden items-center gap-1 md:flex">
         <Button
           variant="ghost"
           size="sm"
           className={`text-xs ${quickSelectModels.heavy.id === selectedModel ? "bg-mauve-accent/20" : ""}`}
           onClick={() => onModelChange(quickSelectModels.heavy.id)}
         >
-          <Brain className="w-3 h-3 mr-1" />
+          <Brain className="mr-1 h-3 w-3" />
           Heavy
         </Button>
         <Button
@@ -76,7 +89,7 @@ export function ModelSwitcher({ selectedModel, onModelChange }: ModelSwitcherPro
           className={`text-xs ${quickSelectModels.balanced.id === selectedModel ? "bg-mauve-accent/20" : ""}`}
           onClick={() => onModelChange(quickSelectModels.balanced.id)}
         >
-          <Gauge className="w-3 h-3 mr-1" />
+          <Gauge className="mr-1 h-3 w-3" />
           Balanced
         </Button>
         <Button
@@ -85,7 +98,7 @@ export function ModelSwitcher({ selectedModel, onModelChange }: ModelSwitcherPro
           className={`text-xs ${quickSelectModels.fast.id === selectedModel ? "bg-mauve-accent/20" : ""}`}
           onClick={() => onModelChange(quickSelectModels.fast.id)}
         >
-          <Zap className="w-3 h-3 mr-1" />
+          <Zap className="mr-1 h-3 w-3" />
           Fast
         </Button>
       </div>
@@ -93,11 +106,11 @@ export function ModelSwitcher({ selectedModel, onModelChange }: ModelSwitcherPro
       {/* Model Selector Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="text-mauve-subtle text-xs">
+          <Button variant="ghost" size="sm" className="text-xs text-mauve-subtle">
             {currentModel.name} <ChevronDown className="ml-1 h-3 w-3" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="bg-mauve-surface border-mauve-dark">
+        <DialogContent className="border-mauve-dark bg-mauve-surface">
           <DialogHeader>
             <DialogTitle className="text-foreground">Select Model</DialogTitle>
           </DialogHeader>
@@ -118,7 +131,7 @@ export function ModelSwitcher({ selectedModel, onModelChange }: ModelSwitcherPro
                       }}
                       className="flex items-center gap-3 p-3 hover:bg-mauve-dark/50"
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="h-4 w-4" />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{model.name}</span>
@@ -138,9 +151,11 @@ export function ModelSwitcher({ selectedModel, onModelChange }: ModelSwitcherPro
                             {model.category}
                           </Badge>
                         </div>
-                        <p className="text-xs text-mauve-subtle/70 mt-1">{model.description}</p>
+                        <p className="mt-1 text-xs text-mauve-subtle/70">{model.description}</p>
                       </div>
-                      {model.id === selectedModel && <div className="w-2 h-2 bg-mauve-accent rounded-full" />}
+                      {model.id === selectedModel && (
+                        <div className="h-2 w-2 rounded-full bg-mauve-accent" />
+                      )}
                     </CommandItem>
                   )
                 })}

@@ -19,7 +19,11 @@ export function sanitizeFilename(filename: string): string {
   )
 }
 
-export function formatAsMarkdown(messages: ChatMessage[], title?: string, options: ExportOptions = {}): string {
+export function formatAsMarkdown(
+  messages: ChatMessage[],
+  title?: string,
+  options: ExportOptions = {}
+): string {
   const { includeTimestamps = false, includeModelInfo = false, includeUserPrompts = true } = options
 
   let markdown = ""
@@ -58,7 +62,11 @@ export function formatAsMarkdown(messages: ChatMessage[], title?: string, option
   return markdown
 }
 
-export function formatAsPlainText(messages: ChatMessage[], title?: string, options: ExportOptions = {}): string {
+export function formatAsPlainText(
+  messages: ChatMessage[],
+  title?: string,
+  options: ExportOptions = {}
+): string {
   const { includeTimestamps = false, includeModelInfo = false, includeUserPrompts = true } = options
 
   let text = ""
@@ -103,7 +111,11 @@ export function formatAsPlainText(messages: ChatMessage[], title?: string, optio
   return text
 }
 
-export function formatAsJSON(messages: ChatMessage[], title?: string, options: ExportOptions = {}): string {
+export function formatAsJSON(
+  messages: ChatMessage[],
+  title?: string,
+  options: ExportOptions = {}
+): string {
   const exportData = {
     title: title || "Untitled Chat",
     exportedAt: new Date().toISOString(),
@@ -123,7 +135,11 @@ export function formatAsJSON(messages: ChatMessage[], title?: string, options: E
 }
 
 // Placeholder for future PDF export
-export function formatAsPDF(messages: ChatMessage[], title?: string, options: ExportOptions = {}): Promise<Blob> {
+export function formatAsPDF(
+  messages: ChatMessage[],
+  title?: string,
+  options: ExportOptions = {}
+): Promise<Blob> {
   // This would be implemented as a server-side operation
   throw new Error("PDF export not yet implemented - requires server-side processing")
 }

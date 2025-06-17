@@ -91,7 +91,7 @@ export function useTemporaryChat() {
         }
       })
     },
-    [temporaryChat],
+    [temporaryChat]
   )
 
   const updateTemporaryChatMessage = useCallback(
@@ -106,7 +106,7 @@ export function useTemporaryChat() {
         }
       })
     },
-    [temporaryChat],
+    [temporaryChat]
   )
 
   const deleteTemporaryChatMessage = useCallback(
@@ -121,7 +121,7 @@ export function useTemporaryChat() {
         }
       })
     },
-    [temporaryChat],
+    [temporaryChat]
   )
 
   const saveTemporaryChatToHistory = async (data: SaveTempChatData): Promise<void> => {
@@ -158,7 +158,7 @@ export function useTemporaryChat() {
   const exitTemporaryMode = useCallback(() => {
     if (temporaryChat && temporaryChat.messages.length > 0) {
       const confirmed = confirm(
-        "You have an unsaved temporary chat. Are you sure you want to exit? This conversation will be lost forever.",
+        "You have an unsaved temporary chat. Are you sure you want to exit? This conversation will be lost forever."
       )
       if (!confirmed) return false
     }

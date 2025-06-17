@@ -10,9 +10,26 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Plus,
@@ -71,7 +88,8 @@ export function MemorySettings() {
       (selectedProject === "global" && !memory.projectId) ||
       memory.projectId === selectedProject
 
-    const matchesSearch = !searchQuery || memory.content.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch =
+      !searchQuery || memory.content.toLowerCase().includes(searchQuery.toLowerCase())
 
     return matchesProject && matchesSearch
   })
@@ -97,10 +115,15 @@ export function MemorySettings() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">AI Memory</h2>
-          <p className="text-sm text-mauve-subtle/70">Manage what your AI remembers about you and your preferences</p>
+          <p className="text-sm text-mauve-subtle/70">
+            Manage what your AI remembers about you and your preferences
+          </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="bg-mauve-accent/20 hover:bg-mauve-accent/30">
-          <Plus className="w-4 h-4 mr-2" />
+        <Button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="bg-mauve-accent/20 hover:bg-mauve-accent/30"
+        >
+          <Plus className="mr-2 h-4 w-4" />
           Add Memory
         </Button>
       </div>
@@ -120,30 +143,30 @@ export function MemorySettings() {
             </Badge>
           </TabsTrigger>
           <TabsTrigger value="analytics">
-            <BarChart3 className="w-4 h-4 mr-2" />
+            <BarChart3 className="mr-2 h-4 w-4" />
             Analytics
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="memories" className="space-y-4">
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-mauve-subtle" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mauve-subtle" />
                 <Input
                   placeholder="Search memories..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-mauve-dark/50 border-mauve-dark"
+                  className="border-mauve-dark bg-mauve-dark/50 pl-9"
                 />
               </div>
             </div>
             <Select value={selectedProject} onValueChange={setSelectedProject}>
-              <SelectTrigger className="w-48 bg-mauve-dark/50 border-mauve-dark">
+              <SelectTrigger className="w-48 border-mauve-dark bg-mauve-dark/50">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-mauve-surface border-mauve-dark">
+              <SelectContent className="border-mauve-dark bg-mauve-surface">
                 <SelectItem value="all">All Memories</SelectItem>
                 <SelectItem value="global">Global Only</SelectItem>
                 {projects.map((project) => (
@@ -159,8 +182,8 @@ export function MemorySettings() {
           <ScrollArea className="h-96">
             <div className="space-y-3">
               {filteredMemories.length === 0 ? (
-                <div className="text-center py-8">
-                  <Brain className="w-12 h-12 mx-auto text-mauve-subtle/50 mb-4" />
+                <div className="py-8 text-center">
+                  <Brain className="mx-auto mb-4 h-12 w-12 text-mauve-subtle/50" />
                   <p className="text-mauve-subtle/70">
                     {searchQuery ? "No memories match your search" : "No memories found"}
                   </p>
@@ -183,26 +206,32 @@ export function MemorySettings() {
         <TabsContent value="suggestions" className="space-y-4">
           <div className="space-y-3">
             {suggestions.length === 0 ? (
-              <div className="text-center py-8">
-                <Lightbulb className="w-12 h-12 mx-auto text-mauve-subtle/50 mb-4" />
+              <div className="py-8 text-center">
+                <Lightbulb className="mx-auto mb-4 h-12 w-12 text-mauve-subtle/50" />
                 <p className="text-mauve-subtle/70">No memory suggestions at the moment</p>
-                <p className="text-xs text-mauve-subtle/50">The AI will suggest memories based on your conversations</p>
+                <p className="text-xs text-mauve-subtle/50">
+                  The AI will suggest memories based on your conversations
+                </p>
               </div>
             ) : (
               suggestions.map((suggestion) => (
-                <Card key={suggestion.id} className="bg-mauve-surface/50 border-mauve-dark">
+                <Card key={suggestion.id} className="border-mauve-dark bg-mauve-surface/50">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                      <Lightbulb className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
                       <div className="flex-1">
                         <p className="text-sm font-medium">{suggestion.content}</p>
-                        <p className="text-xs text-mauve-subtle/70 mt-1">{suggestion.context}</p>
-                        <div className="flex items-center gap-2 mt-3">
+                        <p className="mt-1 text-xs text-mauve-subtle/70">{suggestion.context}</p>
+                        <div className="mt-3 flex items-center gap-2">
                           <Badge variant="outline" className="text-xs">
                             {Math.round(suggestion.confidence * 100)}% confidence
                           </Badge>
-                          <div className="flex gap-2 ml-auto">
-                            <Button size="sm" variant="outline" onClick={() => dismissSuggestion(suggestion.id)}>
+                          <div className="ml-auto flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => dismissSuggestion(suggestion.id)}
+                            >
                               Dismiss
                             </Button>
                             <Button
@@ -224,8 +253,8 @@ export function MemorySettings() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="bg-mauve-surface/50 border-mauve-dark">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="border-mauve-dark bg-mauve-surface/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Total Memories</CardTitle>
               </CardHeader>
@@ -234,7 +263,7 @@ export function MemorySettings() {
               </CardContent>
             </Card>
 
-            <Card className="bg-mauve-surface/50 border-mauve-dark">
+            <Card className="border-mauve-dark bg-mauve-surface/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Global</CardTitle>
               </CardHeader>
@@ -243,7 +272,7 @@ export function MemorySettings() {
               </CardContent>
             </Card>
 
-            <Card className="bg-mauve-surface/50 border-mauve-dark">
+            <Card className="border-mauve-dark bg-mauve-surface/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Project-Specific</CardTitle>
               </CardHeader>
@@ -252,7 +281,7 @@ export function MemorySettings() {
               </CardContent>
             </Card>
 
-            <Card className="bg-mauve-surface/50 border-mauve-dark">
+            <Card className="border-mauve-dark bg-mauve-surface/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Auto-Generated</CardTitle>
               </CardHeader>
@@ -262,7 +291,7 @@ export function MemorySettings() {
             </Card>
           </div>
 
-          <Card className="bg-mauve-surface/50 border-mauve-dark">
+          <Card className="border-mauve-dark bg-mauve-surface/50">
             <CardHeader>
               <CardTitle className="text-sm font-medium">Memory Categories</CardTitle>
             </CardHeader>
@@ -273,8 +302,8 @@ export function MemorySettings() {
                   return (
                     <div key={category} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4" />
-                        <span className="capitalize text-sm">{category}</span>
+                        <Icon className="h-4 w-4" />
+                        <span className="text-sm capitalize">{category}</span>
                       </div>
                       <Badge variant="outline" className="text-xs">
                         {count}
@@ -322,11 +351,11 @@ function MemoryCard({ memory, projects, onEdit, onDelete }: MemoryCardProps) {
   const categoryColor = categoryColors[memory.category || "preference"]
 
   return (
-    <Card className="bg-mauve-surface/50 border-mauve-dark">
+    <Card className="border-mauve-dark bg-mauve-surface/50">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <Icon className="w-5 h-5 text-mauve-accent flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
+          <Icon className="mt-0.5 h-5 w-5 flex-shrink-0 text-mauve-accent" />
+          <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <p className="text-sm">{memory.content}</p>
               <DropdownMenu>
@@ -335,36 +364,39 @@ function MemoryCard({ memory, projects, onEdit, onDelete }: MemoryCardProps) {
                     <MoreHorizontal className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-mauve-surface border-mauve-dark">
+                <DropdownMenuContent align="end" className="border-mauve-dark bg-mauve-surface">
                   <DropdownMenuItem onClick={() => onEdit(memory)}>
-                    <Edit className="w-4 h-4 mr-2" />
+                    <Edit className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDelete(memory.id)} className="text-red-400 focus:text-red-300">
-                    <Trash2 className="w-4 h-4 mr-2" />
+                  <DropdownMenuItem
+                    onClick={() => onDelete(memory.id)}
+                    className="text-red-400 focus:text-red-300"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="mt-2 flex items-center gap-2">
               <Badge variant="outline" className={`text-xs ${categoryColor}`}>
                 {memory.category || "preference"}
               </Badge>
               {memory.projectId ? (
                 <Badge variant="outline" className="text-xs">
-                  <Folder className="w-3 h-3 mr-1" />
+                  <Folder className="mr-1 h-3 w-3" />
                   {project?.name || "Unknown Project"}
                 </Badge>
               ) : (
                 <Badge variant="outline" className="text-xs">
-                  <Globe className="w-3 h-3 mr-1" />
+                  <Globe className="mr-1 h-3 w-3" />
                   Global
                 </Badge>
               )}
               {memory.isAutoGenerated && (
-                <Badge variant="outline" className="text-xs text-blue-400 border-blue-500/50">
-                  <Sparkles className="w-3 h-3 mr-1" />
+                <Badge variant="outline" className="border-blue-500/50 text-xs text-blue-400">
+                  <Sparkles className="mr-1 h-3 w-3" />
                   Auto
                 </Badge>
               )}
@@ -405,7 +437,7 @@ function CreateMemoryModal({ open, onOpenChange, onSubmit, projects }: CreateMem
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-mauve-surface border-mauve-dark">
+      <DialogContent className="border-mauve-dark bg-mauve-surface">
         <DialogHeader>
           <DialogTitle className="text-foreground">Add New Memory</DialogTitle>
         </DialogHeader>
@@ -418,7 +450,7 @@ function CreateMemoryModal({ open, onOpenChange, onSubmit, projects }: CreateMem
               placeholder="e.g., I prefer TypeScript over JavaScript for all projects"
               value={formData.content}
               onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
-              className="bg-mauve-dark/50 border-mauve-dark min-h-[100px]"
+              className="min-h-[100px] border-mauve-dark bg-mauve-dark/50"
               required
             />
           </div>
@@ -428,12 +460,14 @@ function CreateMemoryModal({ open, onOpenChange, onSubmit, projects }: CreateMem
               <Label htmlFor="category">Category</Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value as any }))}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, category: value as any }))
+                }
               >
-                <SelectTrigger className="bg-mauve-dark/50 border-mauve-dark">
+                <SelectTrigger className="border-mauve-dark bg-mauve-dark/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-mauve-surface border-mauve-dark">
+                <SelectContent className="border-mauve-dark bg-mauve-surface">
                   <SelectItem value="preference">Preference</SelectItem>
                   <SelectItem value="fact">Fact</SelectItem>
                   <SelectItem value="instruction">Instruction</SelectItem>
@@ -447,13 +481,16 @@ function CreateMemoryModal({ open, onOpenChange, onSubmit, projects }: CreateMem
               <Select
                 value={formData.projectId || "global"}
                 onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, projectId: value === "global" ? undefined : value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    projectId: value === "global" ? undefined : value,
+                  }))
                 }
               >
-                <SelectTrigger className="bg-mauve-dark/50 border-mauve-dark">
+                <SelectTrigger className="border-mauve-dark bg-mauve-dark/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-mauve-surface border-mauve-dark">
+                <SelectContent className="border-mauve-dark bg-mauve-surface">
                   <SelectItem value="global">Global</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
@@ -509,7 +546,7 @@ function EditMemoryModal({ memory, projects, onSubmit, onClose }: EditMemoryModa
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="bg-mauve-surface border-mauve-dark">
+      <DialogContent className="border-mauve-dark bg-mauve-surface">
         <DialogHeader>
           <DialogTitle className="text-foreground">Edit Memory</DialogTitle>
         </DialogHeader>
@@ -521,7 +558,7 @@ function EditMemoryModal({ memory, projects, onSubmit, onClose }: EditMemoryModa
               id="edit-content"
               value={formData.content}
               onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
-              className="bg-mauve-dark/50 border-mauve-dark min-h-[100px]"
+              className="min-h-[100px] border-mauve-dark bg-mauve-dark/50"
               required
             />
           </div>
@@ -531,12 +568,14 @@ function EditMemoryModal({ memory, projects, onSubmit, onClose }: EditMemoryModa
               <Label htmlFor="edit-category">Category</Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value as any }))}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, category: value as any }))
+                }
               >
-                <SelectTrigger className="bg-mauve-dark/50 border-mauve-dark">
+                <SelectTrigger className="border-mauve-dark bg-mauve-dark/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-mauve-surface border-mauve-dark">
+                <SelectContent className="border-mauve-dark bg-mauve-surface">
                   <SelectItem value="preference">Preference</SelectItem>
                   <SelectItem value="fact">Fact</SelectItem>
                   <SelectItem value="instruction">Instruction</SelectItem>
@@ -550,13 +589,16 @@ function EditMemoryModal({ memory, projects, onSubmit, onClose }: EditMemoryModa
               <Select
                 value={formData.projectId || "global"}
                 onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, projectId: value === "global" ? undefined : value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    projectId: value === "global" ? undefined : value,
+                  }))
                 }
               >
-                <SelectTrigger className="bg-mauve-dark/50 border-mauve-dark">
+                <SelectTrigger className="border-mauve-dark bg-mauve-dark/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-mauve-surface border-mauve-dark">
+                <SelectContent className="border-mauve-dark bg-mauve-surface">
                   <SelectItem value="global">Global</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>

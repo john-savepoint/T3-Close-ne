@@ -19,14 +19,14 @@ export function TemporaryChatBanner() {
 
   return (
     <>
-      <Alert className="bg-orange-500/10 border-orange-500/20 rounded-none border-x-0 border-t-0">
+      <Alert className="rounded-none border-x-0 border-t-0 border-orange-500/20 bg-orange-500/10">
         <EyeOff className="h-4 w-4 text-orange-400" />
-        <AlertDescription className="flex items-center justify-between w-full">
+        <AlertDescription className="flex w-full items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-orange-400">Temporary Chat</span>
-              <Badge variant="outline" className="text-xs text-orange-400 border-orange-500/50">
-                <Shield className="w-3 h-3 mr-1" />
+              <Badge variant="outline" className="border-orange-500/50 text-xs text-orange-400">
+                <Shield className="mr-1 h-3 w-3" />
                 Not Saved
               </Badge>
             </div>
@@ -34,7 +34,7 @@ export function TemporaryChatBanner() {
             <div className="flex items-center gap-4 text-xs text-orange-300/70">
               <span>{messageCount} messages</span>
               <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
+                <Clock className="h-3 w-3" />
                 {duration < 1 ? "Just started" : `${duration}m ago`}
               </span>
             </div>
@@ -48,11 +48,11 @@ export function TemporaryChatBanner() {
             <Button
               size="sm"
               variant="outline"
-              className="text-orange-400 border-orange-500/50 hover:bg-orange-500/20"
+              className="border-orange-500/50 text-orange-400 hover:bg-orange-500/20"
               onClick={() => setShowSaveModal(true)}
               disabled={messageCount === 0}
             >
-              <Save className="w-3 h-3 mr-1" />
+              <Save className="mr-1 h-3 w-3" />
               Save to History
             </Button>
 
@@ -62,7 +62,7 @@ export function TemporaryChatBanner() {
               className="text-orange-400 hover:bg-orange-500/20"
               onClick={exitTemporaryMode}
             >
-              <X className="w-3 h-3 mr-1" />
+              <X className="mr-1 h-3 w-3" />
               Exit Temp Mode
             </Button>
           </div>
