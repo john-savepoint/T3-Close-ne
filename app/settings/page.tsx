@@ -1,11 +1,12 @@
 import { MemorySettings } from "@/components/memory-settings"
 import { TemporaryChatSettings } from "@/components/temporary-chat-settings"
 import { TeamManagementDashboard } from "@/components/team-management-dashboard"
+import { ApiKeyManager } from "@/components/api-key-manager"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Brain, EyeOff, ExternalLink, Users, Gift } from "lucide-react"
+import { FileText, Brain, EyeOff, ExternalLink, Users, Gift, Key } from "lucide-react"
 import Link from "next/link"
 
 export default function SettingsPage() {
@@ -20,7 +21,7 @@ export default function SettingsPage() {
         </div>
 
         <Tabs defaultValue="memory" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5 bg-mauve-dark/50">
+          <TabsList className="grid w-full grid-cols-6 bg-mauve-dark/50">
             <TabsTrigger value="memory">
               <Brain className="mr-2 h-4 w-4" />
               Memory
@@ -32,6 +33,10 @@ export default function SettingsPage() {
             <TabsTrigger value="team">
               <Users className="mr-2 h-4 w-4" />
               Team
+            </TabsTrigger>
+            <TabsTrigger value="api-keys">
+              <Key className="mr-2 h-4 w-4" />
+              API Keys
             </TabsTrigger>
             <TabsTrigger value="gifts">
               <Gift className="mr-2 h-4 w-4" />
@@ -53,6 +58,10 @@ export default function SettingsPage() {
 
           <TabsContent value="team">
             <TeamManagementDashboard />
+          </TabsContent>
+
+          <TabsContent value="api-keys">
+            <ApiKeyManager />
           </TabsContent>
 
           <TabsContent value="gifts">
