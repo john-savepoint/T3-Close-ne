@@ -54,70 +54,59 @@ export class ResumableStream {
     this.prompt = prompt;
     this.model = model;
 
-    await streamManager.initializeStream(this.streamKey, 'generators');
-    await streamManager.initializeStream(this.streamKey, 'consumers');
-
-    // Store session metadata
-    await streamManager.addToStream(this.streamKey, {
-      type: 'metadata',
+    // Store session metadata in Redis
+    await streamManager.setStreamMetadata(this.sessionId, {
       sessionId: this.sessionId,
       prompt: prompt,
       model: model,
-      status: 'generating',
-      timestamp: Date.now().toString(),
+      createdAt: Date.now(),
     });
+
+    // Set initial status
+    await streamManager.setStreamStatus(this.sessionId, 'generating');
   }
 
   async addChunk(content: string, index: number): Promise<void> {
-    await streamManager.addToStream(this.streamKey, {
+    await streamManager.addStreamChunk(this.sessionId, {
       type: 'chunk',
       content: content,
-      index: index.toString(),
-      timestamp: Date.now().toString(),
+      index: index,
     });
   }
 
   async markComplete(totalChunks?: number): Promise<void> {
-    await streamManager.addToStream(this.streamKey, {
-      type: 'complete',
-      timestamp: Date.now().toString(),
-      ...(totalChunks && { totalChunks: totalChunks.toString() }),
-    });
+    await streamManager.setStreamStatus(this.sessionId, 'completed');
+    
+    if (totalChunks !== undefined) {
+      await streamManager.addStreamChunk(this.sessionId, {
+        type: 'complete',
+        totalChunks: totalChunks,
+      });
+    }
   }
 
   async markError(error: string): Promise<void> {
-    await streamManager.addToStream(this.streamKey, {
+    await streamManager.setStreamStatus(this.sessionId, 'error', error);
+    
+    await streamManager.addStreamChunk(this.sessionId, {
       type: 'error',
       error: error,
-      timestamp: Date.now().toString(),
     });
   }
 
   async getSessionInfo(): Promise<StreamSession | null> {
-    const streamInfo = await streamManager.getStreamInfo(this.streamKey);
-    if (!streamInfo) return null;
+    const metadata = await streamManager.getStreamMetadata(this.sessionId);
+    if (!metadata) return null;
 
-    // Read the first message which should contain metadata
-    const messages = await streamManager.readFromStart(this.streamKey, "0");
-    if (!messages || messages.length === 0) return null;
-
-    const [, msgs] = messages[0];
-    if (!msgs || msgs.length === 0) return null;
-
-    const [, fields] = msgs[0];
-    const data = this.parseRedisFields(fields);
-
-    if (data.type === 'metadata') {
-      return {
-        id: this.sessionId,
-        prompt: data.prompt || '',
-        model: data.model || '',
-        createdAt: parseInt(data.timestamp || '0'),
-        status: this.determineStatus(streamInfo),
-      };
-    }
-
-    return null;
+    const status = await streamManager.getStreamStatus(this.sessionId);
+    
+    return {
+      id: this.sessionId,
+      prompt: metadata.prompt || '',
+      model: metadata.model || '',
+      createdAt: metadata.createdAt || 0,
+      status: status?.status as 'generating' | 'completed' | 'error' || 'generating',
+    };
   }
 
   private parseRedisFields(fields: string[]): Record<string, string> {
@@ -135,29 +124,25 @@ export class ResumableStream {
   }
 
   async *readAllChunks(): AsyncGenerator<StreamChunk> {
-    const messages = await streamManager.readFromStart(this.streamKey, "0");
-    if (!messages) return;
-
-    for (const [, msgs] of messages) {
-      for (const [, fields] of msgs) {
-        const data = this.parseRedisFields(fields);
-        yield data as StreamChunk;
-      }
+    const chunks = await streamManager.getStreamChunks(this.sessionId);
+    
+    for (const chunk of chunks) {
+      yield chunk as StreamChunk;
     }
   }
 
   async getProgress(): Promise<{ totalChunks: number; status: string }> {
-    const streamInfo = await streamManager.getStreamInfo(this.streamKey);
-    if (!streamInfo) return { totalChunks: 0, status: 'not_found' };
-
-    const length = streamInfo.length || 0;
-    const status = this.determineStatus(streamInfo);
-
-    return { totalChunks: length, status };
+    const chunks = await streamManager.getStreamChunks(this.sessionId);
+    const status = await streamManager.getStreamStatus(this.sessionId);
+    
+    return { 
+      totalChunks: chunks.length, 
+      status: status?.status || 'not_found' 
+    };
   }
 
-  static async cleanupOldSessions(maxAgeMs: number = 24 * 60 * 60 * 1000): Promise<void> {
-    await streamManager.cleanupOldStreams(maxAgeMs);
+  static async cleanupOldSessions(): Promise<void> {
+    await streamManager.cleanupOldStreams();
   }
 
   static async getSessionById(sessionId: string): Promise<ResumableStream> {
