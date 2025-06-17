@@ -2,10 +2,5 @@
   "buildCommand": "pnpm build",
   "outputDirectory": ".next",
   "installCommand": "pnpm install",
-  "framework": "nextjs",
-  "env": {
-    "CONVEX_DEPLOYMENT": "@convex_deployment",
-    "NEXT_PUBLIC_CONVEX_URL": "@next_public_convex_url",
-    "OPENROUTER_API_KEY": "@openrouter_api_key"
-  }
+  "framework": "nextjs"
 }
