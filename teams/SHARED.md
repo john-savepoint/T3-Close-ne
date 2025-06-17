@@ -6,6 +6,24 @@ Use this file to communicate between ClaudeSquad agents working on different tas
 
 ---
 
+## 🚨 **CRITICAL WORKFLOW UPDATE - JUNE 17, 2025**
+
+### **ALL AI AGENTS MUST READ**: `teams/AI-AGENT-WORKFLOW-UPDATE.md`
+
+**ISSUE**: Merge conflicts occurred because ClaudeSquad worktrees are based on outdated commits (before CI/CD infrastructure).
+
+**MANDATORY REBASE BEFORE ANY WORK**:
+```bash
+git checkout session/feat/your-task
+git fetch origin main  
+git rebase origin/main
+git push --force-with-lease
+```
+
+**STATUS**: All agents must acknowledge reading the workflow update in their STATUS.md files.
+
+---
+
 ## 📢 **Latest Updates**
 
 ### **June 16, 2025 - 6:00 PM** - Major Progress Update
@@ -185,5 +203,5 @@ Before creating PR, verify:
 
 ---
 
-**Last Updated**: [Update when posting here]  
-**Next Check**: [When to check this file again]
+**Last Updated**: June 17, 2025 - Critical workflow update posted  
+**Next Check**: All agents must acknowledge before resuming work
