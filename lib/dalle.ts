@@ -1,8 +1,8 @@
 export interface ImageGenerationRequest {
   prompt: string;
-  model?: 'gpt-image-1' | 'dall-e-3' | 'dall-e-2';
-  size?: '256x256' | '512x512' | '1024x1024' | '1792x1024' | '1024x1792';
-  quality?: 'standard' | 'hd';
+  model?: 'dall-e-3' | 'dall-e-2' | 'gpt-image-1';
+  size?: '256x256' | '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '1024x1536' | '1536x1024';
+  quality?: 'standard' | 'hd' | 'low' | 'medium' | 'high';
   style?: 'vivid' | 'natural';
   response_format?: 'url' | 'b64_json';
 }
@@ -121,8 +121,9 @@ export const imageGenerationUtils = {
       case 'dall-e-2':
         return ['256x256', '512x512', '1024x1024'];
       case 'dall-e-3':
-      case 'gpt-image-1':
         return ['1024x1024', '1792x1024', '1024x1792'];
+      case 'gpt-image-1':
+        return ['1024x1024', '1024x1536', '1536x1024'];
       default:
         return ['1024x1024'];
     }
@@ -226,35 +227,39 @@ export const imageGenerator = new ImageGenerationClient();
 
 // Model-specific configurations
 export const modelConfigs = {
-  'gpt-image-1': {
-    name: 'GPT Image 1',
-    description: 'Latest ChatGPT image generation model with improved quality and understanding',
-    maxPromptLength: 4000,
-    supportedSizes: ['1024x1024', '1792x1024', '1024x1792'],
-    supportedQualities: ['standard', 'hd'],
-    supportedStyles: ['vivid', 'natural'],
-    averageGenerationTime: 18,
-    costMultiplier: 1.2, // Relative to DALL-E 3
-  },
   'dall-e-3': {
     name: 'DALL-E 3',
-    description: 'High-quality image generation with automatic prompt enhancement',
+    description: 'High-quality image generation with automatic prompt enhancement (Recommended)',
     maxPromptLength: 4000,
     supportedSizes: ['1024x1024', '1792x1024', '1024x1792'],
     supportedQualities: ['standard', 'hd'],
     supportedStyles: ['vivid', 'natural'],
     averageGenerationTime: 15,
     costMultiplier: 1.0,
+    publiclyAvailable: true,
   },
   'dall-e-2': {
     name: 'DALL-E 2',
-    description: 'Fast and cost-effective image generation',
+    description: 'Fast and cost-effective image generation (Legacy)',
     maxPromptLength: 1000,
     supportedSizes: ['256x256', '512x512', '1024x1024'],
     supportedQualities: ['standard'],
     supportedStyles: [],
     averageGenerationTime: 8,
     costMultiplier: 0.5,
+    publiclyAvailable: true,
+  },
+  'gpt-image-1': {
+    name: 'GPT Image 1',
+    description: 'Latest ChatGPT image generation model (Requires Special Access)',
+    maxPromptLength: 4000,
+    supportedSizes: ['1024x1024', '1024x1536', '1536x1024'],
+    supportedQualities: ['low', 'medium', 'high'],
+    supportedStyles: [],
+    averageGenerationTime: 18,
+    costMultiplier: 1.2, // Relative to DALL-E 3
+    publiclyAvailable: false,
+    accessNote: 'Requires approval from OpenAI for access',
   },
 } as const;
 
