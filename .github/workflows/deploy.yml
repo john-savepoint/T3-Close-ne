@@ -34,7 +34,7 @@ jobs:
 
       - name: Deploy to Vercel Production
         run: |
-          npx vercel --token="${{ secrets.VERCEL_TOKEN }}" --prod --yes
+          npx vercel --token="${{ secrets.VERCEL_TOKEN }}" --prod --yes --build-env NEXT_PUBLIC_CONVEX_URL="${{ secrets.NEXT_PUBLIC_CONVEX_URL }}" --build-env OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" --build-env CONVEX_DEPLOYMENT="${{ secrets.CONVEX_DEPLOYMENT }}"
         env:
           NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
