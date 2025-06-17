@@ -36,7 +36,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
     name: 'OpenRouter',
     description: 'Access to 50+ AI models including GPT-4, Claude, and Gemini',
     icon: '🔀',
-    placeholder: 'sk-or-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    placeholder: 'sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     helpUrl: 'https://openrouter.ai/keys'
   },
   openai: {
