@@ -1,6 +1,6 @@
 import { streamText } from 'ai';
+import { openai } from '@ai-sdk/openai';
 import { NextRequest } from 'next/server';
-import { createOpenRouterClient } from '@/lib/openrouter';
 import { SupportedModel } from '@/types/models';
 
 export const runtime = 'edge';
@@ -21,57 +21,99 @@ export async function POST(req: NextRequest) {
 
     const selectedModel = (model as SupportedModel) || 'openai/gpt-4o-mini';
     
-    const openRouterClient = createOpenRouterClient(openRouterApiKey);
-
-    if (!openRouterClient.isValidModel(selectedModel)) {
-      return new Response('Invalid model specified', { status: 400 });
+    // Validate model is supported
+    const SUPPORTED_MODELS = [
+      'openai/gpt-4o',
+      'openai/gpt-4o-mini',
+      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-3-haiku',
+      'google/gemini-pro-1.5',
+      'meta-llama/llama-3.1-405b-instruct',
+    ];
+    
+    if (!SUPPORTED_MODELS.includes(selectedModel)) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid model specified',
+          supportedModels: SUPPORTED_MODELS 
+        }), 
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
+    
+    // Create OpenAI client configured for OpenRouter
+    const openRouterClient = openai({
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: openRouterApiKey,
+    });
 
-    const stream = openRouterClient.streamChat(
-      messages.map((msg: any) => ({
+    // Use Vercel AI SDK streamText for proper SSE streaming
+    const result = streamText({
+      model: openRouterClient(selectedModel as any),
+      messages: messages.map((msg: any) => ({
         role: msg.role,
         content: msg.content
       })),
-      selectedModel,
-      {
-        temperature: options.temperature || 0.7,
-        maxTokens: options.maxTokens || 4096,
-        topP: options.topP || 1
-      }
-    );
-
-    const encoder = new TextEncoder();
-    
-    const readableStream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of stream) {
-            const data = `data: ${JSON.stringify({ content: chunk })}\n\n`;
-            controller.enqueue(encoder.encode(data));
-          }
-          
-          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-          controller.close();
-        } catch (error) {
-          console.error('Stream error:', error);
-          controller.error(error);
-        }
-      }
+      temperature: options.temperature || 0.7,
+      maxTokens: options.maxTokens || 4096,
+      topP: options.topP || 1,
+      abortSignal: req.signal, // Forward abort signal for proper cleanup
     });
 
-    return new Response(readableStream, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    });
+    // Return AI SDK's optimized data stream response
+    return result.toDataStreamResponse();
 
   } catch (error) {
     console.error('Chat API error:', error);
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    // Handle specific error types for better UX
+    if (errorMessage.toLowerCase().includes('rate limit')) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded',
+          details: 'Please wait a moment before sending another message',
+          retryAfter: 60
+        }), 
+        { 
+          status: 429,
+          headers: { 
+            'Content-Type': 'application/json',
+            'Retry-After': '60'
+          }
+        }
+      );
+    }
+    
+    if (errorMessage.toLowerCase().includes('unauthorized') || errorMessage.toLowerCase().includes('api key')) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid API key',
+          details: 'Please check your OpenRouter API key configuration'
+        }), 
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
+    if (errorMessage.toLowerCase().includes('timeout')) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Request timeout',
+          details: 'The request took too long to process. Please try again.'
+        }), 
+        { 
+          status: 408,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
     
     return new Response(
       JSON.stringify({ 
@@ -95,8 +137,15 @@ export async function GET(req: NextRequest) {
       return new Response('API key is required', { status: 401 });
     }
 
-    const client = createOpenRouterClient(apiKey);
-    const models = client.getAvailableModels();
+    // Return available models for OpenRouter
+    const models = [
+      'openai/gpt-4o',
+      'openai/gpt-4o-mini',
+      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-3-haiku',
+      'google/gemini-pro-1.5',
+      'meta-llama/llama-3.1-405b-instruct',
+    ];
     
     return new Response(JSON.stringify({ models }), {
       headers: { 'Content-Type': 'application/json' }
