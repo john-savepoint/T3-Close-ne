@@ -337,7 +337,9 @@ function AttachmentCard({
             <div className="mt-3 flex items-center gap-4 text-xs text-mauve-subtle/70">
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {attachment.createdAt ? attachment.createdAt.toLocaleDateString() : new Date(attachment._creationTime).toLocaleDateString()}
+                {attachment.createdAt
+                  ? attachment.createdAt.toLocaleDateString()
+                  : new Date(attachment._creationTime).toLocaleDateString()}
               </div>
               <div className="flex items-center gap-1">
                 <BarChart3 className="h-3 w-3" />
@@ -418,11 +420,17 @@ function AttachmentPreviewModal({ attachment, onClose, getUsages }: AttachmentPr
             </div>
             <div>
               <span className="text-xs text-mauve-subtle/70">Size:</span>
-              <div className="text-sm font-medium">{formatFileSize(attachment.sizeBytes || attachment.size)}</div>
+              <div className="text-sm font-medium">
+                {formatFileSize(attachment.sizeBytes || attachment.size)}
+              </div>
             </div>
             <div>
               <span className="text-xs text-mauve-subtle/70">Created:</span>
-              <div className="text-sm font-medium">{attachment.createdAt ? attachment.createdAt.toLocaleDateString() : new Date(attachment._creationTime).toLocaleDateString()}</div>
+              <div className="text-sm font-medium">
+                {attachment.createdAt
+                  ? attachment.createdAt.toLocaleDateString()
+                  : new Date(attachment._creationTime).toLocaleDateString()}
+              </div>
             </div>
             <div>
               <span className="text-xs text-mauve-subtle/70">Usage Count:</span>

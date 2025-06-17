@@ -4,7 +4,7 @@
 
 export interface StreamingMessage {
   id: string
-  role: 'user' | 'assistant'
+  role: "user" | "assistant"
   content: string
   timestamp: Date
   model?: string

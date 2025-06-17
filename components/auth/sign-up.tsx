@@ -1,73 +1,71 @@
-"use client";
+"use client"
 
-import { useAuthActions } from "@convex-dev/auth/react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
-import { Github, Mail } from "lucide-react";
+import { useAuthActions } from "@convex-dev/auth/react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { useState } from "react"
+import { Github, Mail } from "lucide-react"
 
 export function SignUp() {
-  const { signIn } = useAuthActions();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { signIn } = useAuthActions()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [name, setName] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handlePasswordSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+
     try {
-      await signIn("password", { email, password, name, flow: "signUp" });
+      await signIn("password", { email, password, name, flow: "signUp" })
     } catch (error) {
-      console.error("Sign up failed:", error);
+      console.error("Sign up failed:", error)
       if (error instanceof Error) {
-        setError(error.message || "Failed to create account. Please try again.");
+        setError(error.message || "Failed to create account. Please try again.")
       } else {
-        setError("An unexpected error occurred. Please try again.");
+        setError("An unexpected error occurred. Please try again.")
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleOAuthSignIn = async (provider: "github" | "google") => {
-    setIsLoading(true);
-    setError(null);
-    
+    setIsLoading(true)
+    setError(null)
+
     try {
-      await signIn(provider);
+      await signIn(provider)
     } catch (error) {
-      console.error(`${provider} sign up failed:`, error);
+      console.error(`${provider} sign up failed:`, error)
       if (error instanceof Error) {
-        setError(`Failed to sign up with ${provider}. Please try again.`);
+        setError(`Failed to sign up with ${provider}. Please try again.`)
       } else {
-        setError("An unexpected error occurred. Please try again.");
+        setError("An unexpected error occurred. Please try again.")
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="mx-auto w-full max-w-md">
       <CardHeader className="text-center">
         <CardTitle>Create Account</CardTitle>
-        <CardDescription>
-          Join Z6Chat and start your AI conversations
-        </CardDescription>
+        <CardDescription>Join Z6Chat and start your AI conversations</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {error && (
-          <div className="bg-destructive/15 border border-destructive/50 text-destructive text-sm p-3 rounded-lg">
+          <div className="rounded-lg border border-destructive/50 bg-destructive/15 p-3 text-sm text-destructive">
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handlePasswordSignUp} className="space-y-4">
           <div className="space-y-2">
             <Input
@@ -101,19 +99,17 @@ export function SignUp() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
-            <Mail className="w-4 h-4 mr-2" />
+            <Mail className="mr-2 h-4 w-4" />
             {isLoading ? "Creating account..." : "Create Account"}
           </Button>
         </form>
-        
+
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
-            </span>
+            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
           </div>
         </div>
 
@@ -124,7 +120,7 @@ export function SignUp() {
             className="w-full"
             disabled={isLoading}
           >
-            <Github className="w-4 h-4 mr-2" />
+            <Github className="mr-2 h-4 w-4" />
             GitHub
           </Button>
           <Button
@@ -133,7 +129,7 @@ export function SignUp() {
             className="w-full"
             disabled={isLoading}
           >
-            <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path
                 fill="currentColor"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -156,5 +152,5 @@ export function SignUp() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

@@ -7,6 +7,7 @@ This document outlines the comprehensive label system for organizing and automat
 ## 📊 **Label Categories**
 
 ### **Priority Labels** (🔴🟠🟡🟢)
+
 Control urgency and resource allocation:
 
 - **🔴 `priority: critical`** - Blocking issues, security fixes, deployment failures
@@ -15,6 +16,7 @@ Control urgency and resource allocation:
 - **🟢 `priority: low`** - Future improvements, documentation, cleanup
 
 ### **Type Labels** (🐛✨🔧📚🧪🔒)
+
 Categorize the nature of changes:
 
 - **🐛 `type: bug`** - Something is broken and needs fixing
@@ -25,6 +27,7 @@ Categorize the nature of changes:
 - **🔒 `type: security`** - Security improvements, vulnerability fixes
 
 ### **Component Labels** (🔐💬📁🎨⚙️🔧)
+
 Identify areas of the codebase affected:
 
 - **🔐 `component: auth`** - Authentication system, user management
@@ -35,6 +38,7 @@ Identify areas of the codebase affected:
 - **🔧 `component: ci`** - CI/CD infrastructure, workflows
 
 ### **Status Labels** (🚀👀🚧✅🔄)
+
 Track PR lifecycle and workflow:
 
 - **🚀 `status: ready-for-review`** - PR is complete and ready for review
@@ -44,6 +48,7 @@ Track PR lifecycle and workflow:
 - **🔄 `status: work-in-progress`** - WIP, do not merge yet
 
 ### **Competition Labels** (🏆⭐🎯🔑⚡)
+
 Track competition requirements and strategy:
 
 - **🏆 `competition: core`** - Must-have features for submission
@@ -53,6 +58,7 @@ Track competition requirements and strategy:
 - **⚡ `competition: quick-win`** - Fast implementation with high impact
 
 ### **Release Labels** (🔖)
+
 Manage versioning and releases:
 
 - **🔖 `release: major`** - Breaking changes requiring major version bump
@@ -61,6 +67,7 @@ Manage versioning and releases:
 - **🔖 `release: ready`** - Ready for inclusion in next release
 
 ### **Automation Labels** (🏷️🔨📦)
+
 Control automated workflows:
 
 - **🏷️ `auto-merge`** - Automatically merge when approved and CI passes
@@ -71,14 +78,16 @@ Control automated workflows:
 ## 🤖 **Automation Integration**
 
 ### **Auto-merge Workflow**
+
 The auto-merge system responds to specific labels:
 
 - **Enabled by**: `auto-merge` label
-- **Blocked by**: `do-not-merge` label  
+- **Blocked by**: `do-not-merge` label
 - **Requirements**: All CI checks pass + approvals
 - **Method**: Configurable (squash, merge, rebase)
 
 ### **Release Automation**
+
 Changesets and releases are triggered by:
 
 - **`release: *`** labels determine changeset type
@@ -87,6 +96,7 @@ Changesets and releases are triggered by:
 - **Changelog** generated from PR descriptions
 
 ### **Dependabot Integration**
+
 Dependency PRs automatically get:
 
 - **`dependencies`** label
@@ -97,19 +107,24 @@ Dependency PRs automatically get:
 ## 📋 **Labeling Guidelines**
 
 ### **Required Labels for All PRs**
+
 Every PR must have:
+
 1. **One type label** (`type: *`)
-2. **One priority label** (`priority: *`) 
+2. **One priority label** (`priority: *`)
 3. **One or more component labels** (`component: *`)
 4. **One competition label** (`competition: *`)
 
 ### **Optional Labels**
+
 Add when relevant:
+
 - **Status labels** for workflow tracking
 - **Release labels** for version planning
 - **Automation labels** for special handling
 
 ### **Label Combinations**
+
 Common effective combinations:
 
 ```
@@ -129,14 +144,18 @@ type: enhancement + priority: low + competition: quick-win + auto-merge
 ## 🎯 **Competition Strategy**
 
 ### **Judge Testing Priority**
+
 For competition judging, prioritize PRs with:
+
 1. **`competition: byok`** - Essential for judge access
 2. **`competition: demo`** - Important for presentation
 3. **`competition: core`** - Required functionality
 4. **`priority: critical`** - Blocking issues
 
 ### **Feature Tracking**
+
 Monitor competition progress by filtering:
+
 - **Core features**: `competition: core` + `status: approved`
 - **Bonus features**: `competition: bonus` + `type: feature`
 - **Demo readiness**: `competition: demo` + `priority: high`
@@ -144,6 +163,7 @@ Monitor competition progress by filtering:
 ## 🔍 **Useful Filters**
 
 ### **GitHub Issue/PR Filters**
+
 Quick filters for common views:
 
 ```
@@ -167,6 +187,7 @@ label:"competition: quick-win" label:"priority: medium"
 ```
 
 ### **Release Planning**
+
 Track release readiness:
 
 ```
@@ -183,17 +204,20 @@ label:"release: minor" label:"type: feature"
 ## 🔧 **Maintenance**
 
 ### **Label Updates**
+
 - **Colors**: Use consistent color scheme per category
 - **Descriptions**: Keep clear and actionable
 - **Naming**: Follow `category: name` convention
 
 ### **Cleanup Tasks**
+
 - Review label usage monthly
 - Remove unused or confusing labels
 - Update descriptions based on team feedback
 - Sync with automation requirements
 
 ### **Team Training**
+
 - New team members learn label system
 - Regular reviews of labeling consistency
 - Update guidelines based on competition needs

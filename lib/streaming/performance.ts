@@ -2,7 +2,7 @@
  * Performance monitoring for streams
  */
 
-import type { StreamMetrics } from './types'
+import type { StreamMetrics } from "./types"
 
 /**
  * Performance monitoring for streams
@@ -30,11 +30,11 @@ export class StreamPerformanceMonitor {
    */
   recordChunk(chunkSize: number): void {
     const now = Date.now()
-    
+
     if (this.chunkCount === 0) {
       this.firstChunkTime = now
     }
-    
+
     this.lastChunkTime = now
     this.chunkCount++
     this.totalTokens += chunkSize
@@ -46,7 +46,7 @@ export class StreamPerformanceMonitor {
   getMetrics(): StreamMetrics {
     const totalTime = this.lastChunkTime - this.startTime
     const timeToFirstChunk = this.firstChunkTime - this.startTime
-    
+
     return {
       totalTime,
       timeToFirstChunk,

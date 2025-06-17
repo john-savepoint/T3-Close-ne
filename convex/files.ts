@@ -101,9 +101,7 @@ export const getUserFiles = query({
     // TODO: Use proper auth to get current user
     const userId = args.userId || getCurrentUserId()
 
-    let query = ctx.db
-      .query("attachments")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+    let query = ctx.db.query("attachments").withIndex("by_user", (q) => q.eq("userId", userId))
 
     if (args.category) {
       query = ctx.db

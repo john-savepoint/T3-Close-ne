@@ -13,9 +13,10 @@ Use this file to communicate between ClaudeSquad agents working on different tas
 **ISSUE**: Merge conflicts occurred because ClaudeSquad worktrees are based on outdated commits (before CI/CD infrastructure).
 
 **MANDATORY REBASE BEFORE ANY WORK**:
+
 ```bash
 git checkout session/feat/your-task
-git fetch origin main  
+git fetch origin main
 git rebase origin/main
 git push --force-with-lease
 ```

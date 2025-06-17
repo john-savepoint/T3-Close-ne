@@ -50,7 +50,7 @@ const modelUIData: Record<string, Omit<ModelWithUI, keyof ChatModel>> = {
   },
 }
 
-const models: ModelWithUI[] = DEFAULT_MODELS.map(model => ({
+const models: ModelWithUI[] = DEFAULT_MODELS.map((model) => ({
   ...model,
   ...modelUIData[model.id],
   // Fallback UI data for models not in the map

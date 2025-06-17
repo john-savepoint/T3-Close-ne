@@ -3,6 +3,7 @@
 ## 🚀 **Immediate Testing Requirements**
 
 ### **1. Local Development Testing**
+
 ```bash
 # Start full development environment
 pnpm dev:convex     # Terminal 1: Convex backend
@@ -12,6 +13,7 @@ pnpm dev           # Terminal 2: Next.js frontend
 ```
 
 ### **2. Build & Quality Testing**
+
 ```bash
 # Full quality gate (MUST pass)
 pnpm quality:check  # TypeScript + Lint + Format
@@ -26,6 +28,7 @@ pnpm test:visual   # Playwright screenshot comparisons
 ### **3. Manual Feature Testing**
 
 #### **Core Functionality**
+
 - [ ] Application loads without errors
 - [ ] Homepage renders correctly
 - [ ] Navigation works (all routes accessible)
@@ -33,6 +36,7 @@ pnpm test:visual   # Playwright screenshot comparisons
 - [ ] Dark theme displays properly
 
 #### **Chat Features** (if implemented)
+
 - [ ] Can create new chat
 - [ ] Can send messages
 - [ ] Model selection works
@@ -40,6 +44,7 @@ pnpm test:visual   # Playwright screenshot comparisons
 - [ ] Error handling for API failures
 
 #### **File Upload Features** (if implemented)
+
 - [ ] Can upload images/PDFs
 - [ ] File validation works
 - [ ] Upload progress displays
@@ -47,6 +52,7 @@ pnpm test:visual   # Playwright screenshot comparisons
 - [ ] Attachment management
 
 #### **Authentication Features** (if implemented)
+
 - [ ] Login/signup flow works
 - [ ] User sessions persist
 - [ ] Protected routes function
@@ -55,12 +61,14 @@ pnpm test:visual   # Playwright screenshot comparisons
 ## 🌐 **Production Deployment Testing**
 
 ### **1. Verify Deployment Status**
+
 - **Vercel URL**: [Need to check actual deployment URL]
 - **Environment Variables**: Set in Vercel dashboard
 - **Domain**: Custom domain or vercel.app subdomain
 - **SSL**: HTTPS enabled and working
 
 ### **2. Production Environment Checks**
+
 - [ ] Site loads in production
 - [ ] All assets load correctly (no 404s)
 - [ ] API routes function
@@ -69,13 +77,15 @@ pnpm test:visual   # Playwright screenshot comparisons
 - [ ] Performance is acceptable (<3s initial load)
 
 ### **3. Cross-Browser Testing**
+
 - [ ] Chrome (latest)
-- [ ] Safari (latest) 
+- [ ] Safari (latest)
 - [ ] Firefox (latest)
 - [ ] Mobile Safari (iOS)
 - [ ] Mobile Chrome (Android)
 
 ### **4. API Integration Testing**
+
 - [ ] OpenRouter API connection
 - [ ] Convex database operations
 - [ ] File storage (Convex storage)
@@ -87,12 +97,14 @@ pnpm test:visual   # Playwright screenshot comparisons
 ### **1. Judge Testing Scenarios**
 
 #### **BYOK (Bring Your Own Key) Flow**
+
 - [ ] Clear instructions for API key setup
 - [ ] Key validation works
 - [ ] Helpful error messages for invalid keys
 - [ ] Multiple API provider support
 
 #### **Demo Flow**
+
 - [ ] Professional first impression
 - [ ] Core features work flawlessly
 - [ ] Advanced features demonstrate competitive edge
@@ -100,12 +112,14 @@ pnpm test:visual   # Playwright screenshot comparisons
 - [ ] Mobile experience is professional
 
 #### **Stress Testing**
+
 - [ ] Multiple concurrent users
 - [ ] Large file uploads
 - [ ] Long conversation histories
 - [ ] Network interruption recovery
 
 ### **2. Performance Benchmarks**
+
 - **Initial Load**: Target <2 seconds
 - **Chat Response**: Target <500ms to start streaming
 - **File Upload**: Target <5 seconds for 10MB
@@ -114,13 +128,14 @@ pnpm test:visual   # Playwright screenshot comparisons
 ## 🔧 **Testing Commands Reference**
 
 ### **Development Testing**
+
 ```bash
 # Start development servers
 pnpm dev:convex && pnpm dev
 
 # Quality checks
 pnpm type-check     # TypeScript validation
-pnpm lint          # ESLint checking  
+pnpm lint          # ESLint checking
 pnpm format:check  # Prettier formatting
 pnpm quality:check # All quality checks
 
@@ -130,6 +145,7 @@ pnpm start         # Test production build locally
 ```
 
 ### **Visual Testing**
+
 ```bash
 # Run visual regression tests
 pnpm test:visual
@@ -142,6 +158,7 @@ pnpm test:visual --update-snapshots
 ```
 
 ### **Deployment Testing**
+
 ```bash
 # Verify build for deployment
 pnpm build
@@ -156,6 +173,7 @@ pnpm start
 ## 🚨 **Critical Testing Priorities**
 
 ### **Before Competition Submission**
+
 1. **✅ Full local testing**: All features working
 2. **✅ Production deployment**: Live site accessible
 3. **✅ BYOK setup**: Judge testing ready
@@ -164,6 +182,7 @@ pnpm start
 6. **✅ Performance**: Meeting speed targets
 
 ### **Competition Day Testing**
+
 1. **🔴 Live site check**: Verify deployment is working
 2. **🔴 Demo rehearsal**: Full walkthrough of features
 3. **🔴 Backup plan**: Local development if needed

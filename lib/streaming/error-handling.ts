@@ -2,7 +2,7 @@
  * Stream error handling and reconnection utilities
  */
 
-import type { RetryStrategy } from './types'
+import type { RetryStrategy } from "./types"
 
 /**
  * Stream reconnection utilities
@@ -73,15 +73,15 @@ export const StreamErrorUtils = {
    */
   isRecoverableError(error: Error): boolean {
     const recoverableMessages = [
-      'network',
-      'timeout',
-      'connection',
-      'rate limit',
-      'temporarily unavailable',
+      "network",
+      "timeout",
+      "connection",
+      "rate limit",
+      "temporarily unavailable",
     ]
-    
+
     const message = error.message.toLowerCase()
-    return recoverableMessages.some(keyword => message.includes(keyword))
+    return recoverableMessages.some((keyword) => message.includes(keyword))
   },
 
   /**
@@ -89,24 +89,24 @@ export const StreamErrorUtils = {
    */
   getUserFriendlyErrorMessage(error: Error): string {
     const message = error.message.toLowerCase()
-    
-    if (message.includes('rate limit')) {
-      return 'Too many requests. Please wait a moment and try again.'
+
+    if (message.includes("rate limit")) {
+      return "Too many requests. Please wait a moment and try again."
     }
-    
-    if (message.includes('network') || message.includes('connection')) {
-      return 'Network connection error. Please check your internet connection.'
+
+    if (message.includes("network") || message.includes("connection")) {
+      return "Network connection error. Please check your internet connection."
     }
-    
-    if (message.includes('timeout')) {
-      return 'Request timed out. Please try again.'
+
+    if (message.includes("timeout")) {
+      return "Request timed out. Please try again."
     }
-    
-    if (message.includes('unauthorized') || message.includes('api key')) {
-      return 'Invalid API key. Please check your configuration.'
+
+    if (message.includes("unauthorized") || message.includes("api key")) {
+      return "Invalid API key. Please check your configuration."
     }
-    
-    return 'An unexpected error occurred. Please try again.'
+
+    return "An unexpected error occurred. Please try again."
   },
 
   /**
@@ -114,31 +114,31 @@ export const StreamErrorUtils = {
    */
   getRetryStrategy(error: Error): RetryStrategy {
     const message = error.message.toLowerCase()
-    
-    if (message.includes('rate limit')) {
+
+    if (message.includes("rate limit")) {
       return {
         shouldRetry: true,
         delay: 5000,
         maxAttempts: 3,
       }
     }
-    
-    if (message.includes('network') || message.includes('timeout')) {
+
+    if (message.includes("network") || message.includes("timeout")) {
       return {
         shouldRetry: true,
         delay: 2000,
         maxAttempts: 3,
       }
     }
-    
-    if (message.includes('unauthorized') || message.includes('api key')) {
+
+    if (message.includes("unauthorized") || message.includes("api key")) {
       return {
         shouldRetry: false,
         delay: 0,
         maxAttempts: 0,
       }
     }
-    
+
     return {
       shouldRetry: true,
       delay: 1000,

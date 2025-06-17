@@ -29,13 +29,14 @@ git push --force-with-lease origin session/feat/your-task-name
 ### **🎯 What Each Command Does**
 
 1. **`git checkout`**: Switches your workspace to show your feature branch files
-2. **`git fetch`**: Downloads new commits from GitHub without changing your local files  
+2. **`git fetch`**: Downloads new commits from GitHub without changing your local files
 3. **`git rebase`**: Moves your feature commits to start from latest main instead of old main
 4. **`git push --force-with-lease`**: Updates your remote branch safely
 
 ### **📊 Before vs After Rebase**
 
 **BEFORE (Causes Conflicts):**
+
 ```
 main (latest):    A---B---C---[CI/CD Infrastructure]---[Latest Main]
                        \
@@ -43,6 +44,7 @@ your feature:           [Your Work] (based on old main)
 ```
 
 **AFTER (No Conflicts):**
+
 ```
 main (latest):    A---B---C---[CI/CD Infrastructure]---[Latest Main]
                                                               \
@@ -52,14 +54,17 @@ your feature:                                                  [Your Work] (base
 ## 🚨 **CONFLICT PREVENTION RULES**
 
 ### **Rule 1: ALWAYS Rebase Before Starting Work**
+
 - Run the 4 commands above before touching any code
 - This ensures you're working with the latest infrastructure
 
 ### **Rule 2: Check teams/SHARED.md Before package.json Changes**
+
 - Announce if you plan to add dependencies
 - Coordinate with other agents to avoid simultaneous package.json modifications
 
 ### **Rule 3: Rebase Again Before Creating PR**
+
 - Run the same 4 commands before `gh pr create`
 - This ensures your PR will merge cleanly
 
@@ -90,30 +95,34 @@ git rebase --continue
 When you see package.json conflicts:
 
 ### **Dependencies Section**
+
 - **KEEP BOTH** - merge all dependencies together
 - **Example**: If main has `@changesets/cli` and your branch has `@ai-sdk/openai`, keep both
 
-### **Scripts Section**  
+### **Scripts Section**
+
 - **KEEP BOTH** - merge all scripts together
 - **Example**: If main has changeset scripts and your branch has dev scripts, keep both
 
 ### **DevDependencies Section**
+
 - **KEEP BOTH** - merge all devDependencies together
 
 ### **Example Resolution**
+
 ```json
 {
   "dependencies": {
-    "@ai-sdk/openai": "^1.3.22",      // ← Your feature
-    "@auth/core": "0.37.0",           // ← Your feature  
-    "@changesets/cli": "^2.29.4",     // ← CI/CD infrastructure
-    "@convex-dev/auth": "^0.0.87",    // ← Keep existing
+    "@ai-sdk/openai": "^1.3.22", // ← Your feature
+    "@auth/core": "0.37.0", // ← Your feature
+    "@changesets/cli": "^2.29.4", // ← CI/CD infrastructure
+    "@convex-dev/auth": "^0.0.87" // ← Keep existing
     // ... keep all dependencies
   },
   "scripts": {
-    "dev": "next dev",                // ← Keep existing
-    "changeset": "changeset",         // ← CI/CD infrastructure
-    "changeset:add": "./scripts/safe-commands.sh add",  // ← CI/CD
+    "dev": "next dev", // ← Keep existing
+    "changeset": "changeset", // ← CI/CD infrastructure
+    "changeset:add": "./scripts/safe-commands.sh add" // ← CI/CD
     // ... keep all scripts
   }
 }
@@ -125,19 +134,22 @@ When you see package.json conflicts:
 
 ```markdown
 1. **Before Starting Task**:
+
    - git checkout session/feat/task-name
-   - git fetch origin main  
+   - git fetch origin main
    - git rebase origin/main
    - git push --force-with-lease
 
 2. **During Development**:
+
    - Make your changes as normal
    - Test your changes
    - Follow existing code standards
 
 3. **Before Creating PR**:
+
    - git fetch origin main
-   - git rebase origin/main  
+   - git rebase origin/main
    - git push --force-with-lease
    - gh pr create (now guaranteed to be conflict-free)
 
@@ -149,21 +161,23 @@ When you see package.json conflicts:
 ## 🎯 **Why This Happened**
 
 1. **ClaudeSquad worktrees** were created from commit `5ea3cb2` (before CI/CD)
-2. **Main branch advanced** with commit `8073cac` (CI/CD infrastructure)  
+2. **Main branch advanced** with commit `8073cac` (CI/CD infrastructure)
 3. **Feature PRs** tried to merge old code with new infrastructure
 4. **Git couldn't auto-merge** because starting points were different
 
 ## ✅ **Success Metrics**
 
 After following this workflow:
+
 - ✅ No merge conflicts on PR creation
-- ✅ Clean integration with CI/CD infrastructure  
+- ✅ Clean integration with CI/CD infrastructure
 - ✅ All dependencies properly merged
 - ✅ Fast PR review and merge process
 
 ## 🆘 **When to Ask for Help**
 
 **Ask in teams/SHARED.md if:**
+
 - Rebase shows conflicts you can't resolve
 - You're unsure about keeping/removing code during conflict resolution
 - Commands fail with errors you don't understand
@@ -208,6 +222,7 @@ git rebase --abort
 ## ✅ **Agent Acknowledgment**
 
 When you've read and understood this document:
+
 1. Update your teams/task-name/STATUS.md with "✅ Workflow update acknowledged"
 2. Run the rebase commands on your current branch
 3. Confirm your branch is now based on latest main

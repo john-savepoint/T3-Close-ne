@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { Sidebar } from "@/components/sidebar"
 import { MainContent } from "@/components/main-content"

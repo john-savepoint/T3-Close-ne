@@ -266,7 +266,7 @@ export function ChatMessage({
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6"
-                          onClick={() => downloadCode(block.content, block.language || 'txt')}
+                          onClick={() => downloadCode(block.content, block.language || "txt")}
                         >
                           <Download className="h-3 w-3" />
                         </Button>

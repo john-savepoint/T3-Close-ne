@@ -7,7 +7,7 @@ export type Attachment = Doc<"attachments"> & {
 
   // Legacy compatibility fields for existing hooks
   id?: string // For backward compatibility, maps to _id
-  fileType?: string // For backward compatibility, maps to contentType  
+  fileType?: string // For backward compatibility, maps to contentType
   sizeBytes?: number // For backward compatibility, maps to size
   storagePath?: string // For backward compatibility, maps to storageId
   uploadedBy?: string // For backward compatibility, maps to userId
