@@ -34,12 +34,8 @@ jobs:
 
       - name: Deploy to Vercel Production
         run: |
-          echo "Debugging Vercel configuration..."
-          echo "Attempting deployment..."
-          npx vercel --version
-          npx vercel --token="${{ secrets.VERCEL_TOKEN }}" --scope="${{ secrets.VERCEL_ORG_ID }}" --prod --yes
+          echo "Deploying without project ID - let Vercel auto-detect..."
+          npx vercel --token="${{ secrets.VERCEL_TOKEN }}" --prod --yes
         env:
           NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
