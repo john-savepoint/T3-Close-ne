@@ -6,7 +6,7 @@
 **Branch**: `session/feat/chat-streaming`  
 **Started**: June 16, 2025  
 **Completed**: June 16, 2025  
-**PR**: https://github.com/john-savepoint/T3-Close-ne/pull/5  
+**PR**: https://github.com/john-savepoint/T3-Close-ne/pull/15 (Merged by manager)  
 
 ## ✅ **Progress Checklist**
 
