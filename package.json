@@ -20,9 +20,11 @@
     "convex:import": "npx convex import",
     "convex:dashboard": "npx convex dashboard",
     "changeset": "changeset",
-    "changeset:version": "changeset version",
+    "changeset:add": "./scripts/safe-commands.sh add",
+    "changeset:generate": "./scripts/safe-commands.sh generate",
+    "changeset:version": "./scripts/safe-commands.sh version",
     "changeset:publish": "changeset publish",
-    "changeset:status": "changeset status",
+    "changeset:status": "./scripts/safe-commands.sh status",
     "release": "pnpm changeset:version && git add . && git commit -m 'chore: version packages' && git push",
     "test:visual": "playwright test",
     "test:visual:ui": "playwright test --ui"

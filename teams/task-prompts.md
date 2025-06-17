@@ -407,6 +407,49 @@ DOCUMENTATION: Update teams/10-web-search/STATUS.md when complete
 IMPORTANT: use context7
 ```
 
+### **Task 16: GitHub Label Organization & Automation**
+
+```
+You are working on Z6Chat, our T3Chat competition clone.
+
+TASK: Implement comprehensive GitHub label system for project organization, automation, and release management to improve workflow efficiency and competition tracking.
+
+DEPENDENCIES: None (completely independent task)
+
+DELIVERABLES:
+- Complete label system with priority, type, component, status, competition, release, and automation labels
+- Apply appropriate labels to all existing PRs (#3, #4, #5)
+- Create PR template with label checkboxes for consistent labeling
+- Document label usage guidelines and automation rules
+- Integrate labels with auto-merge workflow and release automation
+
+FILES TO CREATE/MODIFY:
+- GitHub label creation (via gh CLI commands)
+- `.github/pull_request_template.md` - PR template with label checkboxes
+- `docs/labels.md` - Label reference guide and usage documentation
+- Update existing PRs with appropriate labels
+- Update team documentation with label workflow
+
+ACCEPTANCE CRITERIA:
+- All label categories created with appropriate colors and descriptions
+- Existing PRs properly labeled with type, component, priority, and competition impact
+- PR template includes comprehensive label checklist
+- Auto-merge workflow integrated with label system
+- Clear documentation for team label usage
+- Competition progress easily trackable through label filtering
+
+DOCUMENTATION REQUIREMENTS:
+- MUST use GitHub CLI documentation for label creation commands
+- Reference existing auto-merge workflow configuration
+- Document label color scheme and naming conventions
+- Create usage guidelines for consistent team adoption
+
+BRANCH: feat/label-organization
+DOCUMENTATION: Update teams/16-label-organization/STATUS.md when complete
+
+IMPORTANT: use context7
+```
+
 ---
 
 ## ✨ **POLISH & PERFORMANCE (Final Hours)**
