@@ -79,13 +79,12 @@ export class RedisStreamManager {
     const metaKey = `stream:${sessionId}:meta`;
     const meta = await this.redis.get(metaKey);
     
-    if (!meta) return null;
-    
-    try {
-      return JSON.parse(meta as string);
-    } catch {
+    if (!meta) {
       return null;
     }
+    
+    // Upstash automatically deserializes JSON, so we can return directly
+    return meta;
   }
 
   async setStreamStatus(sessionId: string, status: 'generating' | 'completed' | 'error', error?: string): Promise<void> {
@@ -104,13 +103,12 @@ export class RedisStreamManager {
     const statusKey = `stream:${sessionId}:status`;
     const status = await this.redis.get(statusKey);
     
-    if (!status) return null;
-    
-    try {
-      return JSON.parse(status);
-    } catch {
+    if (!status) {
       return null;
     }
+    
+    // Upstash automatically deserializes JSON, so we can return directly
+    return status as { status: string; timestamp: number; error?: string };
   }
 
   async streamExists(sessionId: string): Promise<boolean> {

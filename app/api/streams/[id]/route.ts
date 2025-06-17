@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ResumableStream } from '@/lib/resumable-streams';
+import { streamManager } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,9 +17,15 @@ export async function GET(
     );
   }
 
-  const stream = ResumableStream.getSessionById(sessionId);
-  const consumerName = `consumer:${Date.now()}:${Math.random().toString(36).substring(7)}`;
-  
+  // Check if stream exists
+  const streamExists = await streamManager.streamExists(sessionId);
+  if (!streamExists) {
+    return NextResponse.json(
+      { error: 'Stream not found' },
+      { status: 404 }
+    );
+  }
+
   const encoder = new TextEncoder();
 
   try {
@@ -32,58 +39,78 @@ export async function GET(
         });
         controller.enqueue(encoder.encode(`data: ${connectMessage}\n\n`));
 
-        // First, send any existing chunks for resumption
-        try {
-          for await (const chunk of stream.readAllChunks()) {
-            const message = JSON.stringify(chunk);
-            controller.enqueue(encoder.encode(`data: ${message}\n\n`));
-            
-            // If we've reached completion or error, we can stop here
-            if (chunk.type === 'complete' || chunk.type === 'error') {
-              controller.close();
-              return;
-            }
+        // Get current stream status
+        const status = await streamManager.getStreamStatus(sessionId);
+        let lastChunkCount = 0;
+        let isComplete = status?.status === 'completed' || status?.status === 'error';
+
+        // Send any existing chunks first
+        const existingChunks = await streamManager.getStreamChunks(sessionId);
+        for (const chunk of existingChunks) {
+          const message = JSON.stringify(chunk);
+          controller.enqueue(encoder.encode(`data: ${message}\n\n`));
+          
+          if (chunk.type === 'complete' || chunk.type === 'error') {
+            isComplete = true;
           }
-        } catch (error) {
-          console.error('Error reading existing chunks:', error);
+        }
+        lastChunkCount = existingChunks.length;
+
+        // If already complete, close the stream
+        if (isComplete) {
+          controller.close();
+          return;
         }
 
-        // Then monitor for new chunks in real-time
-        let isComplete = false;
+        // Poll for new chunks while generation is in progress
         let retryCount = 0;
-        const maxRetries = 30; // 30 seconds with 1-second intervals
-
+        const maxRetries = 60; // 60 seconds max wait
+        
         while (!isComplete && retryCount < maxRetries) {
           try {
-            // Use Redis streams to get new messages
-            const messages = await stream.readAllChunks();
-            let hasNewData = false;
+            // Check for new chunks
+            const currentChunks = await streamManager.getStreamChunks(sessionId);
             
-            // This is a simplified approach - in production you'd want to track the last seen message ID
-            for await (const chunk of messages) {
-              // Skip metadata chunks we've already sent
-              if (chunk.type === 'metadata') continue;
-              
-              hasNewData = true;
-              const message = JSON.stringify(chunk);
-              controller.enqueue(encoder.encode(`data: ${message}\n\n`));
-
-              if (chunk.type === 'complete' || chunk.type === 'error') {
-                isComplete = true;
-                break;
+            // Send any new chunks
+            if (currentChunks.length > lastChunkCount) {
+              const newChunks = currentChunks.slice(lastChunkCount);
+              for (const chunk of newChunks) {
+                const message = JSON.stringify(chunk);
+                controller.enqueue(encoder.encode(`data: ${message}\n\n`));
+                
+                if (chunk.type === 'complete' || chunk.type === 'error') {
+                  isComplete = true;
+                  break;
+                }
               }
+              lastChunkCount = currentChunks.length;
+              retryCount = 0; // Reset retry count when we get new data
             }
 
-            if (!hasNewData) {
-              // No new messages, wait before checking again
+            // Check status
+            const currentStatus = await streamManager.getStreamStatus(sessionId);
+            if (currentStatus?.status === 'completed' || currentStatus?.status === 'error') {
+              if (!isComplete) {
+                // Send final status message
+                const statusMessage = JSON.stringify({
+                  type: currentStatus.status,
+                  timestamp: currentStatus.timestamp,
+                  ...(currentStatus.error && { error: currentStatus.error })
+                });
+                controller.enqueue(encoder.encode(`data: ${statusMessage}\n\n`));
+              }
+              isComplete = true;
+              break;
+            }
+
+            if (!isComplete) {
+              // Wait before polling again
               await new Promise(resolve => setTimeout(resolve, 1000));
               retryCount++;
-            } else {
-              retryCount = 0; // Reset retry count if we got data
             }
 
           } catch (error) {
-            console.error('Error in stream monitoring:', error);
+            console.error('Error polling for chunks:', error);
             const errorMessage = JSON.stringify({
               type: 'error',
               error: 'Stream monitoring error',
@@ -94,10 +121,10 @@ export async function GET(
           }
         }
 
-        if (retryCount >= maxRetries) {
+        if (retryCount >= maxRetries && !isComplete) {
           const timeoutMessage = JSON.stringify({
             type: 'timeout',
-            message: 'Stream monitoring timeout',
+            message: 'Stream monitoring timeout - generation may still be in progress',
             timestamp: Date.now()
           });
           controller.enqueue(encoder.encode(`data: ${timeoutMessage}\n\n`));
@@ -145,16 +172,20 @@ export async function DELETE(
       );
     }
 
-    const stream = ResumableStream.getSessionById(sessionId);
-    const streamKey = stream.getStreamKey();
-    
+    // Check if stream exists
+    const streamExists = await streamManager.streamExists(sessionId);
+    if (!streamExists) {
+      return NextResponse.json(
+        { error: 'Stream not found' },
+        { status: 404 }
+      );
+    }
+
     // Delete the stream from Redis
-    await stream.markComplete(); // Mark as complete first
-    // Note: We're not actually deleting the stream immediately to allow for recovery
-    // In production, you might want a cleanup job to delete old streams
+    await streamManager.deleteStream(sessionId);
 
     return NextResponse.json({
-      message: 'Stream marked for cleanup',
+      message: 'Stream deleted successfully',
       sessionId
     });
 

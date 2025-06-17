@@ -42,11 +42,15 @@ export async function GET() {
     // Set status
     await streamManager.setStreamStatus(testSessionId, 'completed');
 
+    // Wait a moment for data to propagate
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     // Read back data immediately
     const metadata = await streamManager.getStreamMetadata(testSessionId);
     const chunks = await streamManager.getStreamChunks(testSessionId);
     const status = await streamManager.getStreamStatus(testSessionId);
     
+    console.log('Test session ID:', testSessionId);
     console.log('Test data:', { metadata, chunks, status });
 
     // Cleanup test data
