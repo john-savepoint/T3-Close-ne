@@ -34,7 +34,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Build application
-        run: pnpm build
+        run: pnpm build:ci
         env:
           # Mock environment variables for build
           CONVEX_DEPLOYMENT: test

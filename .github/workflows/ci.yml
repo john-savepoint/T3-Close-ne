@@ -42,7 +42,7 @@ jobs:
         run: pnpm format:check
 
       - name: Build
-        run: pnpm build
+        run: pnpm build:ci
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
