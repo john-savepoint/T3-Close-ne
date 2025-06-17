@@ -1,6 +1,6 @@
 {
-  "buildCommand": "pnpm build",
+  "framework": "nextjs",
+  "buildCommand": "echo 'Using pre-built files from CI'",
   "outputDirectory": ".next",
-  "installCommand": "pnpm install",
-  "framework": "nextjs"
+  "installCommand": "pnpm install --frozen-lockfile"
 }
