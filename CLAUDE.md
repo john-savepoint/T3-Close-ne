@@ -393,22 +393,117 @@ pnpm release
 **Error Handling**: Comprehensive error boundaries and user feedback
 **Performance**: Optimized for Edge runtime and fast loading
 
-## 🔄 **PARALLEL DEVELOPMENT STRATEGY**
+## 🔄 **DEVELOPMENT WORKFLOW (CRITICAL)**
 
-### **ClaudeSquad Workflow**
+### **🚨 MANDATORY: Start Every Session With Git Status Check**
 
-1. **Task Assignment**: Copy prompts from `teams/task-prompts.md`
-2. **Independent Work**: Each agent works on isolated branch
-3. **Documentation**: Update task STATUS.md when complete
-4. **Integration**: Create PR, review, merge
-5. **Synchronization**: All agents pull latest changes
+**BEFORE touching any code, you MUST run:**
+
+```bash
+git status
+```
+
+**Interpret the results:**
+
+- **If on `main` branch**: Switch to a feature branch first
+- **If on `session/feat/task-name` branch**: Follow rebase workflow below
+- **If in a worktree**: Follow rebase workflow below
+
+### **🔧 MANDATORY: Feature Branch Workflow**
+
+**EVERY TIME you start work on a feature branch, you MUST run these commands:**
+
+```bash
+# 1. Check your current status
+git status
+
+# 2. Ensure you're on your feature branch
+git checkout session/feat/your-task-name
+
+# 3. Download latest commits from GitHub (safe - doesn't change your files)
+git fetch origin main
+
+# 4. Move your work to be based on latest main (prevents conflicts)
+git rebase origin/main
+
+# 5. Update your remote branch
+git push --force-with-lease origin session/feat/your-task-name
+```
+
+### **❗ What Each Command Does**
+
+- **`git status`**: Shows which branch you're on and if you have uncommitted changes
+- **`git fetch origin main`**: Downloads latest commits from GitHub without changing your files (puts them in `origin/main` reference)
+- **`git rebase origin/main`**: Moves your feature work to sit on top of the latest main branch
+- **`git push --force-with-lease`**: Safely updates your remote branch with the rebased commits
+
+### **🔧 If You Have Uncommitted Changes**
+
+```bash
+git status
+# If this shows modified files, commit them first:
+git add .
+git commit -m "wip: work in progress before rebase"
+
+# Then proceed with rebase workflow above
+```
+
+### **🔧 If Conflicts Occur During Rebase**
+
+```bash
+# Git will show: CONFLICT (content): Merge conflict in package.json
+git status  # See which files have conflicts
+
+# Open conflicted files and resolve conflicts:
+# Look for <<<<<<< HEAD, =======, >>>>>>> markers
+# For package.json: Keep BOTH dependency sets
+# For code files: Manually merge the changes
+
+# After resolving each file:
+git add resolved-file.json
+git rebase --continue
+
+# If you get stuck:
+git rebase --abort  # Cancels the rebase
+# Then ask for help in teams/SHARED.md
+```
+
+### **📋 Updated Development Workflow**
+
+1. **Start Session**: 
+   - Run `git status` to check your environment
+   - If on feature branch, run the 4 rebase commands above
+
+2. **Task Assignment**: Copy prompts from `teams/task-prompts.md`
+
+3. **Before Starting Code**: 
+   - Ensure you're on latest main via rebase
+   - Check `teams/SHARED.md` for coordination needs
+
+4. **Development**: 
+   - Make your changes as normal
+   - Commit regularly with conventional commit format
+
+5. **Before Creating PR**:
+   - Run rebase workflow again (ensures latest main)
+   - Run quality checks: `pnpm type-check && pnpm lint`
+   - Create PR with `gh pr create`
+
+6. **Documentation**: Update task STATUS.md when complete
+
+### **🚨 Why This Is Critical**
+
+**Problem**: ClaudeSquad worktrees may be based on old commits (before CI/CD infrastructure)
+**Solution**: Rebase ensures your work includes all latest changes
+**Result**: Zero merge conflicts, clean integration
 
 ### **Conflict Prevention**
 
 - **File Ownership**: Clear assignment per task
-- **Type Safety**: Additive only, no modifications
+- **Type Safety**: Additive only, no modifications  
 - **Shared Communication**: Use `teams/SHARED.md`
 - **Progress Tracking**: Monitor `teams/PROGRESS.md`
+- **⭐ NEW: Always Rebase**: Prevents 99% of merge conflicts
 
 ## 📚 **RESEARCH & DOCUMENTATION REQUIREMENTS**
 
