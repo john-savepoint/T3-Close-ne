@@ -1,0 +1,1 @@
+Testing deployment with Vercel environment variables
