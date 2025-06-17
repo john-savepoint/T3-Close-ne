@@ -15,4 +15,17 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
   ],
+  callbacks: {
+    async redirect({ redirectTo }) {
+      // Allow redirects to the configured site URL and localhost
+      const siteUrl = process.env.SITE_URL || "http://localhost:3000"
+
+      if (redirectTo.startsWith(siteUrl) || redirectTo.startsWith("http://localhost:3000")) {
+        return redirectTo
+      }
+
+      // Default redirect to home page
+      return siteUrl
+    },
+  },
 })
