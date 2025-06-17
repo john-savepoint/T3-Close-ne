@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const { 
       prompt, 
-      model = "gpt-image-1", 
+      model = "dall-e-3", // Changed to publicly available model
       size = "1024x1024", 
       quality = "standard", 
       style = "vivid",
@@ -41,13 +41,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate size based on model
-    const validSizes = model === "dall-e-2" 
-      ? ["256x256", "512x512", "1024x1024"]
-      : ["1024x1024", "1792x1024", "1024x1792"]; // gpt-image-1 and dall-e-3
+    const validSizes: Record<string, string[]> = {
+      "dall-e-2": ["256x256", "512x512", "1024x1024"],
+      "dall-e-3": ["1024x1024", "1792x1024", "1024x1792"],
+      "gpt-image-1": ["1024x1024", "1024x1536", "1536x1024"] // Corrected sizes
+    };
+    
+    const modelSizes = validSizes[model] || validSizes["dall-e-3"];
 
-    if (!validSizes.includes(size)) {
+    if (!modelSizes.includes(size)) {
       return NextResponse.json(
-        { error: `Invalid size for ${model}. Supported sizes: ${validSizes.join(', ')}` }, 
+        { error: `Invalid size for ${model}. Supported sizes: ${modelSizes.join(', ')}` }, 
         { status: 400 }
       );
     }
@@ -56,15 +60,25 @@ export async function POST(request: NextRequest) {
     const requestParams: any = {
       model,
       prompt,
-      size: size as "1024x1024" | "1792x1024" | "1024x1792" | "256x256" | "512x512",
-      response_format: response_format as "url" | "b64_json",
-      n: 1,
+      size,
+      n: model === "dall-e-3" ? 1 : 1, // dall-e-3 only supports n=1
     };
 
-    // Add quality and style for dall-e-3 and gpt-image-1
-    if (model === "dall-e-3" || model === "gpt-image-1") {
-      requestParams.quality = quality as "standard" | "hd";
+    // Only add response_format for dall-e models (gpt-image-1 always returns base64)
+    if (model !== "gpt-image-1") {
+      requestParams.response_format = response_format as "url" | "b64_json";
+    }
+
+    // Handle quality parameter differences between models
+    if (model === "dall-e-3") {
+      requestParams.quality = quality === "hd" ? "hd" : "standard";
       requestParams.style = style as "vivid" | "natural";
+    } else if (model === "gpt-image-1") {
+      // gpt-image-1 uses different quality values
+      const gptQuality = quality === "hd" ? "high" : quality === "standard" ? "medium" : "low";
+      requestParams.quality = gptQuality;
+    } else if (model === "dall-e-2") {
+      // dall-e-2 doesn't support quality or style parameters
     }
 
     // Generate image
@@ -82,7 +96,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       model: model,
-      image: response_format === "b64_json" ? imageData.b64_json : imageData.url,
+      image: model === "gpt-image-1" ? imageData.b64_json : (response_format === "b64_json" ? imageData.b64_json : imageData.url),
       revised_prompt: imageData.revised_prompt || prompt,
       size: size,
       quality: quality,
@@ -162,14 +176,28 @@ export async function GET() {
   return NextResponse.json(
     { 
       message: 'Image generation API',
-      supportedModels: ["gpt-image-1", "dall-e-3", "dall-e-2"],
+      supportedModels: ["dall-e-3", "dall-e-2", "gpt-image-1"],
+      defaultModel: "dall-e-3",
       supportedSizes: {
         "dall-e-2": ["256x256", "512x512", "1024x1024"],
         "dall-e-3": ["1024x1024", "1792x1024", "1024x1792"],
-        "gpt-image-1": ["1024x1024", "1792x1024", "1024x1792"]
+        "gpt-image-1": ["1024x1024", "1024x1536", "1536x1024"]
       },
-      supportedQuality: ["standard", "hd"],
-      supportedStyles: ["vivid", "natural"]
+      supportedQuality: {
+        "dall-e-3": ["standard", "hd"],
+        "gpt-image-1": ["low", "medium", "high"],
+        "dall-e-2": ["standard"]
+      },
+      supportedStyles: {
+        "dall-e-3": ["vivid", "natural"],
+        "gpt-image-1": [],
+        "dall-e-2": []
+      },
+      notes: {
+        "gpt-image-1": "Requires special access approval from OpenAI",
+        "dall-e-3": "Publicly available, recommended default",
+        "dall-e-2": "Legacy model, limited features"
+      }
     },
     { status: 200 }
   );
