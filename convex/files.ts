@@ -1,8 +1,10 @@
 import { mutation, query } from "./_generated/server"
 import { v } from "convex/values"
 
+import { Id } from "./_generated/dataModel"
+
 // For now, we'll use a simple user ID - will be replaced with proper auth
-const getCurrentUserId = () => "user-1" // Placeholder until auth is implemented
+const getCurrentUserId = (): Id<"users"> => "user-1" as Id<"users"> // Placeholder until auth is implemented
 
 // Generate upload URL with validation
 export const generateUploadUrl = mutation({
@@ -44,7 +46,7 @@ export const saveFile = mutation({
       contentType: args.contentType,
       size: args.size,
       category: args.category,
-      userId: userId as any, // TODO: Fix when users table is created
+      userId: userId, // TODO: Fix when users table is created
       uploadedAt: Date.now(),
       createdAt: Date.now(),
       chatId: args.chatId,
@@ -91,7 +93,7 @@ export const getFileUrl = query({
 // List files for a user
 export const getUserFiles = query({
   args: {
-    userId: v.optional(v.string()),
+    userId: v.optional(v.id("users")),
     limit: v.optional(v.number()),
     category: v.optional(v.string()),
   },
@@ -101,7 +103,7 @@ export const getUserFiles = query({
 
     let query = ctx.db
       .query("attachments")
-      .withIndex("by_user", (q) => q.eq("userId", userId as any))
+      .withIndex("by_user", (q) => q.eq("userId", userId))
 
     if (args.category) {
       query = ctx.db

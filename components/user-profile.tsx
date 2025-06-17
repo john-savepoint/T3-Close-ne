@@ -50,7 +50,7 @@ export function UserProfile() {
           <div className="flex items-center gap-3 w-full">
             <Avatar className="h-8 w-8">
               <AvatarImage 
-                src={typeof user.image === 'string' ? user.image : undefined} 
+                src={typeof user.pictureUrl === 'string' ? user.pictureUrl : undefined} 
                 alt={userName || "User"} 
               />
               <AvatarFallback className="bg-mauve-accent text-mauve-bright">

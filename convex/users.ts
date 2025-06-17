@@ -5,7 +5,7 @@ import { v } from "convex/values";
 // Auth-based queries using @convex-dev/auth
 export const getCurrentUser = query({
   args: {},
-  handler: async (ctx: any) => {
+  handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       return null;
@@ -20,20 +20,15 @@ export const updateUserProfile = mutation({
     name: v.optional(v.string()),
     image: v.optional(v.string()),
   },
-  handler: async (ctx: any, { name, image }: { name?: string; image?: string }) => {
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       throw new Error("Not authenticated");
     }
     
-    interface UserUpdateData {
-      name?: string;
-      image?: string;
-    }
-    
-    const updateData: UserUpdateData = {};
-    if (name !== undefined) updateData.name = name;
-    if (image !== undefined) updateData.image = image;
+    const updateData: { name?: string; image?: string } = {};
+    if (args.name !== undefined) updateData.name = args.name;
+    if (args.image !== undefined) updateData.image = args.image;
     
     if (Object.keys(updateData).length === 0) {
       return;

@@ -1,5 +1,5 @@
 import { streamText } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { NextRequest } from 'next/server';
 import { SupportedModel } from '@/types/models';
 
@@ -27,8 +27,10 @@ export async function POST(req: NextRequest) {
       'openai/gpt-4o-mini',
       'anthropic/claude-3.5-sonnet',
       'anthropic/claude-3-haiku',
-      'google/gemini-pro-1.5',
-      'meta-llama/llama-3.1-405b-instruct',
+      'google/gemini-2.0-flash-exp',
+      'meta-llama/llama-3.1-8b-instruct',
+      'mistralai/mistral-7b-instruct',
+      'cohere/command-r-plus',
     ];
     
     if (!SUPPORTED_MODELS.includes(selectedModel)) {
@@ -44,15 +46,14 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    // Create OpenAI client configured for OpenRouter
-    const openRouterClient = openai({
+    // Create OpenAI client configured for OpenRouter  
+    const openrouter = createOpenAI({
       baseURL: 'https://openrouter.ai/api/v1',
       apiKey: openRouterApiKey,
     });
-
-    // Use Vercel AI SDK streamText for proper SSE streaming
+    
     const result = streamText({
-      model: openRouterClient(selectedModel as any),
+      model: openrouter(selectedModel),
       messages: messages.map((msg: any) => ({
         role: msg.role,
         content: msg.content
@@ -143,8 +144,10 @@ export async function GET(req: NextRequest) {
       'openai/gpt-4o-mini',
       'anthropic/claude-3.5-sonnet',
       'anthropic/claude-3-haiku',
-      'google/gemini-pro-1.5',
-      'meta-llama/llama-3.1-405b-instruct',
+      'google/gemini-2.0-flash-exp',
+      'meta-llama/llama-3.1-8b-instruct',
+      'mistralai/mistral-7b-instruct',
+      'cohere/command-r-plus',
     ];
     
     return new Response(JSON.stringify({ models }), {
