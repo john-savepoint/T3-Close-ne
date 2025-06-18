@@ -27,7 +27,7 @@ export function UserProfile() {
             Sign In
           </Button>
         </Link>
-        <Link href="/login">
+        <Link href="/signup">
           <Button
             variant="outline"
             className="w-full border-mauve-accent/50 text-mauve-accent hover:bg-mauve-accent/10"
@@ -65,7 +65,7 @@ export function UserProfile() {
           <div className="flex w-full items-center gap-3">
             <Avatar className="h-8 w-8">
               <AvatarImage
-                src={typeof user.pictureUrl === "string" ? user.pictureUrl : undefined}
+                src={typeof user.image === "string" ? user.image : undefined}
                 alt={userName || "User"}
               />
               <AvatarFallback className="bg-mauve-accent text-mauve-bright">

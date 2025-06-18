@@ -1,0 +1,115 @@
+These are the settings copied and pasted from my production GitHub OAuth App:
+
+Z6.chat
+@john-savepoint
+john-savepoint owns this application.
+
+You can list your application in the GitHub Marketplace so that other users can discover it.
+
+1 user
+Client ID
+Ov23liMgrmnuvGSuXZq5
+Client secrets
+Client secret
+*****e7555586
+Added 13 hours ago by john-savepoint
+Last used within the last week
+
+You cannot delete the only client secret. Generate a new client secret first.
+
+Application logo
+Drag & drop
+
+No file chosen
+You can also drag and drop a picture from your computer.
+
+
+Application name
+Z6.chat
+Something users will recognize and trust.
+
+Homepage URL
+https://v0-t3-clone-nine.vercel.app
+The full URL to your application homepage.
+
+Application description
+Application description is optional
+This is displayed to all users of your application.
+
+Authorization callback URL
+https://necessary-duck-420.convex.site/api/auth/callback/github
+Your application’s callback URL. Read our OAuth documentation for more information.
+
+ Enable Device Flow
+Allow this OAuth App to authorize users via the Device Flow.
+
+Read the Device Flow documentation for more information.
+
+---------------__
+
+these are the settings from my dev OAth App Settings on github:
+
+Z6.chat dev
+@john-savepoint
+john-savepoint owns this application.
+
+You can list your application in the GitHub Marketplace so that other users can discover it.
+
+0 users
+Client ID
+Ov23liniRHDjkAQz0Rn6
+Client secrets
+Client secret
+*****eeeff307
+Added 12 hours ago by john-savepoint
+Never used
+
+You cannot delete the only client secret. Generate a new client secret first.
+
+Application logo
+Drag & drop
+
+No file chosen
+You can also drag and drop a picture from your computer.
+
+
+Application name
+Z6.chat dev
+Something users will recognize and trust.
+
+Homepage URL
+https://v0-t3-clone-r9xecket2-john-savepoints-projects.vercel.app
+The full URL to your application homepage.
+
+Application description
+Application description is optional
+This is displayed to all users of your application.
+
+Authorization callback URL
+https://perfect-fly-8.convex.cloud/api/auth/callback/github
+Your application’s callback URL. Read our OAuth documentation for more information.
+
+ Enable Device Flow
+Allow this OAuth App to authorize users via the Device Flow.
+
+Read the Device Flow documentation for more information.
+
+--------------------__
+
+Now when I go to this website in incognito mode, https://v0-t3-clone-nine.vercel.app
+
+I click sign in with github. It shows me this
+Z6.chat logo
+Sign in to GitHub
+to continue to Z6.chat
+
+(so it is showing the prod version)
+
+After I sign in it takes me to this page
+https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fv0-t3-clone-r9xecket2-john-savepoints-projects.vercel.app%252F%26nonce%3Dc521c2e0da85a1dbe9f9e1eab1c27fdbd11ed5befcc4635fdcf92352f5ef2437
+
+which is asking to login to vercel.
+
+
+To me, it looks like even though my settings on the OAuth app for production are set to the production where the dev OAuth settings are set to what you call the preview deployment site, even though when I sign in through the production GitHub area, it is still taking me to theThe Preview website. So I have a feeling you've screwed up something bad somewhere with Convex or Vercel 
+

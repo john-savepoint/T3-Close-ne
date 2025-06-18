@@ -6,23 +6,25 @@ const schema = defineSchema({
   // Include auth tables from @convex-dev/auth
   ...authTables,
 
-  // Users table - enhanced with auth and storage tracking
+  // Extend the users table from auth with additional fields
   users: defineTable({
-    // Auth fields from PR #1
-    tokenIdentifier: v.string(),
-    email: v.optional(v.string()),
+    // Required auth fields from authTables
     name: v.optional(v.string()),
-    pictureUrl: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
+    isAnonymous: v.optional(v.boolean()),
     // Storage tracking from PR #3
     storageUsed: v.optional(v.number()), // bytes
     storageLimit: v.optional(v.number()), // bytes
     // Additional fields
-    createdAt: v.optional(v.number()),
     lastActiveAt: v.optional(v.number()),
     plan: v.optional(v.union(v.literal("free"), v.literal("pro"))),
   })
-    .index("by_token", ["tokenIdentifier"])
-    .index("by_email", ["email"]),
+    .index("email", ["email"])
+    .index("phone", ["phone"]),
 
   // Projects table from PR #1
   projects: defineTable({

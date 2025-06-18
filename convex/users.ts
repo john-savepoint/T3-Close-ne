@@ -38,41 +38,46 @@ export const updateUserProfile = mutation({
   },
 })
 
-// Legacy user functions for backwards compatibility
-export const create = mutation({
+// User storage and plan management
+export const updateUserStorage = mutation({
   args: {
-    tokenIdentifier: v.string(),
-    email: v.optional(v.string()),
-    name: v.optional(v.string()),
-    pictureUrl: v.optional(v.string()),
+    storageUsed: v.number(),
   },
   handler: async (ctx, args) => {
-    const existingUser = await ctx.db
-      .query("users")
-      .withIndex("by_token", (q) => q.eq("tokenIdentifier", args.tokenIdentifier))
-      .unique()
-
-    if (existingUser) {
-      return existingUser._id
+    const userId = await getAuthUserId(ctx)
+    if (!userId) {
+      throw new Error("Not authenticated")
     }
 
-    return await ctx.db.insert("users", {
-      ...args,
-      createdAt: Date.now(),
+    await ctx.db.patch(userId, {
+      storageUsed: args.storageUsed,
       lastActiveAt: Date.now(),
-      plan: "free",
-      storageUsed: 0,
-      storageLimit: 1024 * 1024 * 100, // 100MB default
     })
   },
 })
 
-export const get = query({
-  args: { tokenIdentifier: v.string() },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("users")
-      .withIndex("by_token", (q) => q.eq("tokenIdentifier", args.tokenIdentifier))
-      .unique()
+export const initializeUserDefaults = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) {
+      throw new Error("Not authenticated")
+    }
+
+    const user = await ctx.db.get(userId)
+    if (!user) {
+      throw new Error("User not found")
+    }
+
+    // Initialize defaults if not set
+    const updates: any = {}
+    if (user.storageUsed === undefined) updates.storageUsed = 0
+    if (user.storageLimit === undefined) updates.storageLimit = 1024 * 1024 * 100 // 100MB
+    if (user.plan === undefined) updates.plan = "free"
+    if (user.lastActiveAt === undefined) updates.lastActiveAt = Date.now()
+
+    if (Object.keys(updates).length > 0) {
+      await ctx.db.patch(userId, updates)
+    }
   },
 })
