@@ -5,9 +5,5 @@
  * Use individual modules from ./streaming/ for better maintainability.
  */
 
-// Re-export everything from the modular streaming utilities
-export * from "./streaming/index"
-
-// Legacy compatibility - global stream manager
-import { globalStreamManager } from "./streaming/manager"
-export { globalStreamManager }
+// This file is deprecated - use specific streaming utilities instead
+export {};
