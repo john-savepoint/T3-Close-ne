@@ -152,8 +152,8 @@ export function useCodeActions() {
     filename?: string
   ): void => {
     try {
-      const mimeType = getMimeType(language)
       const finalFilename = generateFilename(language, filename)
+      const mimeType = getMimeType(language)
       
       // Create blob with proper MIME type
       const blob = new Blob([code], { 
