@@ -27,10 +27,15 @@ export function useProjects() {
   const createProject = async (data: CreateProjectData): Promise<string> => {
     if (!user?._id) throw new Error("User not authenticated")
 
+    // Validate parentProjectId if provided
+    const parentProjectId = data.parentProjectId
+      ? (typeof data.parentProjectId === "string" ? data.parentProjectId as Id<"projects"> : undefined)
+      : undefined
+
     const projectId = await createProjectMutation({
       name: data.name,
       systemPrompt: data.systemPrompt,
-      parentProjectId: data.parentProjectId as Id<"projects"> | undefined,
+      parentProjectId,
       userId: user._id,
     })
 
