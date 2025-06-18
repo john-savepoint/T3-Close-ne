@@ -20,25 +20,24 @@ import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { useConversationTree } from "@/hooks/use-conversation-tree"
 import { useAuth } from "@/hooks/use-auth"
-import type { Attachment } from "@/types/attachment"
 
 export function MainContent() {
   const isMobile = useIsMobile()
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const { suggestions } = useMemory()
-  const {
-    temporaryChat,
+  const { 
+    temporaryChat, 
     isTemporaryMode,
     addMessageToTemporaryChat,
     updateTemporaryChatMessage,
     deleteTemporaryChatMessage,
     settings,
     isStreaming,
-    setIsStreaming,
+    setIsStreaming
   } = useTemporaryChat()
   const { user } = useAuth()
-
+  
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -106,11 +105,11 @@ export function MainContent() {
     if (isTemporaryMode) {
       // Add user message to temporary chat
       addMessageToTemporaryChat(content, "user")
-
+      
       // Create new abort controller for this request
       const abortController = new AbortController()
       abortControllerRef.current = abortController
-
+      
       // Call the API to get response
       try {
         setIsStreaming(true)
@@ -121,18 +120,18 @@ export function MainContent() {
           },
           body: JSON.stringify({
             messages: [
-              ...(temporaryChat?.messages || []).map((msg) => ({
+              ...(temporaryChat?.messages || []).map(msg => ({
                 role: msg.type === "user" ? "user" : "assistant",
-                content: msg.content,
+                content: msg.content
               })),
-              { role: "user", content },
+              { role: "user", content }
             ],
             model: selectedModel,
             temperature,
             // Don't include memory/context if setting is disabled
-            includeMemory: settings.includeMemoryInTempChats,
+            includeMemory: settings.includeMemoryInTempChats
           }),
-          signal: abortController.signal,
+          signal: abortController.signal
         })
 
         if (!response.ok) {
@@ -155,12 +154,12 @@ export function MainContent() {
 
           try {
             const chunk = decoder.decode(value)
-            const lines = chunk.split("\n").filter((line) => line.trim() !== "")
-
+            const lines = chunk.split('\n').filter(line => line.trim() !== '')
+            
             for (const line of lines) {
-              if (line.startsWith("0:")) {
+              if (line.startsWith('0:')) {
                 try {
-                  const content = line.slice(2).replace(/"/g, "").replace(/\\n/g, "\n")
+                  const content = line.slice(2).replace(/"/g, '').replace(/\\n/g, '\n')
                   assistantMessage += content
                   if (!abortController.signal.aborted) {
                     updateTemporaryChatMessage(assistantMessageId, assistantMessage)
@@ -176,9 +175,12 @@ export function MainContent() {
         }
       } catch (error: any) {
         // Don't show error if it was aborted
-        if (error.name !== "AbortError") {
+        if (error.name !== 'AbortError') {
           console.error("Error sending temporary message:", error)
-          addMessageToTemporaryChat("Sorry, I encountered an error. Please try again.", "assistant")
+          addMessageToTemporaryChat(
+            "Sorry, I encountered an error. Please try again.", 
+            "assistant"
+          )
         }
       } finally {
         setIsStreaming(false)
@@ -190,11 +192,6 @@ export function MainContent() {
     } else {
       await sendMessage(content, attachments)
     }
-  }
-
-  const handleRemoveAttachment = (attachmentId: string) => {
-    // TODO: Implement attachment removal with useChat hook
-    console.log("Remove attachment:", attachmentId)
   }
 
   const handleBranchSelect = (branchId: string) => {
@@ -317,19 +314,17 @@ export function MainContent() {
                     onCopy={(content) => {
                       navigator.clipboard.writeText(content)
                     }}
-                    onRemoveAttachment={handleRemoveAttachment}
                   />
                 </div>
               ))}
 
               {/* Loading indicator */}
-              {((isLoading && !isTemporaryMode) || (isStreaming && isTemporaryMode)) &&
-                displayMessages.length > 0 && (
-                  <div className="flex items-center space-x-2 text-mauve-subtle">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-mauve-accent border-t-transparent"></div>
-                    <span className="text-sm">AI is thinking...</span>
-                  </div>
-                )}
+              {((isLoading && !isTemporaryMode) || (isStreaming && isTemporaryMode)) && displayMessages.length > 0 && (
+                <div className="flex items-center space-x-2 text-mauve-subtle">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-mauve-accent border-t-transparent"></div>
+                  <span className="text-sm">AI is thinking...</span>
+                </div>
+              )}
             </div>
           )}
           <div className="flex-1" />
