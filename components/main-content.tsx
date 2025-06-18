@@ -202,8 +202,14 @@ export function MainContent() {
 
   const handleBranchSelect = (branchId: string) => {
     // Switch to the selected branch by finding the leaf message ID
-    const branch = conversationTree.branches.get(branchId)
-    if (branch && branch.messages.length > 0) {
+    const branches = conversationTree.branches
+    const branch =
+      branches instanceof Map
+        ? branches.get(branchId)
+        : Array.isArray(branches)
+          ? branches.find((b: any) => b.id === branchId)
+          : undefined
+    if (branch && branch.messages && branch.messages.length > 0) {
       const leafMessage = branch.messages[branch.messages.length - 1]
       setCurrentMessageId(leafMessage.id)
       // In a real implementation, we would update the chat's activeLeafMessageId
