@@ -136,15 +136,26 @@ export function TrashView() {
         ) : (
           <ScrollArea className="h-full">
             <div className="space-y-2 p-4">
-              {filteredChats.map((chat) => (
-                <EnhancedChatItem
-                  key={chat.id}
-                  chat={chat}
-                  onRestore={() => handleRestore(chat.id)}
-                  onDeletePermanently={() => handleDeletePermanently(chat.id)}
-                  className="border border-red-500/20 bg-red-500/5 hover:bg-red-500/10"
-                />
-              ))}
+              {filteredChats.map((chat) => {
+                // Adapt Convex chat to component interface
+                const adaptedChat = {
+                  ...chat,
+                  id: chat._id || (chat as any).id,
+                  messages: [],
+                  createdAt: new Date(chat.createdAt),
+                  updatedAt: new Date(chat.updatedAt),
+                  statusChangedAt: new Date(chat.statusChangedAt),
+                }
+                return (
+                  <EnhancedChatItem
+                    key={adaptedChat.id}
+                    chat={adaptedChat}
+                    onRestore={() => handleRestore(adaptedChat.id)}
+                    onDeletePermanently={() => handleDeletePermanently(adaptedChat.id)}
+                    className="border border-red-500/20 bg-red-500/5 hover:bg-red-500/10"
+                  />
+                )
+              })}
             </div>
           </ScrollArea>
         )}

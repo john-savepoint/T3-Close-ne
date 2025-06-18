@@ -95,15 +95,26 @@ export function ArchiveView() {
         ) : (
           <ScrollArea className="h-full">
             <div className="space-y-2 p-4">
-              {filteredChats.map((chat) => (
-                <EnhancedChatItem
-                  key={chat.id}
-                  chat={chat}
-                  onRestore={() => handleRestore(chat.id)}
-                  onMoveToTrash={() => handleMoveToTrash(chat.id)}
-                  className="bg-black/10 hover:bg-black/20"
-                />
-              ))}
+              {filteredChats.map((chat) => {
+                // Adapt Convex chat to component interface
+                const adaptedChat = {
+                  ...chat,
+                  id: chat._id || (chat as any).id,
+                  messages: [],
+                  createdAt: new Date(chat.createdAt),
+                  updatedAt: new Date(chat.updatedAt),
+                  statusChangedAt: new Date(chat.statusChangedAt),
+                }
+                return (
+                  <EnhancedChatItem
+                    key={adaptedChat.id}
+                    chat={adaptedChat}
+                    onRestore={() => handleRestore(adaptedChat.id)}
+                    onMoveToTrash={() => handleMoveToTrash(adaptedChat.id)}
+                    className="bg-black/10 hover:bg-black/20"
+                  />
+                )
+              })}
             </div>
           </ScrollArea>
         )}

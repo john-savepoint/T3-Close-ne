@@ -46,7 +46,10 @@ export function ThreadNavigator({
   const [expandedBranches, setExpandedBranches] = useState<Set<string>>(new Set())
   const [editingTitle, setEditingTitle] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"standard" | "tree">("standard")
-  const { conversationTree, renameBranch } = useConversationTree(messages, currentMessageId)
+  const { conversationTree, renameBranch } = useConversationTree({ 
+    messages, 
+    activeLeafId: currentMessageId 
+  })
 
   const toggleBranch = (messageId: string) => {
     const newExpanded = new Set(expandedBranches)

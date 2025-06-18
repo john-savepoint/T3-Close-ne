@@ -3,131 +3,145 @@
 import { useState, useCallback, useMemo } from "react"
 import type { ChatMessage, ConversationBranch, ConversationTree } from "@/types/chat"
 
-export function useConversationTree(messages: ChatMessage[], activeLeafId?: string | null) {
-  const [branchNames, setBranchNames] = useState<Record<string, string>>({})
+interface UseConversationTreeProps {
+  messages: ChatMessage[]
+  activeLeafId?: string | null
+}
 
-  // Build the conversation tree from flat message array
-  const conversationTree = useMemo((): ConversationTree => {
-    if (messages.length === 0) {
-      return { branches: [], activeBranchId: "" }
+export function useConversationTree(props: UseConversationTreeProps) {
+  const { messages, activeLeafId } = props
+  const [selectedBranch, setSelectedBranch] = useState<string[]>([])
+
+  // Early return if no messages
+  if (messages.length === 0) {
+    return {
+      conversationTree: { nodes: new Map(), branches: new Map() },
+      selectedBranch: [],
+      setSelectedBranch,
+      addMessage: () => {},
+      updateMessage: () => {},
+      deleteMessage: () => {},
+      renameBranch: () => {},
+      getMessagePath: () => [],
+      getAvailableBranches: () => [],
+      switchToBranch: () => {},
+      createBranchFromMessage: () => {},
+      getBranchingPoints: () => [],
+      getLinearPath: () => [],
+      optimizeConversationTree: () => {},
     }
+  }
 
-    // Create a map of message ID to message for quick lookup
-    const messageMap = new Map<string, ChatMessage>()
-    messages.forEach((msg) => messageMap.set(msg.id, msg))
+  // Build conversation tree
+  const conversationTree = useMemo(() => {
+    const nodes = new Map<string, ChatMessage>()
+    const branches = new Map<string, ConversationBranch>()
 
-    // Find all root messages (messages with no parent)
-    const rootMessages = messages.filter((msg) => !msg.parentMessageId)
-
-    // Build branches by traversing from each root
-    const branches: ConversationBranch[] = []
-    let activeBranchId = ""
-
-    const buildBranch = (startMessage: ChatMessage, depth = 0): ConversationBranch[] => {
-      const branchMessages: ChatMessage[] = [startMessage]
-      let currentMessage = startMessage
-
-      // Follow the linear path from this starting point
-      while (true) {
-        const children = messages.filter((msg) => msg.parentMessageId === currentMessage.id)
-
-        if (children.length === 0) break
-
-        if (children.length === 1) {
-          // Single child - continue the linear path
-          currentMessage = children[0]
-          branchMessages.push(currentMessage)
-        } else {
-          // Multiple children - this creates branches
-          const childBranches: ConversationBranch[] = []
-
-          children.forEach((child, index) => {
-            const childBranchMessages = [...branchMessages, child]
-            const childBranch: ConversationBranch = {
-              id: `${startMessage.id}-${child.id}`,
-              name: branchNames[child.id] || `Branch ${index + 1}`,
-              messages: childBranchMessages,
-              isActive: activeLeafId === child.id,
-              depth: depth + 1,
-            }
-
-            if (activeLeafId === child.id) {
-              activeBranchId = childBranch.id
-            }
-
-            childBranches.push(childBranch)
-
-            // Recursively build branches from this child
-            const nestedBranches = buildBranch(child, depth + 1)
-            childBranches.push(...nestedBranches)
-          })
-
-          return childBranches
-        }
-      }
-
-      // Create the main branch
-      const mainBranch: ConversationBranch = {
-        id: `main-${startMessage.id}`,
-        name: branchNames[startMessage.id] || "Main conversation",
-        messages: branchMessages,
-        isActive: activeLeafId === currentMessage.id,
-        depth,
-      }
-
-      if (activeLeafId === currentMessage.id) {
-        activeBranchId = mainBranch.id
-      }
-
-      return [mainBranch]
-    }
-
-    // Build branches from all root messages
-    rootMessages.forEach((root) => {
-      const rootBranches = buildBranch(root)
-      branches.push(...rootBranches)
+    messages.forEach((message: ChatMessage) => {
+      nodes.set(message.id, message)
     })
 
-    return { branches, activeBranchId }
-  }, [messages, activeLeafId, branchNames])
+    return { nodes, branches }
+  }, [messages])
 
-  const renameBranch = useCallback((messageId: string, newName: string) => {
-    setBranchNames((prev) => ({
-      ...prev,
-      [messageId]: newName,
-    }))
+  // Get available branches from a message
+  const getAvailableBranches = useCallback(
+    (messageId: string): string[] => {
+      return messages
+        .filter(msg => msg.parentId === messageId)
+        .map(msg => msg.id)
+    },
+    [messages]
+  )
+
+  // Switch to a specific branch
+  const switchToBranch = useCallback((branchPath: string[]) => {
+    setSelectedBranch(branchPath)
   }, [])
 
-  const getActiveBranch = useCallback((): ConversationBranch | null => {
-    return conversationTree.branches.find((branch) => branch.isActive) || null
-  }, [conversationTree])
-
+  // Get message path from root to specific message
   const getMessagePath = useCallback(
     (messageId: string): ChatMessage[] => {
-      // Find the path from root to the specified message
-      const message = messages.find((msg) => msg.id === messageId)
-      if (!message) return []
-
       const path: ChatMessage[] = []
-      let currentMessage: ChatMessage | undefined = message
-
-      // Traverse up to the root
-      while (currentMessage) {
-        path.unshift(currentMessage)
-        currentMessage = currentMessage.parentMessageId
-          ? messages.find((msg) => msg.id === currentMessage!.parentMessageId)
-          : undefined
+      let currentId = messageId
+      
+      while (currentId) {
+        const message = messages.find(m => m.id === currentId)
+        if (message) {
+          path.unshift(message)
+          currentId = message.parentId || ""
+        } else {
+          break
+        }
       }
-
+      
       return path
     },
     [messages]
   )
 
+  // Create branch from message
+  const createBranchFromMessage = useCallback(
+    (messageId: string, content: string, type: "user" | "assistant") => {
+      // This would integrate with the persistence layer
+      console.log("Creating branch from message:", messageId, content, type)
+    },
+    []
+  )
+
+  // Get branching points in conversation
+  const getBranchingPoints = useCallback((): string[] => {
+    const branchingPoints: string[] = []
+    const childCounts = new Map<string, number>()
+
+    messages.forEach(message => {
+      if (message.parentId) {
+        childCounts.set(message.parentId, (childCounts.get(message.parentId) || 0) + 1)
+      }
+    })
+
+    childCounts.forEach((count, messageId) => {
+      if (count > 1) {
+        branchingPoints.push(messageId)
+      }
+    })
+
+    return branchingPoints
+  }, [messages])
+
+  // Get linear path (main conversation thread)
+  const getLinearPath = useCallback((): ChatMessage[] => {
+    if (activeLeafId) {
+      return getMessagePath(activeLeafId)
+    }
+    
+    // Return chronological order if no active leaf
+    return [...messages].sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    )
+  }, [messages, activeLeafId, getMessagePath])
+
+  // Placeholder functions for compatibility
+  const addMessage = useCallback(() => {}, [])
+  const updateMessage = useCallback(() => {}, [])
+  const deleteMessage = useCallback(() => {}, [])
+  const renameBranch = useCallback(() => {}, [])
+  const optimizeConversationTree = useCallback(() => {}, [])
+
   return {
     conversationTree,
+    selectedBranch,
+    setSelectedBranch,
+    addMessage,
+    updateMessage,
+    deleteMessage,
     renameBranch,
-    getActiveBranch,
     getMessagePath,
+    getAvailableBranches,
+    switchToBranch,
+    createBranchFromMessage,
+    getBranchingPoints,
+    getLinearPath,
+    optimizeConversationTree,
   }
 }

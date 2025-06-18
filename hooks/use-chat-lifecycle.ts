@@ -1,166 +1,151 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { useQuery, useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { Id } from "@/convex/_generated/dataModel"
 import type { Chat } from "@/types/chat"
-
-// Mock data for demonstration
-const mockArchivedChats: Chat[] = [
-  {
-    id: "archived-1",
-    title: "Completed React Project Discussion",
-    status: "archived",
-    statusChangedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-    messages: [],
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-  },
-  {
-    id: "archived-2",
-    title: "Old Marketing Campaign Ideas",
-    status: "archived",
-    statusChangedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
-    messages: [],
-    createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-  },
-]
-
-const mockTrashedChats: Chat[] = [
-  {
-    id: "trashed-1",
-    title: "Accidentally Deleted Chat",
-    status: "trashed",
-    statusChangedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-    messages: [],
-    createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-  },
-]
+import { useAuth } from "@/hooks/use-auth"
 
 export function useChatLifecycle() {
-  const [archivedChats, setArchivedChats] = useState<Chat[]>(mockArchivedChats)
-  const [trashedChats, setTrashedChats] = useState<Chat[]>(mockTrashedChats)
   const [loading, setLoading] = useState(false)
+  const { user } = useAuth()
+  
+  // Get real archived and trashed chats from Convex
+  const archivedChatsData = useQuery(
+    api.chats.listWithPreview,
+    user?._id ? {
+      userId: user._id,
+      status: "archived"
+    } : "skip"
+  )
+  
+  const trashedChatsData = useQuery(
+    api.chats.listWithPreview,
+    user?._id ? {
+      userId: user._id,
+      status: "trashed"
+    } : "skip"
+  )
+  
+  // Convert Convex data to Chat type for backward compatibility
+  const archivedChats: Chat[] = (archivedChatsData || []).map(chat => ({
+    id: chat._id,
+    title: chat.title,
+    status: chat.status,
+    statusChangedAt: new Date(chat.statusChangedAt),
+    messages: [],
+    createdAt: new Date(chat.createdAt),
+    updatedAt: new Date(chat.updatedAt),
+  }))
+  
+  const trashedChats: Chat[] = (trashedChatsData || []).map(chat => ({
+    id: chat._id,
+    title: chat.title,
+    status: chat.status,
+    statusChangedAt: new Date(chat.statusChangedAt),
+    messages: [],
+    createdAt: new Date(chat.createdAt),
+    updatedAt: new Date(chat.updatedAt),
+  }))
+  
+  // Convex mutations
+  const updateStatusMutation = useMutation(api.chats.updateStatus)
+  const deletePermanentlyMutation = useMutation(api.chats.deletePermanently)
+  const bulkUpdateStatusMutation = useMutation(api.chats.bulkUpdateStatus)
 
   const moveToArchive = useCallback(async (chatId: string): Promise<void> => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      console.log(`Moving chat ${chatId} to archive`)
-
-      // In a real app, this would be an API call
-      // await api.updateChatStatus(chatId, 'archived')
+      await updateStatusMutation({
+        chatId: chatId as Id<"chats">,
+        status: "archived",
+      })
     } catch (error) {
       console.error("Failed to archive chat:", error)
       throw error
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [updateStatusMutation])
 
   const moveToTrash = useCallback(async (chatId: string): Promise<void> => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      console.log(`Moving chat ${chatId} to trash`)
-
-      // In a real app, this would be an API call
-      // await api.updateChatStatus(chatId, 'trashed')
+      await updateStatusMutation({
+        chatId: chatId as Id<"chats">,
+        status: "trashed",
+      })
     } catch (error) {
       console.error("Failed to move chat to trash:", error)
       throw error
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [updateStatusMutation])
 
   const restoreFromTrash = useCallback(async (chatId: string): Promise<void> => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      console.log(`Restoring chat ${chatId} from trash`)
-
-      // Remove from trashed chats
-      setTrashedChats((prev) => prev.filter((chat) => chat.id !== chatId))
-
-      // In a real app, this would be an API call
-      // await api.updateChatStatus(chatId, 'active')
+      await updateStatusMutation({
+        chatId: chatId as Id<"chats">,
+        status: "active",
+      })
     } catch (error) {
       console.error("Failed to restore chat:", error)
       throw error
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [updateStatusMutation])
 
   const restoreFromArchive = useCallback(async (chatId: string): Promise<void> => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      console.log(`Restoring chat ${chatId} from archive`)
-
-      // Remove from archived chats
-      setArchivedChats((prev) => prev.filter((chat) => chat.id !== chatId))
-
-      // In a real app, this would be an API call
-      // await api.updateChatStatus(chatId, 'active')
+      await updateStatusMutation({
+        chatId: chatId as Id<"chats">,
+        status: "active",
+      })
     } catch (error) {
       console.error("Failed to restore chat from archive:", error)
       throw error
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [updateStatusMutation])
 
   const deletePermanently = useCallback(async (chatId: string): Promise<void> => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      console.log(`Permanently deleting chat ${chatId}`)
-
-      // Remove from trashed chats
-      setTrashedChats((prev) => prev.filter((chat) => chat.id !== chatId))
-
-      // In a real app, this would be an API call
-      // await api.deleteChatPermanently(chatId)
+      await deletePermanentlyMutation({
+        chatId: chatId as Id<"chats">,
+      })
     } catch (error) {
       console.error("Failed to permanently delete chat:", error)
       throw error
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [deletePermanentlyMutation])
 
   const emptyTrash = useCallback(async (): Promise<void> => {
+    if (!user?._id || trashedChats.length === 0) return
+    
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      console.log("Emptying trash")
-
-      // Clear all trashed chats
-      setTrashedChats([])
-
-      // In a real app, this would be an API call
-      // await api.emptyTrash()
+      const chatIds = trashedChats.map(chat => chat.id as Id<"chats">)
+      
+      // Delete all trashed chats permanently
+      await Promise.all(
+        chatIds.map(chatId => deletePermanentlyMutation({ chatId }))
+      )
     } catch (error) {
       console.error("Failed to empty trash:", error)
       throw error
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [deletePermanentlyMutation, trashedChats, user?._id])
 
   const getDaysUntilAutoPurge = useCallback((chat: Chat): number => {
     if (chat.status !== "trashed" || !chat.statusChangedAt) return 0
@@ -172,28 +157,99 @@ export function useChatLifecycle() {
     return Math.max(0, 30 - daysSinceTrash)
   }, [])
 
-  // Simulate auto-purge check
+  // Bulk operations
+  const bulkMoveToArchive = useCallback(async (chatIds: string[]): Promise<void> => {
+    if (!user?._id) return
+    
+    setLoading(true)
+    try {
+      await bulkUpdateStatusMutation({
+        chatIds: chatIds as Id<"chats">[],
+        status: "archived",
+        userId: user._id,
+      })
+    } catch (error) {
+      console.error("Failed to bulk archive chats:", error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }, [bulkUpdateStatusMutation, user?._id])
+
+  const bulkMoveToTrash = useCallback(async (chatIds: string[]): Promise<void> => {
+    if (!user?._id) return
+    
+    setLoading(true)
+    try {
+      await bulkUpdateStatusMutation({
+        chatIds: chatIds as Id<"chats">[],
+        status: "trashed",
+        userId: user._id,
+      })
+    } catch (error) {
+      console.error("Failed to bulk move chats to trash:", error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }, [bulkUpdateStatusMutation, user?._id])
+
+  const bulkRestore = useCallback(async (chatIds: string[]): Promise<void> => {
+    if (!user?._id) return
+    
+    setLoading(true)
+    try {
+      await bulkUpdateStatusMutation({
+        chatIds: chatIds as Id<"chats">[],
+        status: "active",
+        userId: user._id,
+      })
+    } catch (error) {
+      console.error("Failed to bulk restore chats:", error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }, [bulkUpdateStatusMutation, user?._id])
+
+  // Auto-purge effect (for demo - in production this would be handled by a scheduled job)
   useEffect(() => {
-    const checkAutoPurge = () => {
+    const checkAutoPurge = async () => {
+      if (!user?._id || trashedChats.length === 0) return
+      
       const now = Date.now()
       const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
 
-      setTrashedChats((prev) =>
-        prev.filter(
-          (chat) => !chat.statusChangedAt || chat.statusChangedAt.getTime() > thirtyDaysAgo
-        )
+      const chatsToDelete = trashedChats.filter(
+        (chat) => chat.statusChangedAt && chat.statusChangedAt.getTime() < thirtyDaysAgo
       )
+
+      if (chatsToDelete.length > 0) {
+        console.log(`Auto-purging ${chatsToDelete.length} chats older than 30 days`)
+        
+        try {
+          await Promise.all(
+            chatsToDelete.map(chat => 
+              deletePermanentlyMutation({ chatId: chat.id as Id<"chats"> })
+            )
+          )
+        } catch (error) {
+          console.error("Auto-purge failed:", error)
+        }
+      }
     }
 
-    // Check every minute for demo purposes (would be daily in production)
-    const interval = setInterval(checkAutoPurge, 60000)
+    // Check every hour for demo purposes (would be daily in production)
+    const interval = setInterval(checkAutoPurge, 60 * 60 * 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [trashedChats, deletePermanentlyMutation, user?._id])
 
   return {
     archivedChats,
     trashedChats,
-    loading,
+    loading: loading || archivedChatsData === undefined || trashedChatsData === undefined,
+    
+    // Single operations
     moveToArchive,
     moveToTrash,
     restoreFromTrash,
@@ -201,5 +257,10 @@ export function useChatLifecycle() {
     deletePermanently,
     emptyTrash,
     getDaysUntilAutoPurge,
+    
+    // Bulk operations
+    bulkMoveToArchive,
+    bulkMoveToTrash,
+    bulkRestore,
   }
 }
