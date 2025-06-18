@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { AuthGuard } from "@/components/auth/auth-guard"
 
 export default function NewChatPage() {
   const router = useRouter()
@@ -26,83 +25,81 @@ export default function NewChatPage() {
   }
 
   return (
-    <AuthGuard>
-      <div className="container mx-auto max-w-6xl px-4 py-8">
-        <div className="mb-8 text-center">
-          <h1 className="mb-2 text-3xl font-bold">T3Chat Tools</h1>
-          <p className="mx-auto max-w-2xl text-mauve-subtle/70">
-            Choose a specialized tool to help you accomplish specific tasks, or start a general
-            conversation.
-          </p>
-        </div>
+    <div className="container mx-auto max-w-6xl px-4 py-8">
+      <div className="mb-8 text-center">
+        <h1 className="mb-2 text-3xl font-bold">T3Chat Tools</h1>
+        <p className="mx-auto max-w-2xl text-mauve-subtle/70">
+          Choose a specialized tool to help you accomplish specific tasks, or start a general
+          conversation.
+        </p>
+      </div>
 
-        <div className="relative mx-auto mb-6 max-w-md">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 transform text-mauve-subtle/50"
-            size={18}
-          />
-          <Input
-            type="text"
-            placeholder="Search tools..."
-            className="pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+      <div className="relative mx-auto mb-6 max-w-md">
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 transform text-mauve-subtle/50"
+          size={18}
+        />
+        <Input
+          type="text"
+          placeholder="Search tools..."
+          className="pl-10"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
 
-        {filteredTools.length > 0 ? (
-          <>
-            {searchQuery.length === 0 && (
-              <div className="mb-8">
-                <h2 className="mb-4 flex items-center gap-2 text-lg font-medium">
-                  <span>Popular Tools</span>
-                </h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {tools
-                    .filter((tool) => tool.isPopular)
-                    .map((tool) => (
-                      <ToolCard
-                        key={tool.id}
-                        tool={tool}
-                        onClick={handleToolClick}
-                        getToolIcon={getToolIcon}
-                      />
-                    ))}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <h2 className="mb-4 text-lg font-medium">
-                {searchQuery.length > 0 ? "Search Results" : "All Tools"}
+      {filteredTools.length > 0 ? (
+        <>
+          {searchQuery.length === 0 && (
+            <div className="mb-8">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-medium">
+                <span>Popular Tools</span>
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredTools.map((tool) => (
-                  <ToolCard
-                    key={tool.id}
-                    tool={tool}
-                    onClick={handleToolClick}
-                    getToolIcon={getToolIcon}
-                  />
-                ))}
+                {tools
+                  .filter((tool) => tool.isPopular)
+                  .map((tool) => (
+                    <ToolCard
+                      key={tool.id}
+                      tool={tool}
+                      onClick={handleToolClick}
+                      getToolIcon={getToolIcon}
+                    />
+                  ))}
               </div>
             </div>
-          </>
-        ) : (
-          <div className="py-12 text-center">
-            <p className="mb-4 text-mauve-subtle/70">No tools match your search.</p>
-            <Button onClick={() => setSearchQuery("")}>Clear Search</Button>
-          </div>
-        )}
+          )}
 
-        <div className="mt-12 text-center">
-          <p className="mb-4 text-mauve-subtle/70">Want to start a general conversation instead?</p>
-          <Button variant="outline" onClick={() => router.push("/chat/new")}>
-            Start General Chat
-          </Button>
+          <div>
+            <h2 className="mb-4 text-lg font-medium">
+              {searchQuery.length > 0 ? "Search Results" : "All Tools"}
+            </h2>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredTools.map((tool) => (
+                <ToolCard
+                  key={tool.id}
+                  tool={tool}
+                  onClick={handleToolClick}
+                  getToolIcon={getToolIcon}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="py-12 text-center">
+          <p className="mb-4 text-mauve-subtle/70">No tools match your search.</p>
+          <Button onClick={() => setSearchQuery("")}>Clear Search</Button>
         </div>
+      )}
+
+      <div className="mt-12 text-center">
+        <p className="mb-4 text-mauve-subtle/70">Want to start a general conversation instead?</p>
+        <Button variant="outline" onClick={() => router.push("/chat/new")}>
+          Start General Chat
+        </Button>
       </div>
-    </AuthGuard>
+    </div>
   )
 }
 
