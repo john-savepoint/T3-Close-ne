@@ -6,8 +6,8 @@
  */
 
 // Re-export everything from the modular streaming utilities
-export * from './streaming'
+export * from './streaming/index'
 
 // Legacy compatibility - global stream manager
-import { globalStreamManager } from './streaming'
+import { globalStreamManager } from './streaming/manager'
 export { globalStreamManager }
