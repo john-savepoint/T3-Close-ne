@@ -180,6 +180,15 @@ const schema = defineSchema({
       filterFields: ["userId", "isActive", "category"],
     }),
 
+  // Project memories linking table
+  projectMemories: defineTable({
+    projectId: v.id("projects"),
+    memoryId: v.id("memories"),
+    createdAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_memory", ["memoryId"]),
+
   // Chat sharing system
   chatShares: defineTable({
     chatId: v.id("chats"),

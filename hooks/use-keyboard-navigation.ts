@@ -16,7 +16,6 @@ export function useKeyboardNavigation() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isModelSwitcherOpen, setIsModelSwitcherOpen] = useState(false)
   const [currentMessageIndex, setCurrentMessageIndex] = useState<number>(-1)
-  const [currentMessageIndex, setCurrentMessageIndex] = useState<number>(-1)
 
   const openCommandPalette = useCallback(() => {
     setIsCommandPaletteOpen(true)
@@ -122,30 +121,6 @@ export function useKeyboardNavigation() {
       action: navigatePrevious,
       description: "Navigate to previous item (Vim-style)",
     },
-    // Message navigation shortcuts
-    {
-      key: "j",
-      action: navigateNext,
-      description: "Navigate to next message",
-    },
-    {
-      key: "k",
-      action: navigatePrevious,
-      description: "Navigate to previous message",
-    },
-    // Vim-style navigation in lists (for Post-MVP)
-    {
-      key: "n",
-      ctrlKey: true,
-      action: navigateNext,
-      description: "Navigate to next item (Vim-style)",
-    },
-    {
-      key: "p",
-      ctrlKey: true,
-      action: navigatePrevious,
-      description: "Navigate to previous item (Vim-style)",
-    },
   ]
 
   useEffect(() => {
@@ -198,50 +173,10 @@ export function useKeyboardNavigation() {
         navigatePrevious()
         return
       }
-      // Check for model switcher shortcut
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k" && !event.shiftKey) {
-        event.preventDefault()
-        openModelSwitcher()
-        return
-      }
-
-      // Check for command palette shortcut
-      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "p") {
-        event.preventDefault()
-        openCommandPalette()
-        return
-      }
-
-      // Check for navigation shortcuts
-      if (event.key === "j" && !event.metaKey && !event.ctrlKey && !event.shiftKey) {
-        event.preventDefault()
-        navigateNext()
-        return
-      }
-
-      if (event.key === "k" && !event.metaKey && !event.ctrlKey && !event.shiftKey) {
-        event.preventDefault()
-        navigatePrevious()
-        return
-      }
-
-      // Vim-style navigation
-      if (event.ctrlKey && event.key === "n") {
-        event.preventDefault()
-        navigateNext()
-        return
-      }
-
-      if (event.ctrlKey && event.key === "p") {
-        event.preventDefault()
-        navigatePrevious()
-        return
-      }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [openModelSwitcher, openCommandPalette, navigateNext, navigatePrevious])
   }, [openModelSwitcher, openCommandPalette, navigateNext, navigatePrevious])
 
   return {
@@ -251,10 +186,6 @@ export function useKeyboardNavigation() {
     closeCommandPalette,
     openModelSwitcher,
     closeModelSwitcher,
-    currentMessageIndex,
-    navigateToMessage,
-    navigateNext,
-    navigatePrevious,
     currentMessageIndex,
     navigateToMessage,
     navigateNext,

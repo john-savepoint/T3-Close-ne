@@ -52,13 +52,43 @@ export async function POST(req: NextRequest) {
       apiKey: openRouterApiKey,
     })
 
-    // TODO: If includeMemory is true and memory/context system is implemented,
-    // inject user's memory context here before the messages array
-    // For now, we just pass through the messages as-is
+    // Inject memory context if provided
+    const enhancedMessages = [...messages]
+    if (memoryContext && memoryContext.length > 0) {
+      try {
+        // Validate context length (OpenAI has token limits)
+        let contextToUse = memoryContext
+        if (contextToUse.length > 8000) {
+          console.warn("Memory context exceeds recommended length, truncating...")
+          contextToUse =
+            contextToUse.substring(0, 8000) + "\n[... additional memories truncated ...]"
+        }
+
+        const memoryPrompt = `--- User Context & Preferences ---\n${contextToUse}\n--- End User Context ---\n\n`
+
+        // Find or create system message
+        const systemMessageIndex = enhancedMessages.findIndex((msg) => msg.role === "system")
+
+        if (systemMessageIndex >= 0) {
+          // Properly format existing system message
+          const existingContent = enhancedMessages[systemMessageIndex].content
+          enhancedMessages[systemMessageIndex].content = memoryPrompt + existingContent
+        } else {
+          // Add new system message at the beginning
+          enhancedMessages.unshift({
+            role: "system",
+            content: memoryPrompt,
+          })
+        }
+      } catch (error) {
+        console.error("Failed to inject memory context:", error)
+        // Continue without memory context if injection fails
+      }
+    }
 
     const result = streamText({
       model: openrouter(selectedModel),
-      messages: messages.map((msg: any) => ({
+      messages: enhancedMessages.map((msg: any) => ({
         role: msg.role,
         content: msg.content,
       })),

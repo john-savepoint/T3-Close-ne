@@ -206,11 +206,6 @@ export const deleteMessage = mutation({
       throw new Error("Authentication required")
     }
 
-    const identity = await ctx.auth.getUserIdentity()
-    if (!identity) {
-      throw new Error("Authentication required")
-    }
-
     const message = await ctx.db.get(args.messageId)
     if (!message) {
       throw new Error("Message not found")

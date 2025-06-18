@@ -1,9 +1,7 @@
 import type { Metadata } from "next"
-import { ClerkProvider } from "@clerk/nextjs"
 import "./globals.css"
-import { ConvexClientProvider } from "@/components/convex-client-provider"
-import { ClerkHeader } from "@/components/clerk-header"
-import { AuthErrorBoundary } from "@/components/auth-error-boundary"
+import { AuthProvider } from "@/components/auth-provider"
+import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
   title: "Z6Chat - AI-Powered Conversations",
@@ -16,18 +14,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <>
-      <AuthErrorBoundary>
-        {/* @ts-expect-error Server Component */}
-        <ClerkProvider dynamic>
-          <html lang="en">
-            <body className="bg-slate-950">
-              <ClerkHeader />
-              <ConvexClientProvider>{children}</ConvexClientProvider>
-            </body>
-          </html>
-        </ClerkProvider>
-      </AuthErrorBoundary>
-    </>
+    <html lang="en">
+      <body className="bg-slate-950">
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   )
 }
