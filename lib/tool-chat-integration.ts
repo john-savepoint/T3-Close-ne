@@ -47,7 +47,7 @@ export function formatToolResultForChat(context: ToolContext): string {
       break
 
     case "diagrammer":
-      formattedInput = `**Description:** ${input.description}\n**Type:** ${input.type}`
+      formattedInput = `**Description:** ${input.description}\n**Type:** ${input.diagramType}`
       break
 
     default:

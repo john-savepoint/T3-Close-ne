@@ -87,12 +87,12 @@ Mermaid Diagram Types:
 Always output valid Mermaid syntax wrapped in code blocks.`,
     user: (vars) => `
 Description: ${vars.description}
-Diagram Type: ${vars.type}
+Diagram Type: ${vars.diagramType}
 
-Create a ${vars.type} diagram using Mermaid.js syntax that accurately represents: "${vars.description}"
+Create a ${vars.diagramType} diagram using Mermaid.js syntax that accurately represents: "${vars.description}"
 
 Requirements:
-- Use proper Mermaid syntax for ${vars.type} diagrams
+- Use proper Mermaid syntax for ${vars.diagramType} diagrams
 - Include clear, descriptive labels
 - Structure the diagram logically
 - Ensure it's visually clear and easy to understand

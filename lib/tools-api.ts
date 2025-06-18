@@ -72,7 +72,7 @@ export async function generateSummary(params: {
 
 export async function generateDiagram(params: {
   description: string
-  type: string
+  diagramType: string
 }): Promise<ToolResponse> {
   const { systemPrompt, userPrompt } = getPromptTemplate("diagrammer", params)
   return callToolsAPI("diagrammer", systemPrompt, userPrompt, "openai/gpt-4o-mini")
