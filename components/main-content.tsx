@@ -51,10 +51,10 @@ export function MainContent() {
   const { isModelSwitcherOpen, closeModelSwitcher, shortcuts } = useKeyboardNavigation()
 
   // Conversation tree
-  const { conversationTree, renameBranch, getMessagePath } = useConversationTree(
-    isTemporaryMode ? temporaryChat?.messages || [] : messages,
-    currentMessageId
-  )
+  const { conversationTree, renameBranch, getMessagePath } = useConversationTree({
+    messages: isTemporaryMode ? temporaryChat?.messages || [] : messages,
+    activeLeafId: currentMessageId,
+  })
 
   // Show the first non-dismissed suggestion (only in non-temporary mode)
   const activeSuggestion = !isTemporaryMode ? suggestions[0] : null

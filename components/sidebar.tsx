@@ -15,88 +15,65 @@ import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { GiftPurchaseModal } from "@/components/gift-purchase-modal"
 import { EnhancedChatItem } from "@/components/enhanced-chat-item"
 import { useChatLifecycle } from "@/hooks/use-chat-lifecycle"
+import { useChats } from "@/hooks/use-chats"
+import { useAuth } from "@/hooks/use-auth"
+import { toChatId, ensureStringId, toProjectId } from "@/types/chat"
 import { Separator } from "@/components/ui/separator"
 import { UserProfile } from "@/components/user-profile"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
-// Mock data for standalone chats (not in projects)
-const pinnedThreads = [
-  {
-    id: "1",
-    title: "Gmail Chrome Extension Project Brief: Labeling...",
-    timestamp: "2 hours ago",
-    status: "active" as const,
-    statusChangedAt: new Date(),
-    messages: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    title: "Next.js SaaS website and mobile project brief...",
-    timestamp: "Yesterday",
-    status: "active" as const,
-    statusChangedAt: new Date(),
-    messages: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-]
-const todayThreads = [
-  {
-    id: "3",
-    title: "Free Adobe Acrobat Reader Alternative",
-    timestamp: "Today",
-    status: "active" as const,
-    statusChangedAt: new Date(),
-    messages: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "4",
-    title: "T3Chat Feature Requests Documentation Project",
-    timestamp: "Today",
-    status: "active" as const,
-    statusChangedAt: new Date(),
-    messages: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "5",
-    title: "Removing a threaded Shimano chain pin",
-    parent: true,
-    timestamp: "Today",
-    status: "active" as const,
-    statusChangedAt: new Date(),
-    messages: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-]
-const yesterdayThreads = [
-  {
-    id: "6",
-    title: "How to optimize React performance",
-    timestamp: "Yesterday",
-    status: "active" as const,
-    statusChangedAt: new Date(),
-    messages: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "7",
-    title: "Best practices for API design",
-    timestamp: "Yesterday",
-    status: "active" as const,
-    statusChangedAt: new Date(),
-    messages: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-]
+// Helper function to format timestamp
+const formatTimestamp = (timestamp: number): string => {
+  const now = Date.now()
+  const diff = now - timestamp
+  const minutes = Math.floor(diff / (1000 * 60))
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days === 1) return "Yesterday"
+  if (days < 7) return `${days}d ago`
+  return new Date(timestamp).toLocaleDateString()
+}
+
+// Helper function to group chats by time
+const groupChatsByTime = (chats: any[]) => {
+  const now = Date.now()
+  const today = new Date(now).setHours(0, 0, 0, 0)
+  const yesterday = today - 24 * 60 * 60 * 1000
+  const weekAgo = today - 7 * 24 * 60 * 60 * 1000
+
+  const pinnedThreads: any[] = []
+  const todayThreads: any[] = []
+  const yesterdayThreads: any[] = []
+  const thisWeekThreads: any[] = []
+  const olderThreads: any[] = []
+
+  chats.forEach((chat) => {
+    const chatTime = chat.lastActivity || chat.updatedAt
+
+    // Note: In a real app, pinned status would be stored in the database
+    if (chatTime >= today) {
+      todayThreads.push(chat)
+    } else if (chatTime >= yesterday) {
+      yesterdayThreads.push(chat)
+    } else if (chatTime >= weekAgo) {
+      thisWeekThreads.push(chat)
+    } else {
+      olderThreads.push(chat)
+    }
+  })
+
+  return {
+    pinnedThreads,
+    todayThreads,
+    yesterdayThreads,
+    thisWeekThreads,
+    olderThreads,
+  }
+}
 
 interface ThreadItemProps {
   chat: any
@@ -105,15 +82,34 @@ interface ThreadItemProps {
 }
 
 // Thread Item Component
-const ThreadItem = ({ chat, parent = false, isActive = false }: ThreadItemProps) => {
-  const { moveToTrash, moveToArchive } = useChatLifecycle()
+const ThreadItem = ({
+  chat,
+  parent = false,
+  isActive = false,
+  onMoveToTrash,
+  onMoveToArchive,
+}: ThreadItemProps & {
+  onMoveToTrash: (chatId: string) => Promise<void>
+  onMoveToArchive: (chatId: string) => Promise<void>
+}) => {
+  const handleMoveToTrash = async () => {
+    await onMoveToTrash(ensureStringId(chat._id))
+  }
+
+  const handleMoveToArchive = async () => {
+    await onMoveToArchive(ensureStringId(chat._id))
+  }
 
   return (
     <EnhancedChatItem
-      chat={chat}
+      chat={{
+        ...chat,
+        id: chat._id,
+        timestamp: formatTimestamp(chat.lastActivity || chat.updatedAt),
+      }}
       isActive={isActive}
-      onMoveToTrash={() => moveToTrash(chat.id)}
-      onMoveToArchive={() => moveToArchive(chat.id)}
+      onMoveToTrash={handleMoveToTrash}
+      onMoveToArchive={handleMoveToArchive}
       onRestore={() => {}}
       onDeletePermanently={() => {}}
       showParentIcon={parent}
@@ -136,12 +132,64 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const isMobile = useIsMobile()
   const [searchQuery, setSearchQuery] = useState("")
+  const router = useRouter()
   const { activeProject } = useProjects()
   const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
   const { archivedChats, trashedChats } = useChatLifecycle()
+  const { user } = useAuth()
+
+  // Get archived and trashed chat counts
+  const { chats: archivedChatsData } = useChats({
+    userId: user?._id,
+    status: "archived",
+  })
+
+  const { chats: trashedChatsData } = useChats({
+    userId: user?._id,
+    status: "trashed",
+  })
+
+  // Get real chat data from Convex
+  const {
+    chats: activeChats,
+    isLoading: chatsLoading,
+    createChat,
+    moveToArchive,
+    moveToTrash,
+  } = useChats({
+    userId: user?._id,
+    status: "active",
+  })
+
+  // Filter chats based on search query
+  const filteredChats = activeChats.filter((chat) =>
+    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Group chats by time periods
+  const { pinnedThreads, todayThreads, yesterdayThreads, thisWeekThreads, olderThreads } =
+    groupChatsByTime(filteredChats)
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
+  }
+
+  const handleCreateNewChat = async () => {
+    if (!user?._id) return
+
+    try {
+      const chatId = await createChat(
+        activeProject ? `New Chat in ${activeProject.name}` : "New Chat",
+        activeProject?.id ? toProjectId(activeProject.id) : undefined
+      )
+      if (chatId) {
+        // Navigate to the new chat
+        router.push(`/`)
+        console.log("Created new chat:", chatId)
+      }
+    } catch (error) {
+      console.error("Failed to create chat:", error)
+    }
   }
 
   useEffect(() => {
@@ -196,7 +244,8 @@ export function Sidebar() {
               <Button
                 variant="secondary"
                 className="w-full justify-center bg-mauve-accent/20 font-semibold text-mauve-bright hover:bg-mauve-accent/30"
-                disabled={isTemporaryMode}
+                disabled={isTemporaryMode || !user?._id}
+                onClick={handleCreateNewChat}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 {activeProject ? `New Chat in ${activeProject.name}` : "New Chat"}
@@ -247,20 +296,87 @@ export function Sidebar() {
 
               {/* Standalone Chats */}
               <div className="mt-4">
-                <GroupLabel label="Pinned" />
-                {pinnedThreads.map((thread) => (
-                  <ThreadItem key={thread.id} chat={thread} />
-                ))}
+                {chatsLoading ? (
+                  <div className="px-3 py-2 text-sm text-mauve-subtle">Loading chats...</div>
+                ) : (
+                  <>
+                    {pinnedThreads.length > 0 && (
+                      <>
+                        <GroupLabel label="Pinned" />
+                        {pinnedThreads.map((thread) => (
+                          <ThreadItem
+                            key={thread._id}
+                            chat={thread}
+                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                          />
+                        ))}
+                      </>
+                    )}
 
-                <GroupLabel label="Today" />
-                {todayThreads.map((thread) => (
-                  <ThreadItem key={thread.id} chat={thread} parent={thread.parent} />
-                ))}
+                    {todayThreads.length > 0 && (
+                      <>
+                        <GroupLabel label="Today" />
+                        {todayThreads.map((thread) => (
+                          <ThreadItem
+                            key={thread._id}
+                            chat={thread}
+                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                          />
+                        ))}
+                      </>
+                    )}
 
-                <GroupLabel label="Yesterday" />
-                {yesterdayThreads.map((thread) => (
-                  <ThreadItem key={thread.id} chat={thread} />
-                ))}
+                    {yesterdayThreads.length > 0 && (
+                      <>
+                        <GroupLabel label="Yesterday" />
+                        {yesterdayThreads.map((thread) => (
+                          <ThreadItem
+                            key={thread._id}
+                            chat={thread}
+                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                          />
+                        ))}
+                      </>
+                    )}
+
+                    {thisWeekThreads.length > 0 && (
+                      <>
+                        <GroupLabel label="This Week" />
+                        {thisWeekThreads.map((thread) => (
+                          <ThreadItem
+                            key={thread._id}
+                            chat={thread}
+                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                          />
+                        ))}
+                      </>
+                    )}
+
+                    {olderThreads.length > 0 && (
+                      <>
+                        <GroupLabel label="Older" />
+                        {olderThreads.map((thread) => (
+                          <ThreadItem
+                            key={thread._id}
+                            chat={thread}
+                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                          />
+                        ))}
+                      </>
+                    )}
+
+                    {filteredChats.length === 0 && !chatsLoading && (
+                      <div className="px-3 py-8 text-center text-sm text-mauve-subtle">
+                        {searchQuery ? "No chats found" : "No chats yet. Create your first chat!"}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </nav>
           </ScrollArea>
@@ -275,9 +391,9 @@ export function Sidebar() {
                 >
                   <Archive className="mr-2 h-4 w-4" />
                   Archive
-                  {archivedChats.length > 0 && (
+                  {archivedChatsData.length > 0 && (
                     <Badge variant="outline" className="ml-auto text-xs">
-                      {archivedChats.length}
+                      {archivedChatsData.length}
                     </Badge>
                   )}
                 </Button>
@@ -290,9 +406,9 @@ export function Sidebar() {
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Trash
-                  {trashedChats.length > 0 && (
+                  {trashedChatsData.length > 0 && (
                     <Badge variant="outline" className="ml-auto text-xs">
-                      {trashedChats.length}
+                      {trashedChatsData.length}
                     </Badge>
                   )}
                 </Button>

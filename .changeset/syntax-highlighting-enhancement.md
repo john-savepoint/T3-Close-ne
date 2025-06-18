@@ -7,7 +7,7 @@ feat(syntax): implement enhanced syntax highlighting with dynamic language regis
 This adds comprehensive syntax highlighting capabilities to Z6Chat code blocks:
 
 - Enhanced CodeBlockEnhanced component with VS Code Dark+ theme
-- Advanced language detection supporting 15+ programming languages  
+- Advanced language detection supporting 15+ programming languages
 - Dynamic language registration to prevent SSR issues
 - Copy to clipboard and download functionality with browser fallbacks
 - Line highlighting and numbering support

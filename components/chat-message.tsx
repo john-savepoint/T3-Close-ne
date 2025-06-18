@@ -127,7 +127,6 @@ export function ChatMessage({
     return blocks.length > 0 ? blocks : [{ type: "text", content: text }]
   }
 
-
   const blocks = extractCodeBlocks(content)
 
   return (

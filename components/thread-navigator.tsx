@@ -46,7 +46,10 @@ export function ThreadNavigator({
   const [expandedBranches, setExpandedBranches] = useState<Set<string>>(new Set())
   const [editingTitle, setEditingTitle] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"standard" | "tree">("standard")
-  const { conversationTree, renameBranch } = useConversationTree(messages, currentMessageId)
+  const { conversationTree, renameBranch } = useConversationTree({
+    messages,
+    activeLeafId: currentMessageId,
+  })
 
   const toggleBranch = (messageId: string) => {
     const newExpanded = new Set(expandedBranches)
@@ -163,7 +166,11 @@ export function ThreadNavigator({
 
   const renderTreeView = () => {
     // Add the tree rendering logic here
-    return <div className="space-y-2 pr-4">{conversationTree.branches.map(renderBranch)}</div>
+    const branches = Array.isArray(conversationTree.branches)
+      ? conversationTree.branches
+      : Array.from(conversationTree.branches.values())
+
+    return <div className="space-y-2 pr-4">{branches.map(renderBranch)}</div>
   }
 
   const renderBranch = (branch: ConversationBranch) => {

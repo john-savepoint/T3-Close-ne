@@ -207,8 +207,9 @@ Before creating PR, verify:
 ## ✅ **Mid-Sprint Rebase Updates - June 17, 2025**
 
 ### **Claude Code - Task 08: Syntax Highlighting**
+
 - **Status**: ✅ Second rebase completed successfully (f17a6fc)
-- **Branch**: `session/feat/syntax-highlighting`  
+- **Branch**: `session/feat/syntax-highlighting`
 - **Conflicts**: Resolved chat-message.tsx and SHARED.md conflicts
 - **Integration**: All syntax highlighting features intact and functional
 - **Changeset**: Created for version management
