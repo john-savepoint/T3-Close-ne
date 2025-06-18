@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Github, Mail } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export function SignUp() {
   const { signIn } = useAuthActions()
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
@@ -55,6 +57,9 @@ export function SignUp() {
         flow: "email-verification",
       })
       console.log("Email verification successful")
+
+      // Redirect to main app after successful verification
+      router.push("/")
     } catch (error) {
       console.error("Email verification failed:", error)
       if (error instanceof Error) {
@@ -72,7 +77,12 @@ export function SignUp() {
     setError(null)
 
     try {
-      await signIn(provider)
+      const result = await signIn(provider)
+      // OAuth redirects are handled automatically by the provider
+      if (result?.redirect) {
+        // If there's a redirect URL, the browser will navigate automatically
+        console.log("OAuth redirect initiated")
+      }
     } catch (error) {
       console.error(`${provider} sign up failed:`, error)
       if (error instanceof Error) {

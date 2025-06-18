@@ -7,9 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { useState } from "react"
 import { Github, Mail } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export function SignIn() {
   const { signIn } = useAuthActions()
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -50,6 +52,8 @@ export function SignIn() {
 
     try {
       await signIn("password", { email, password, flow: "signIn" })
+      // Redirect to main app after successful sign in
+      router.push("/")
     } catch (error) {
       console.error("Sign in failed:", error)
       if (error instanceof Error) {
@@ -67,7 +71,12 @@ export function SignIn() {
     setError(null)
 
     try {
-      await signIn(provider)
+      const result = await signIn(provider)
+      // OAuth redirects are handled automatically by the provider
+      if (result?.redirect) {
+        // If there's a redirect URL, the browser will navigate automatically
+        console.log("OAuth redirect initiated")
+      }
     } catch (error) {
       console.error(`${provider} sign in failed:`, error)
       if (error instanceof Error) {
