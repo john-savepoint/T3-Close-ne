@@ -7,7 +7,6 @@ import { ResendOTP } from "./ResendOTP"
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
     Password({
-      verify: ResendOTP,
       profile(params) {
         return {
           email: params.email as string,
