@@ -24,6 +24,7 @@ import type { Attachment } from "@/types/attachment"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { useConversationTree } from "@/hooks/use-conversation-tree"
 import { useAuth } from "@/hooks/use-auth"
+import { DEFAULT_MODEL_ID } from "@/lib/default-models"
 
 export function MainContent() {
   const isMobile = useIsMobile()

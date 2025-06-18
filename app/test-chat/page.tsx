@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useOpenRouterChat } from "@/hooks/use-openrouter-chat"
-import { ModelSwitcher } from "@/components/model-switcher"
+import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -39,7 +39,8 @@ export default function TestChatPage() {
     setInputMessage("")
   }
 
-  const handleModelChange = (modelId: string) => {
+  const handleModelChange = (model: string | import("@/types/models").ChatModel) => {
+    const modelId = typeof model === 'string' ? model : model.id
     setModel(modelId as any)
   }
 
@@ -158,7 +159,7 @@ export default function TestChatPage() {
         </CardContent>
       </Card>
 
-      <ModelSwitcher selectedModel={selectedModel} onModelChange={handleModelChange} />
+      <EnhancedModelSwitcher selectedModel={selectedModel} onModelChange={handleModelChange} />
     </div>
   )
 }

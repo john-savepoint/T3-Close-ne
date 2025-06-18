@@ -90,7 +90,7 @@ function ModelCard({
   const category = getModelCategory(model)
   const Icon = getModelIcon(category)
   const estimatedCost =
-    showCost && estimatedTokens
+    showCost && estimatedTokens && model.costPer1kTokens
       ? (estimatedTokens / 1000) * (model.costPer1kTokens.input + model.costPer1kTokens.output)
       : 0
 
@@ -100,9 +100,16 @@ function ModelCard({
         isSelected ? "border-primary bg-primary/10" : "border-border"
       }`}
       onClick={onSelect}
-      aria-label={`Select ${model.name} model from ${model.provider}`}
-      aria-pressed={isSelected}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onSelect()
+        }
+      }}
+      aria-label={`Select ${model.name} model from ${model.provider}${isSelected ? ' (currently selected)' : ''}`}
       tabIndex={0}
+      role="option"
+      aria-selected={isSelected}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
@@ -370,8 +377,8 @@ export function EnhancedModelSwitcher({
               </div>
 
               <ScrollArea className="h-[400px] pr-4">
-                <div className="grid gap-3">
-                  {displayModels.map((model) => (
+                <div className="grid gap-3" role="listbox" aria-label="Available AI models">
+                  {displayModels.map((model, index) => (
                     <ModelCard
                       key={model.id}
                       model={model}
@@ -385,7 +392,7 @@ export function EnhancedModelSwitcher({
                     />
                   ))}
                   {displayModels.length === 0 && (
-                    <div className="py-8 text-center text-muted-foreground">
+                    <div className="py-8 text-center text-muted-foreground" role="status">
                       No models found matching your criteria
                     </div>
                   )}
@@ -449,31 +456,39 @@ export function EnhancedModelSwitcher({
                   </p>
                 </div>
 
-                {currentModel && showCost && estimatedTokens && (
+                {showCost && (
                   <div className="rounded-lg border bg-muted/20 p-4">
                     <h4 className="mb-2 font-medium text-foreground">Cost Estimation</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Input cost:</span>
-                        <span>{formatPrice(currentModel.costPer1kTokens.input)}</span>
+                    {currentModel && estimatedTokens ? (
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Input cost:</span>
+                          <span>{formatPrice(currentModel.costPer1kTokens.input)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Output cost:</span>
+                          <span>{formatPrice(currentModel.costPer1kTokens.output)}</span>
+                        </div>
+                        <Separator className="my-2" />
+                        <div className="flex justify-between font-medium">
+                          <span>Estimated ({estimatedTokens} tokens):</span>
+                          <span className="text-primary">
+                            $
+                            {currentModel?.id ? calculateCost(
+                              estimatedTokens / 2,
+                              estimatedTokens / 2,
+                              currentModel.id
+                            ).toFixed(4) : "0.0000"}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Output cost:</span>
-                        <span>{formatPrice(currentModel.costPer1kTokens.output)}</span>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="h-4 animate-pulse bg-muted rounded" />
+                        <div className="h-4 animate-pulse bg-muted rounded w-3/4" />
+                        <div className="h-4 animate-pulse bg-muted rounded w-1/2" />
                       </div>
-                      <Separator className="my-2" />
-                      <div className="flex justify-between font-medium">
-                        <span>Estimated ({estimatedTokens} tokens):</span>
-                        <span className="text-primary">
-                          $
-                          {calculateCost(
-                            estimatedTokens / 2,
-                            estimatedTokens / 2,
-                            currentModel.id
-                          ).toFixed(4)}
-                        </span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>
