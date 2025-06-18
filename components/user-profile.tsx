@@ -64,10 +64,7 @@ export function UserProfile() {
         <Button variant="ghost" className="h-auto w-full justify-start p-2">
           <div className="flex w-full items-center gap-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage
-                src={user.imageUrl}
-                alt={userName || "User"}
-              />
+              <AvatarImage src={user.imageUrl} alt={userName || "User"} />
               <AvatarFallback className="bg-mauve-accent text-mauve-bright">
                 {userInitials}
               </AvatarFallback>

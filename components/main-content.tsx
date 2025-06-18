@@ -4,6 +4,9 @@ import { ChatInput } from "@/components/chat-input"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ChatMessage } from "@/components/chat-message"
 import { ThreadNavigator } from "@/components/thread-navigator"
+import { ConversationTreeView } from "@/components/conversation-tree-view"
+import { ConversationBreadcrumb } from "@/components/conversation-breadcrumb"
+import { BranchIndicator } from "@/components/branch-indicator"
 import { ProjectContextIndicator } from "@/components/project-context-indicator"
 import { MemoryContextIndicator } from "@/components/memory-context-indicator"
 import { MemorySuggestionBanner } from "@/components/memory-suggestion-banner"
@@ -26,18 +29,18 @@ export function MainContent() {
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const { suggestions } = useMemory()
-  const { 
-    temporaryChat, 
+  const {
+    temporaryChat,
     isTemporaryMode,
     addMessageToTemporaryChat,
     updateTemporaryChatMessage,
     deleteTemporaryChatMessage,
     settings,
     isStreaming,
-    setIsStreaming
+    setIsStreaming,
   } = useTemporaryChat()
   const { user } = useAuth()
-  
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -105,11 +108,11 @@ export function MainContent() {
     if (isTemporaryMode) {
       // Add user message to temporary chat
       addMessageToTemporaryChat(content, "user")
-      
+
       // Create new abort controller for this request
       const abortController = new AbortController()
       abortControllerRef.current = abortController
-      
+
       // Call the API to get response
       try {
         setIsStreaming(true)
@@ -120,18 +123,18 @@ export function MainContent() {
           },
           body: JSON.stringify({
             messages: [
-              ...(temporaryChat?.messages || []).map(msg => ({
+              ...(temporaryChat?.messages || []).map((msg) => ({
                 role: msg.type === "user" ? "user" : "assistant",
-                content: msg.content
+                content: msg.content,
               })),
-              { role: "user", content }
+              { role: "user", content },
             ],
             model: selectedModel,
             temperature,
             // Don't include memory/context if setting is disabled
-            includeMemory: settings.includeMemoryInTempChats
+            includeMemory: settings.includeMemoryInTempChats,
           }),
-          signal: abortController.signal
+          signal: abortController.signal,
         })
 
         if (!response.ok) {
@@ -154,12 +157,12 @@ export function MainContent() {
 
           try {
             const chunk = decoder.decode(value)
-            const lines = chunk.split('\n').filter(line => line.trim() !== '')
-            
+            const lines = chunk.split("\n").filter((line) => line.trim() !== "")
+
             for (const line of lines) {
-              if (line.startsWith('0:')) {
+              if (line.startsWith("0:")) {
                 try {
-                  const content = line.slice(2).replace(/"/g, '').replace(/\\n/g, '\n')
+                  const content = line.slice(2).replace(/"/g, "").replace(/\\n/g, "\n")
                   assistantMessage += content
                   if (!abortController.signal.aborted) {
                     updateTemporaryChatMessage(assistantMessageId, assistantMessage)
@@ -175,12 +178,9 @@ export function MainContent() {
         }
       } catch (error: any) {
         // Don't show error if it was aborted
-        if (error.name !== 'AbortError') {
+        if (error.name !== "AbortError") {
           console.error("Error sending temporary message:", error)
-          addMessageToTemporaryChat(
-            "Sorry, I encountered an error. Please try again.", 
-            "assistant"
-          )
+          addMessageToTemporaryChat("Sorry, I encountered an error. Please try again.", "assistant")
         }
       } finally {
         setIsStreaming(false)
@@ -195,8 +195,21 @@ export function MainContent() {
   }
 
   const handleBranchSelect = (branchId: string) => {
-    // Switch to the selected branch
-    console.log("Switch to branch:", branchId)
+    // Switch to the selected branch by finding the leaf message ID
+    const branches = conversationTree.branches
+    const branch =
+      branches instanceof Map
+        ? branches.get(branchId)
+        : Array.isArray(branches)
+          ? branches.find((b: any) => b.id === branchId)
+          : undefined
+    if (branch && branch.messages && branch.messages.length > 0) {
+      const leafMessage = branch.messages[branch.messages.length - 1]
+      setCurrentMessageId(leafMessage.id)
+      // In a real implementation, we would update the chat's activeLeafMessageId
+      // and refetch the conversation based on this new active path
+      console.log("Switch to branch:", branchId, "leaf:", leafMessage.id)
+    }
   }
 
   const handleMessageSelect = (messageId: string) => {
@@ -226,6 +239,25 @@ export function MainContent() {
         {/* Context Indicators */}
         {isTemporaryMode ? <TemporaryChatBanner /> : <ProjectContextIndicator />}
         {!isTemporaryMode && <MemoryContextIndicator />}
+
+        {/* Navigation Toolbar */}
+        {displayMessages.length > 0 && (
+          <div className="relative z-10 flex items-center justify-between border-b border-mauve-dark/50 bg-mauve-surface/50 px-4 py-2">
+            <ConversationBreadcrumb
+              messages={displayMessages}
+              currentMessageId={currentMessageId}
+              onMessageSelect={handleMessageSelect}
+            />
+            <div className="flex items-center gap-2">
+              <ConversationTreeView
+                messages={displayMessages}
+                currentMessageId={currentMessageId}
+                onMessageSelect={handleMessageSelect}
+                onBranchSwitch={handleBranchSelect}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Content wrapper */}
         <div className="relative flex flex-1 flex-col overflow-y-auto">
@@ -319,12 +351,13 @@ export function MainContent() {
               ))}
 
               {/* Loading indicator */}
-              {((isLoading && !isTemporaryMode) || (isStreaming && isTemporaryMode)) && displayMessages.length > 0 && (
-                <div className="flex items-center space-x-2 text-mauve-subtle">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-mauve-accent border-t-transparent"></div>
-                  <span className="text-sm">AI is thinking...</span>
-                </div>
-              )}
+              {((isLoading && !isTemporaryMode) || (isStreaming && isTemporaryMode)) &&
+                displayMessages.length > 0 && (
+                  <div className="flex items-center space-x-2 text-mauve-subtle">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-mauve-accent border-t-transparent"></div>
+                    <span className="text-sm">AI is thinking...</span>
+                  </div>
+                )}
             </div>
           )}
           <div className="flex-1" />
@@ -367,15 +400,15 @@ export function MainContent() {
             onBranchRename={renameBranch}
           />
         </div>
-      </div>
 
-      {/* Enhanced Model Switcher */}
-      <EnhancedModelSwitcher
-        isOpen={isModelSwitcherOpen}
-        onClose={closeModelSwitcher}
-        selectedModel={selectedModel}
-        onModelChange={(model: string) => changeModel(model as any)}
-      />
+        {/* Enhanced Model Switcher Dialog */}
+        <EnhancedModelSwitcher
+          isOpen={isModelSwitcherOpen}
+          onClose={closeModelSwitcher}
+          onModelChange={(model: string) => changeModel(model as any)}
+          selectedModel={selectedModel}
+        />
+      </div>
     </main>
   )
 }

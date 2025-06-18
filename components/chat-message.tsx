@@ -20,6 +20,7 @@ import { CodeBlockEnhanced } from "@/components/code-block-enhanced"
 import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { Textarea } from "@/components/ui/textarea"
+import type { Attachment } from "@/types/attachment"
 
 interface ChatMessageProps {
   id: string
@@ -27,11 +28,15 @@ interface ChatMessageProps {
   content: string
   timestamp: Date
   model?: string
-  isEditing?: boolean
+  attachments?: Attachment[]
+  isEditingProp?: boolean
+  isEdited?: boolean
+  editedAt?: Date
   onEdit?: (id: string, content: string) => void
   onDelete?: (id: string) => void
   onRegenerate?: (id: string) => void
   onCopy?: (content: string) => void
+  onRemoveAttachment?: (attachmentId: string) => void
 }
 
 export function ChatMessage({
@@ -40,16 +45,22 @@ export function ChatMessage({
   content,
   timestamp,
   model,
-  isEditing = false,
+  attachments,
+  isEditingProp = false,
+  isEdited = false,
+  editedAt,
   onEdit,
   onDelete,
   onRegenerate,
   onCopy,
+  onRemoveAttachment,
 }: ChatMessageProps) {
   const [editContent, setEditContent] = useState(content)
   const [isHovered, setIsHovered] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -66,9 +77,17 @@ export function ChatMessage({
     setEditContent(content)
   }
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editContent.trim() !== content) {
-      onEdit?.(id, editContent.trim())
+      setIsEditing(true)
+      try {
+        await onEdit?.(id, editContent.trim())
+      } catch (error) {
+        console.error("Failed to save edit:", error)
+        // Could show error toast here
+      } finally {
+        setIsEditing(false)
+      }
     }
     setIsEditMode(false)
   }
@@ -82,9 +101,17 @@ export function ChatMessage({
     setShowDeleteConfirm(true)
   }
 
-  const confirmDelete = () => {
-    onDelete?.(id)
-    setShowDeleteConfirm(false)
+  const confirmDelete = async () => {
+    setIsDeleting(true)
+    try {
+      await onDelete?.(id)
+      setShowDeleteConfirm(false)
+    } catch (error) {
+      console.error("Failed to delete message:", error)
+      // Could show error toast here
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const cancelDelete = () => {
@@ -131,6 +158,7 @@ export function ChatMessage({
 
   return (
     <div
+      id={`message-${id}`}
       className={`group flex gap-4 rounded-lg p-4 transition-colors ${
         type === "user" ? "ml-12 bg-mauve-surface/30" : "bg-mauve-dark/20"
       }`}
@@ -157,8 +185,11 @@ export function ChatMessage({
             </Badge>
           )}
           <span className="text-xs text-mauve-subtle/70">{timestamp.toLocaleTimeString()}</span>
-          {/* Add edited indicator */}
-          {/* You would track this in your message data */}
+          {isEdited && (
+            <span className="text-xs text-mauve-subtle/50">
+              (edited{editedAt ? ` ${editedAt.toLocaleTimeString()}` : ""})
+            </span>
+          )}
         </div>
 
         {isEditMode ? (
@@ -184,10 +215,17 @@ export function ChatMessage({
               }}
             />
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleSaveEdit}>
-                Save Changes
+              <Button size="sm" onClick={handleSaveEdit} disabled={isEditing}>
+                {isEditing ? (
+                  <>
+                    <div className="mr-2 h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
-              <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+              <Button size="sm" variant="outline" onClick={handleCancelEdit} disabled={isEditing}>
                 Cancel
               </Button>
             </div>
@@ -202,10 +240,17 @@ export function ChatMessage({
               remove the message from the conversation history.
             </p>
             <div className="flex gap-2">
-              <Button size="sm" variant="destructive" onClick={confirmDelete}>
-                Delete Message
+              <Button size="sm" variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+                {isDeleting ? (
+                  <>
+                    <div className="mr-2 h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete Message"
+                )}
               </Button>
-              <Button size="sm" variant="outline" onClick={cancelDelete}>
+              <Button size="sm" variant="outline" onClick={cancelDelete} disabled={isDeleting}>
                 Cancel
               </Button>
             </div>

@@ -31,19 +31,18 @@ export class AuthErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-          <div className="bg-slate-900 border border-red-500/20 rounded-lg p-8 max-w-md mx-auto">
+        <div className="flex min-h-screen items-center justify-center bg-slate-950">
+          <div className="mx-auto max-w-md rounded-lg border border-red-500/20 bg-slate-900 p-8">
             <div className="text-center">
-              <div className="text-red-400 text-4xl mb-4">⚠️</div>
-              <h1 className="text-xl font-semibold text-white mb-4">
-                Authentication Error
-              </h1>
-              <p className="text-slate-400 mb-6">
-                There was an issue with the authentication system. Please refresh the page or try again later.
+              <div className="mb-4 text-4xl text-red-400">⚠️</div>
+              <h1 className="mb-4 text-xl font-semibold text-white">Authentication Error</h1>
+              <p className="mb-6 text-slate-400">
+                There was an issue with the authentication system. Please refresh the page or try
+                again later.
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-colors"
+                className="rounded-lg bg-purple-600 px-6 py-2 text-white transition-colors hover:bg-purple-700"
               >
                 Refresh Page
               </button>

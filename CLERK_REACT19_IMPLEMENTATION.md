@@ -7,26 +7,31 @@ Based on Context7 MCP research, this implementation follows the official Clerk v
 ### **🔧 Key Components**
 
 #### **1. Environment Variables** (`.env.local`)
+
 ```bash
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<your_publishable_key>
 CLERK_SECRET_KEY=<your_secret_key>
 ```
 
 #### **2. Middleware** (`middleware.ts`)
+
 - Uses `clerkMiddleware()` and `createRouteMatcher()`
 - Implements `await auth.protect()` pattern for protected routes
 - Protects main app routes: `/`, `/new`, `/archive`, `/trash`, `/settings`, `/tools`, `/redeem`
 
 #### **3. Layout** (`app/layout.tsx`)
+
 - Uses `ClerkProvider` with `dynamic` prop
 - Includes `@ts-expect-error Server Component` for React 19 compatibility
 - Integrates ClerkHeader component
 
 #### **4. ClerkHeader** (`components/clerk-header.tsx`)
+
 - Client component using `SignedIn`, `SignedOut`, `SignInButton`, `SignUpButton`, `UserButton`
 - Uses TypeScript suppressions for React 19 async component compatibility
 
 #### **5. Test Page** (`app/test-auth/page.tsx`)
+
 - Demonstrates async `auth()` pattern from server components
 - Shows both server-side and client-side authentication checks
 - Accessible at `/test-auth` for testing
@@ -36,6 +41,7 @@ CLERK_SECRET_KEY=<your_secret_key>
 **Issue**: Clerk components return `Promise<Element>` which conflicts with React 19 types
 
 **Solution**: Official TypeScript suppression pattern:
+
 ```typescript
 {/* @ts-expect-error Server Component */}
 <ClerkProvider dynamic>
@@ -44,8 +50,9 @@ CLERK_SECRET_KEY=<your_secret_key>
 ```
 
 ### **📋 Dependencies Verified**
+
 - `@clerk/nextjs`: `^6.22.0` ✅
-- `@types/react`: `^19` ✅ 
+- `@types/react`: `^19` ✅
 - `@types/react-dom`: `^19` ✅
 - `typescript`: `^5` ✅
 - `next`: `15.2.4` ✅
@@ -54,18 +61,20 @@ CLERK_SECRET_KEY=<your_secret_key>
 ### **🚀 Testing Instructions**
 
 1. **Start development server**:
+
    ```bash
    pnpm dev
    ```
 
 2. **Test authentication flow**:
+
    - Visit `/test-auth` for comprehensive auth testing
    - Main app at `/` will redirect to sign-in if not authenticated
    - Header shows sign-in/sign-up buttons when logged out
    - Header shows UserButton when logged in
 
 3. **Verify async auth patterns**:
-   - Server components can use `await auth()` 
+   - Server components can use `await auth()`
    - Client components use `useUser()` hook
    - Middleware properly protects routes
 
