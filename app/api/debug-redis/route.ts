@@ -1,55 +1,63 @@
 import { NextResponse } from 'next/server';
-import { Redis } from '@upstash/redis';
-
-const redis = new Redis({
-  url: 'https://precise-pipefish-49835.upstash.io',
-  token: 'AcKrAAIjcDE2YmM0MDkyOTI2ODk0NTc3OWFlODFiNjljNjk0ZTdmNHAxMA',
-});
+import { streamManager } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Test basic string operations first
-    await redis.set('test-string', 'hello world');
-    const stringResult = await redis.get('test-string');
+    // Use the secure streamManager instead of direct Redis client
+    const connectionTest = await streamManager.testConnection();
     
-    // Test JSON operations more carefully
-    const testData = { hello: 'world', timestamp: Date.now() };
-    const jsonString = JSON.stringify(testData);
-    
-    console.log('Original data:', testData);
-    console.log('JSON string:', jsonString);
-    console.log('JSON string type:', typeof jsonString);
-    
-    await redis.set('test-json', jsonString);
-    const retrievedJson = await redis.get('test-json');
-    
-    console.log('Retrieved JSON:', retrievedJson);
-    console.log('Retrieved JSON type:', typeof retrievedJson);
-    
-    let parsedData = null;
-    try {
-      parsedData = JSON.parse(retrievedJson as string);
-    } catch (parseError) {
-      console.log('Parse error:', parseError);
+    if (!connectionTest) {
+      return NextResponse.json(
+        { error: 'Redis connection failed' },
+        { status: 500 }
+      );
     }
+
+    // Test stream operations with debug data
+    const debugSessionId = `debug-${Date.now()}`;
     
-    // Cleanup
-    await redis.del('test-string', 'test-json');
+    // Test metadata storage
+    const testMetadata = { 
+      sessionId: debugSessionId,
+      debug: true,
+      timestamp: Date.now() 
+    };
+    await streamManager.setStreamMetadata(debugSessionId, testMetadata);
+    
+    // Test chunk storage
+    await streamManager.addStreamChunk(debugSessionId, {
+      type: 'debug',
+      content: 'Debug chunk test',
+      index: 0
+    });
+    
+    // Test status storage
+    await streamManager.setStreamStatus(debugSessionId, 'completed');
+    
+    // Retrieve all test data
+    const retrievedMetadata = await streamManager.getStreamMetadata(debugSessionId);
+    const retrievedChunks = await streamManager.getStreamChunks(debugSessionId);
+    const retrievedStatus = await streamManager.getStreamStatus(debugSessionId);
+    
+    // Cleanup debug data
+    await streamManager.deleteStream(debugSessionId);
     
     return NextResponse.json({
       success: true,
+      connection: connectionTest,
       tests: {
-        string: { 
-          original: 'hello world', 
-          retrieved: stringResult 
+        metadata: {
+          original: testMetadata,
+          retrieved: retrievedMetadata
         },
-        json: { 
-          original: testData,
-          jsonString: jsonString,
-          retrieved: retrievedJson,
-          parsed: parsedData
+        chunks: {
+          count: retrievedChunks.length,
+          data: retrievedChunks
+        },
+        status: {
+          retrieved: retrievedStatus
         }
       }
     });
@@ -58,9 +66,8 @@ export async function GET() {
     console.error('Debug Redis error:', error);
     return NextResponse.json(
       { 
-        error: 'Redis debug failed',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        error: 'Redis debug test failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

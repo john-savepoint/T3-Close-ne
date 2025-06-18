@@ -145,7 +145,7 @@ export class ResumableStream {
     await streamManager.cleanupOldStreams();
   }
 
-  static async getSessionById(sessionId: string): Promise<ResumableStream> {
+  static getSessionById(sessionId: string): ResumableStream {
     return new ResumableStream(sessionId);
   }
 }

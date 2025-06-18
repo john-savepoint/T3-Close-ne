@@ -4,6 +4,12 @@ import { streamManager } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic';
 
+function validateSessionId(sessionId: string): boolean {
+  // Session ID should be alphanumeric with dashes/underscores, 8-50 chars
+  const sessionIdRegex = /^[a-zA-Z0-9_-]{8,50}$/;
+  return sessionIdRegex.test(sessionId);
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -13,6 +19,13 @@ export async function GET(
   if (!sessionId) {
     return NextResponse.json(
       { error: 'Session ID is required' },
+      { status: 400 }
+    );
+  }
+
+  if (!validateSessionId(sessionId)) {
+    return NextResponse.json(
+      { error: 'Invalid session ID format' },
       { status: 400 }
     );
   }
@@ -168,6 +181,13 @@ export async function DELETE(
     if (!sessionId) {
       return NextResponse.json(
         { error: 'Session ID is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!validateSessionId(sessionId)) {
+      return NextResponse.json(
+        { error: 'Invalid session ID format' },
         { status: 400 }
       );
     }
