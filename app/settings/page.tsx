@@ -71,43 +71,24 @@ export default function SettingsPage() {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-foreground">3</div>
+                    <div className="text-2xl font-bold text-foreground">0</div>
                     <div className="text-sm text-mauve-subtle/70">Gifts Sent</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-foreground">2</div>
+                    <div className="text-2xl font-bold text-foreground">0</div>
                     <div className="text-sm text-mauve-subtle/70">Gifts Redeemed</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-foreground">$400</div>
+                    <div className="text-2xl font-bold text-foreground">$0</div>
                     <div className="text-sm text-mauve-subtle/70">Total Gifted</div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium">Recent Gift Activity</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between rounded-lg bg-mauve-dark/30 p-3">
-                      <div>
-                        <div className="text-sm font-medium">Gift to alex@example.com</div>
-                        <div className="text-xs text-mauve-subtle/70">
-                          Pro Yearly • Redeemed Jan 20, 2024
-                        </div>
-                      </div>
-                      <Badge className="border-green-500/50 bg-green-500/20 text-green-400">
-                        Redeemed
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg bg-mauve-dark/30 p-3">
-                      <div>
-                        <div className="text-sm font-medium">Gift to sarah@example.com</div>
-                        <div className="text-xs text-mauve-subtle/70">
-                          Pro Monthly • Sent Jan 15, 2024
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        Pending
-                      </Badge>
+                  <div className="rounded-lg bg-mauve-dark/30 p-6 text-center">
+                    <div className="text-sm text-mauve-subtle/70">
+                      No gift activity yet. Start by sending your first gift!
                     </div>
                   </div>
                 </div>
@@ -143,15 +124,15 @@ export default function SettingsPage() {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-foreground">24</div>
+                    <div className="text-2xl font-bold text-foreground">0</div>
                     <div className="text-sm text-mauve-subtle/70">Total Files</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-foreground">156 MB</div>
+                    <div className="text-2xl font-bold text-foreground">0 MB</div>
                     <div className="text-sm text-mauve-subtle/70">Storage Used</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-foreground">8.3</div>
+                    <div className="text-2xl font-bold text-foreground">-</div>
                     <div className="text-sm text-mauve-subtle/70">Avg. Reuse Rate</div>
                   </div>
                 </div>
