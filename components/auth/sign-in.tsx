@@ -25,7 +25,14 @@ export function SignIn() {
 
   // Redirect to home when authentication is confirmed
   useEffect(() => {
+    console.log(
+      "🔍 SIGNIN USEEFFECT - isAuthenticated:",
+      isAuthenticated,
+      "authLoading:",
+      authLoading
+    )
     if (isAuthenticated && !authLoading) {
+      console.log("🚀 REDIRECTING TO HOME PAGE!")
       router.push("/")
     }
   }, [isAuthenticated, authLoading, router])
@@ -51,25 +58,31 @@ export function SignIn() {
 
   const handlePasswordSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("🔥 SIGN IN BUTTON CLICKED!")
 
     if (!validateForm()) {
+      console.log("❌ FORM VALIDATION FAILED")
       return
     }
 
+    console.log("📧 FORM VALID - Attempting sign in with email:", email)
     setIsLoading(true)
     setError(null)
 
     try {
-      await signIn("password", { email, password, flow: "signIn" })
+      console.log("🚀 CALLING signIn function...")
+      const result = await signIn("password", { email, password, flow: "signIn" })
+      console.log("✅ signIn function returned:", result)
       // Redirect will be handled by the useEffect hook once authentication state updates
     } catch (error) {
-      console.error("Sign in failed:", error)
+      console.error("❌ Sign in failed:", error)
       if (error instanceof Error) {
         setError(error.message || "Failed to sign in. Please check your credentials.")
       } else {
         setError("An unexpected error occurred. Please try again.")
       }
     } finally {
+      console.log("🏁 Setting loading to false")
       setIsLoading(false)
     }
   }

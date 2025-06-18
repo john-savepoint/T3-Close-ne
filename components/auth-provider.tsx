@@ -11,5 +11,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  console.log("🔧 AUTH PROVIDER - Convex URL:", process.env.NEXT_PUBLIC_CONVEX_URL)
+  console.log("🔧 AUTH PROVIDER - Convex client:", convex)
   return <ConvexAuthProvider client={convex}>{children}</ConvexAuthProvider>
 }
