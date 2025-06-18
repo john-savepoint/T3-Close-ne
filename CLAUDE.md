@@ -366,6 +366,15 @@ pnpm release
 - **Production**: necessary-duck-420.convex.cloud (working)
 - **Auth Testing**: Production auth system verified and operational
 
+**Critical Lesson Learned**:
+
+The email verification initially failed due to implementation assumptions instead of following official documentation. Context7 MCP usage revealed:
+
+- Wrong flow parameter: `"signIn"` → `"email-verification"`
+- Wrong field usage: emailVerified should be timestamp, not email
+- Missing maxAge configuration for proper expiration
+  This reinforces the MANDATORY requirement to use Context7 for all third-party integrations.
+
 ### **✅ Task 03: OpenRouter API Integration (MERGED)**
 
 **Status**: Production Ready  
@@ -540,12 +549,64 @@ git rebase --abort  # Cancels the rebase
 
 ## 📚 **RESEARCH & DOCUMENTATION REQUIREMENTS**
 
-### **MCP Server Usage** (REQUIRED)
+### **Context7 MCP Workflow** (MANDATORY FOR ALL THIRD-PARTY INTEGRATIONS)
 
-- **MUST use Context7** for latest documentation
-- **Brave Search MCP** for troubleshooting and current solutions
-- **Fire Crawl MCP** for scraping official docs when needed
-- Always reference latest documentation, not outdated examples
+**🚨 BEFORE writing ANY code that uses third-party services, you MUST follow this workflow:**
+
+```workflow
+1. Identify Third-Party Service
+   └─ Any library, API, or service not custom-built for this project
+
+2. Resolve Library ID
+   └─ mcp__context7__resolve-library-id with service name
+   └─ Example: "convex auth", "resend", "openrouter"
+
+3. Get Documentation
+   └─ mcp__context7__get-library-docs with Context7 library ID
+   └─ Use specific topic (e.g., "email verification", "authentication flow")
+   └─ Use high token count (8000-10000) for comprehensive coverage
+
+4. Analyze Patterns
+   └─ Study the exact code examples from Context7
+   └─ Note configuration patterns, method signatures, flow parameters
+   └─ Identify any differences from existing implementation
+
+5. Implement Exactly
+   └─ Follow Context7 documentation precisely
+   └─ Use exact parameter names, values, and patterns shown
+   └─ Do NOT modify based on assumptions
+
+6. Update Existing Code
+   └─ If Context7 shows different patterns than current code, update accordingly
+   └─ Document why changes were made (reference Context7 findings)
+```
+
+### **MCP Server Usage** (MANDATORY)
+
+**🚨 CRITICAL REQUIREMENT: ALL third-party service implementations MUST use Context7 MCP first**
+
+- **Context7 MCP**: MANDATORY for ALL third-party services (Convex Auth, OpenRouter, Resend, Vercel AI SDK, etc.)
+- **Brave Search MCP**: For troubleshooting and current solutions after Context7
+- **Fire Crawl MCP**: For scraping official docs when Context7 lacks coverage
+- **NO implementation without Context7**: Always check Context7 documentation before any third-party integration
+
+**Context7 Usage Requirements:**
+
+1. **Before ANY third-party implementation**: Use `resolve-library-id` to find the service
+2. **Get comprehensive docs**: Use `get-library-docs` with specific topic and high token count
+3. **Follow exactly**: Implement according to Context7 documentation, not assumptions
+4. **Verify examples**: All code examples must match Context7-provided patterns
+5. **Update approach**: If Context7 shows different patterns than existing code, update accordingly
+
+**Examples of MANDATORY Context7 usage:**
+
+- Convex Auth setup, schema, providers, flows
+- OpenRouter API integration patterns
+- Resend email configuration
+- Vercel AI SDK streaming patterns
+- Any Auth.js provider configuration
+- Database schema definitions
+- API endpoint structures
 
 ### **Key Documentation Sources**
 
@@ -559,22 +620,27 @@ git rebase --abort  # Cancels the rebase
 
 ### **DO**
 
-- Use Context7 MCP server for latest documentation
+- **MANDATORY**: Use Context7 MCP server for ALL third-party service documentation
+- **MANDATORY**: Run `resolve-library-id` and `get-library-docs` before any third-party implementation
 - Follow existing TypeScript interfaces exactly
 - Test all changes in browser before committing
 - Update progress documentation regularly
 - Reference CLAUDE.md for project context
 - Maintain code quality standards
 - Follow conventional commit format
+- Verify all third-party integrations match Context7 documentation patterns
 
 ### **DON'T**
 
+- **NEVER implement third-party services without Context7 MCP documentation first**
+- **NEVER assume implementation patterns - always verify with Context7**
 - Modify existing UI components in `/components/ui/`
 - Change TypeScript interfaces without coordination
 - Skip error handling or loading states
 - Commit code that doesn't build
 - Break existing functionality
 - Use outdated documentation or examples
+- Implement based on assumptions or memory instead of current documentation
 
 ### **ERROR HANDLING**
 
