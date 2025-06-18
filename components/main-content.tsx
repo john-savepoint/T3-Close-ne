@@ -232,70 +232,11 @@ export function MainContent() {
   }
 
   const handleMessageSent = async (message: string, modelId: string, attachments: Attachment[]) => {
-    // Add user message
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      type: "user",
-      content: message,
-      timestamp: new Date(),
-      model: modelId,
-    }
-
-    // Add assistant message placeholder
-    const assistantMessageId = `assistant-${Date.now()}`
-    const assistantMessage: Message = {
-      id: assistantMessageId,
-      type: "assistant",
-      content: "",
-      timestamp: new Date(),
-      model: modelId,
-    }
-
-    const newMessages = [...messages, userMessage, assistantMessage]
-    setMessages(newMessages)
-    setCurrentMessageId(assistantMessageId)
-
-    try {
-      // Create OpenRouter client and stream response
-      const client = createOpenRouterClient()
-      const conversationHistory = newMessages
-        .filter((m) => m.type !== "assistant" || m.id !== assistantMessageId)
-        .map((m) => ({
-          role: m.type === "user" ? ("user" as const) : ("assistant" as const),
-          content: m.content,
-        }))
-
-      let fullResponse = ""
-
-      for await (const chunk of client.streamChat(conversationHistory, modelId as any, {
-        temperature: 0.7,
-      })) {
-        fullResponse += chunk
-
-        // Update the assistant message in real-time
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantMessageId ? { ...msg, content: fullResponse } : msg
-          )
-        )
-      }
-
-      // Update estimated tokens based on response length
-      setEstimatedTokens(Math.max(fullResponse.length, message.length) * 1.5)
-    } catch (error) {
-      console.error("Error sending message:", error)
-
-      // Update assistant message with error
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantMessageId
-            ? {
-                ...msg,
-                content: "Sorry, I encountered an error processing your request. Please try again.",
-              }
-            : msg
-        )
-      )
+    // Delegate to the appropriate chat handler based on mode
+    if (isTemporaryMode) {
+      await handleSendMessage(message, attachments)
+    } else {
+      await sendMessage(message, attachments)
     }
   }
 

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { OpenRouterModel, ChatModel } from "@/types/models"
+import { DEFAULT_MODELS, getDefaultModel } from "@/lib/default-models"
+import { MODEL_CONFIG, sortModelsByPreference, calculateModelCost } from "@/lib/model-utils"
 
 interface ModelError {
   type: "network" | "auth" | "parsing" | "ratelimit" | "unknown"
@@ -57,8 +59,6 @@ function convertOpenRouterModel(orModel: OpenRouterModel): ChatModel {
   }
 }
 
-const MAX_RETRIES = 3
-const RETRY_DELAY = 1000
 
 function createError(type: ModelError["type"], message: string, statusCode?: number): ModelError {
   const retryable = type === "network" || type === "ratelimit" || type === "unknown"
@@ -66,11 +66,11 @@ function createError(type: ModelError["type"], message: string, statusCode?: num
 }
 
 export function useModels(): UseModelsReturn {
-  const [models, setModels] = useState<ChatModel[]>([])
+  const [models, setModels] = useState<ChatModel[]>(DEFAULT_MODELS)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<ModelError | null>(null)
   const [filters, setFilters] = useState<ModelFilters>({})
-  const [selectedModel, setSelectedModel] = useState<ChatModel | null>(null)
+  const [selectedModel, setSelectedModel] = useState<ChatModel | null>(getDefaultModel())
   const [retryCount, setRetryCount] = useState(0)
 
   const fetchModels = useCallback(
@@ -83,7 +83,7 @@ export function useModels(): UseModelsReturn {
 
       try {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+        const timeoutId = setTimeout(() => controller.abort(), MODEL_CONFIG.REQUEST_TIMEOUT)
 
         const response = await fetch(`${OPENROUTER_API_BASE}/models`, {
           headers: {
@@ -120,21 +120,7 @@ export function useModels(): UseModelsReturn {
         }
 
         const convertedModels = data.data.map(convertOpenRouterModel)
-
-        // Sort by popularity/provider preference
-        const sortedModels = convertedModels.sort((a: ChatModel, b: ChatModel) => {
-          const providerOrder = ["openai", "anthropic", "google", "meta-llama", "mistralai"]
-          const aIndex = providerOrder.indexOf(a.provider.toLowerCase())
-          const bIndex = providerOrder.indexOf(b.provider.toLowerCase())
-
-          if (aIndex !== -1 && bIndex !== -1) {
-            return aIndex - bIndex
-          }
-          if (aIndex !== -1) return -1
-          if (bIndex !== -1) return 1
-
-          return a.name.localeCompare(b.name)
-        })
+        const sortedModels = sortModelsByPreference(convertedModels)
 
         setModels(sortedModels)
         setRetryCount(0) // Reset retry count on success
@@ -161,19 +147,28 @@ export function useModels(): UseModelsReturn {
         }
 
         // Retry logic for retryable errors
-        if (modelError.retryable && attempt < MAX_RETRIES) {
+        if (modelError.retryable && attempt < MODEL_CONFIG.MAX_RETRIES) {
           setRetryCount(attempt + 1)
           setTimeout(
             () => {
               fetchModels(attempt + 1)
             },
-            RETRY_DELAY * Math.pow(2, attempt)
+            MODEL_CONFIG.RETRY_DELAY * Math.pow(2, attempt)
           ) // Exponential backoff
           return
         }
 
         setError(modelError)
         console.error("Error fetching models:", err)
+        
+        // Fallback to default models if all retries failed
+        if (attempt >= MODEL_CONFIG.MAX_RETRIES) {
+          console.warn("Using default models as fallback")
+          setModels(DEFAULT_MODELS)
+          if (!selectedModel) {
+            setSelectedModel(getDefaultModel())
+          }
+        }
       } finally {
         setLoading(false)
       }
@@ -235,10 +230,7 @@ export function useModels(): UseModelsReturn {
       const model = models.find((m) => m.id === modelId)
       if (!model) return 0
 
-      const inputCost = (inputTokens / 1000) * model.costPer1kTokens.input
-      const outputCost = (outputTokens / 1000) * model.costPer1kTokens.output
-
-      return inputCost + outputCost
+      return calculateModelCost(inputTokens, outputTokens, model)
     },
     [models]
   )

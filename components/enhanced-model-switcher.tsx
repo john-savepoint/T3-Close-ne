@@ -51,6 +51,7 @@ import {
 } from "lucide-react"
 import { useModels } from "@/hooks/use-models"
 import { ChatModel } from "@/types/models"
+import { getModelCategory, formatPrice, formatTokenCount, searchModels, filterModelsByCapabilities, MODEL_CONFIG } from "@/lib/model-utils"
 
 interface EnhancedModelSwitcherProps {
   selectedModel: ChatModel | string | null // Support both formats for backward compatibility
@@ -59,19 +60,6 @@ interface EnhancedModelSwitcherProps {
   estimatedTokens?: number
 }
 
-function formatPrice(price: number): string {
-  if (price === 0) return "Free"
-  if (price < 0.001) return `$${(price * 1000).toFixed(3)}/1K`
-  return `$${price.toFixed(3)}/1K`
-}
-
-function getModelCategory(model: ChatModel): "fast" | "balanced" | "heavy" {
-  const avgCost = (model.costPer1kTokens.input + model.costPer1kTokens.output) / 2
-
-  if (avgCost < 0.001) return "fast"
-  if (avgCost < 0.01) return "balanced"
-  return "heavy"
-}
 
 function getModelIcon(category: string) {
   switch (category) {
@@ -129,10 +117,7 @@ function ModelCard({
 
       <div className="mt-2 flex flex-wrap gap-1">
         <Badge variant="outline" className="text-xs">
-          {model.maxTokens >= 1000000
-            ? `${Math.round(model.maxTokens / 1000000)}M`
-            : `${Math.round(model.maxTokens / 1000)}K`}{" "}
-          tokens
+          {formatTokenCount(model.maxTokens)} tokens
         </Badge>
 
         {model.architecture?.input_modalities?.includes("image") && (
@@ -211,7 +196,7 @@ export function EnhancedModelSwitcher({
 
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const debouncedSearchQuery = useDebounce(searchQuery, 300) // 300ms debounce
+  const debouncedSearchQuery = useDebounce(searchQuery, MODEL_CONFIG.DEBOUNCE_DELAY)
   const [selectedProvider, setSelectedProvider] = useState<string>("all")
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0.1])
   const [minContextLength, setMinContextLength] = useState<number>(0)
@@ -226,37 +211,33 @@ export function EnhancedModelSwitcher({
     }
   }, [models])
 
+  // Split filtering into smaller memoized functions for better performance
+  const searchFilteredModels = useMemo(() => {
+    const baseModels = filteredModels.length > 0 ? filteredModels : models
+    return searchModels(baseModels, debouncedSearchQuery)
+  }, [filteredModels, models, debouncedSearchQuery])
+
+  const providerFilteredModels = useMemo(() => {
+    if (selectedProvider === "all") return searchFilteredModels
+    return searchFilteredModels.filter((model) => model.provider === selectedProvider)
+  }, [searchFilteredModels, selectedProvider])
+
+  const capabilityFilteredModels = useMemo(() => {
+    return filterModelsByCapabilities(providerFilteredModels, {
+      supportsVision: showImageModels,
+      minContextLength: minContextLength > 0 ? minContextLength : undefined,
+      maxCost: priceRange[1],
+    })
+  }, [providerFilteredModels, showImageModels, minContextLength, priceRange])
+
   const displayModels = useMemo(() => {
-    let filtered = filteredModels.length > 0 ? filteredModels : models
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (model) =>
-          model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          model.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          model.id.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-
-    if (selectedProvider !== "all") {
-      filtered = filtered.filter((model) => model.provider === selectedProvider)
-    }
-
-    if (showImageModels) {
-      filtered = filtered.filter((model) => model.architecture?.input_modalities?.includes("image"))
-    }
-
-    const [minPrice, maxPrice] = priceRange
-    filtered = filtered.filter((model) => {
+    const [minPrice] = priceRange
+    const finalFiltered = capabilityFilteredModels.filter((model) => {
       const avgCost = (model.costPer1kTokens.input + model.costPer1kTokens.output) / 2
-      return avgCost >= minPrice && avgCost <= maxPrice
+      return avgCost >= minPrice
     })
 
-    if (minContextLength > 0) {
-      filtered = filtered.filter((model) => model.maxTokens >= minContextLength)
-    }
-
-    return filtered.sort((a, b) => {
+    return finalFiltered.sort((a, b) => {
       const categoryOrder = { fast: 0, balanced: 1, heavy: 2 }
       const aCat = getModelCategory(a)
       const bCat = getModelCategory(b)
@@ -267,15 +248,7 @@ export function EnhancedModelSwitcher({
 
       return a.name.localeCompare(b.name)
     })
-  }, [
-    filteredModels,
-    models,
-    searchQuery,
-    selectedProvider,
-    showImageModels,
-    priceRange,
-    minContextLength,
-  ])
+  }, [capabilityFilteredModels, priceRange])
 
   if (loading) {
     return (
@@ -423,9 +396,10 @@ export function EnhancedModelSwitcher({
             <TabsContent value="filters" className="space-y-4">
               <div className="grid gap-4">
                 <div className="space-y-2">
-                  <Label>Price Range (per 1K tokens)</Label>
+                  <Label htmlFor="price-range-slider">Price Range (per 1K tokens)</Label>
                   <div className="px-2">
                     <input
+                      id="price-range-slider"
                       type="range"
                       min={0}
                       max={0.1}
@@ -433,23 +407,33 @@ export function EnhancedModelSwitcher({
                       value={priceRange[1]}
                       onChange={(e) => setPriceRange([priceRange[0], parseFloat(e.target.value)])}
                       className="w-full accent-primary"
+                      aria-label={`Maximum price per 1K tokens: $${priceRange[1].toFixed(3)}`}
+                      aria-valuemin={0}
+                      aria-valuemax={0.1}
+                      aria-valuenow={priceRange[1]}
+                      aria-valuetext={`$${priceRange[1].toFixed(3)} per 1K tokens`}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>${priceRange[0].toFixed(3)}</span>
-                    <span>${priceRange[1].toFixed(3)}</span>
+                  <div className="flex justify-between text-xs text-muted-foreground" role="group" aria-label="Price range values">
+                    <span aria-label="Minimum price">$0.000</span>
+                    <span aria-label="Maximum price">${priceRange[1].toFixed(3)}</span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Minimum Context Length</Label>
+                  <Label htmlFor="min-context-length">Minimum Context Length</Label>
                   <Input
+                    id="min-context-length"
                     type="number"
                     value={minContextLength}
                     onChange={(e) => setMinContextLength(Number(e.target.value))}
                     placeholder="0"
-                    className=""
+                    aria-label="Minimum context length in tokens"
+                    aria-describedby="context-length-help"
                   />
+                  <p id="context-length-help" className="text-xs text-muted-foreground">
+                    Filter models by minimum number of tokens they can process
+                  </p>
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -457,8 +441,12 @@ export function EnhancedModelSwitcher({
                     id="image-models"
                     checked={showImageModels}
                     onCheckedChange={(checked) => setShowImageModels(checked === true)}
+                    aria-describedby="vision-models-help"
                   />
                   <Label htmlFor="image-models">Vision Models Only</Label>
+                  <p id="vision-models-help" className="sr-only">
+                    Show only models that can process images and text
+                  </p>
                 </div>
 
                 {currentModel && showCost && estimatedTokens && (
