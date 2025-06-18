@@ -7,7 +7,7 @@ export const runtime = "edge"
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, model, apiKey, ...options } = await req.json()
+    const { messages, model, apiKey, includeMemory = true, ...options } = await req.json()
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 })
@@ -51,6 +51,10 @@ export async function POST(req: NextRequest) {
       baseURL: "https://openrouter.ai/api/v1",
       apiKey: openRouterApiKey,
     })
+
+    // TODO: If includeMemory is true and memory/context system is implemented,
+    // inject user's memory context here before the messages array
+    // For now, we just pass through the messages as-is
 
     const result = streamText({
       model: openrouter(selectedModel),

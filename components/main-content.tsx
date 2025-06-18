@@ -10,7 +10,7 @@ import { MemorySuggestionBanner } from "@/components/memory-suggestion-banner"
 import { TemporaryChatBanner } from "@/components/temporary-chat-banner"
 import { TemporaryChatStarter } from "@/components/temporary-chat-starter"
 import { ToolsGrid } from "@/components/tools-grid"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useChat } from "@/hooks/use-chat"
 import { useMemory } from "@/hooks/use-memory"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
@@ -24,9 +24,29 @@ import { useAuth } from "@/hooks/use-auth"
 export function MainContent() {
   const isMobile = useIsMobile()
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const { suggestions } = useMemory()
-  const { temporaryChat, isTemporaryMode } = useTemporaryChat()
+  const { 
+    temporaryChat, 
+    isTemporaryMode,
+    addMessageToTemporaryChat,
+    updateTemporaryChatMessage,
+    deleteTemporaryChatMessage,
+    settings,
+    isStreaming,
+    setIsStreaming
+  } = useTemporaryChat()
   const { user } = useAuth()
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Abort any ongoing fetch requests
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
 
   // Real chat functionality
   const {
@@ -67,8 +87,7 @@ export function MainContent() {
 
   const handleEditMessage = (messageId: string, newContent: string) => {
     if (isTemporaryMode) {
-      // Handle temporary chat message editing
-      console.log("Edit temporary message:", messageId, newContent)
+      updateTemporaryChatMessage(messageId, newContent)
     } else {
       editMessage(messageId, newContent)
     }
@@ -76,8 +95,7 @@ export function MainContent() {
 
   const handleDeleteMessage = (messageId: string) => {
     if (isTemporaryMode) {
-      // Handle temporary chat message deletion
-      console.log("Delete temporary message:", messageId)
+      deleteTemporaryChatMessage(messageId)
     } else {
       deleteMessage(messageId)
     }
@@ -85,7 +103,92 @@ export function MainContent() {
 
   const handleSendMessage = async (content: string, attachments?: any[]) => {
     if (isTemporaryMode) {
-      console.log("Send temporary message:", content, attachments)
+      // Add user message to temporary chat
+      addMessageToTemporaryChat(content, "user")
+      
+      // Create new abort controller for this request
+      const abortController = new AbortController()
+      abortControllerRef.current = abortController
+      
+      // Call the API to get response
+      try {
+        setIsStreaming(true)
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messages: [
+              ...(temporaryChat?.messages || []).map(msg => ({
+                role: msg.type === "user" ? "user" : "assistant",
+                content: msg.content
+              })),
+              { role: "user", content }
+            ],
+            model: selectedModel,
+            temperature,
+            // Don't include memory/context if setting is disabled
+            includeMemory: settings.includeMemoryInTempChats
+          }),
+          signal: abortController.signal
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const reader = response.body?.getReader()
+        if (!reader) throw new Error("No response body")
+
+        let assistantMessage = ""
+        const decoder = new TextDecoder()
+
+        // Add empty assistant message that we'll update as chunks come in
+        const assistantMessageId = addMessageToTemporaryChat("", "assistant", selectedModel)
+        if (!assistantMessageId) throw new Error("Failed to create assistant message")
+
+        while (!abortController.signal.aborted) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          try {
+            const chunk = decoder.decode(value)
+            const lines = chunk.split('\n').filter(line => line.trim() !== '')
+            
+            for (const line of lines) {
+              if (line.startsWith('0:')) {
+                try {
+                  const content = line.slice(2).replace(/"/g, '').replace(/\\n/g, '\n')
+                  assistantMessage += content
+                  if (!abortController.signal.aborted) {
+                    updateTemporaryChatMessage(assistantMessageId, assistantMessage)
+                  }
+                } catch (parseError) {
+                  console.warn("Failed to parse stream chunk:", line, parseError)
+                }
+              }
+            }
+          } catch (chunkError) {
+            console.error("Error processing stream chunk:", chunkError)
+          }
+        }
+      } catch (error: any) {
+        // Don't show error if it was aborted
+        if (error.name !== 'AbortError') {
+          console.error("Error sending temporary message:", error)
+          addMessageToTemporaryChat(
+            "Sorry, I encountered an error. Please try again.", 
+            "assistant"
+          )
+        }
+      } finally {
+        setIsStreaming(false)
+        // Clear the ref if this was the current request
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null
+        }
+      }
     } else {
       await sendMessage(content, attachments)
     }
@@ -106,7 +209,7 @@ export function MainContent() {
   const handleToolSelect = async (toolId: string, result: any) => {
     // When a tool generates content, send it as a message
     if (isTemporaryMode) {
-      console.log("Add tool result to temporary chat:", result)
+      await handleSendMessage(`Tool result from ${toolId}: ${result.content}`)
     } else {
       await sendMessage(`Tool result from ${toolId}: ${result.content}`)
     }
@@ -158,7 +261,7 @@ export function MainContent() {
                   variant="ghost"
                   className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
                   onClick={() => handleSendMessage("How does AI work?")}
-                  disabled={isLoading}
+                  disabled={isTemporaryMode ? isStreaming : isLoading}
                 >
                   How does AI work?
                 </Button>
@@ -166,7 +269,7 @@ export function MainContent() {
                   variant="ghost"
                   className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
                   onClick={() => handleSendMessage("Are black holes real?")}
-                  disabled={isLoading}
+                  disabled={isTemporaryMode ? isStreaming : isLoading}
                 >
                   Are black holes real?
                 </Button>
@@ -174,7 +277,7 @@ export function MainContent() {
                   variant="ghost"
                   className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
                   onClick={() => handleSendMessage('How many Rs are in the word "strawberry"?')}
-                  disabled={isLoading}
+                  disabled={isTemporaryMode ? isStreaming : isLoading}
                 >
                   How many Rs are in the word "strawberry"?
                 </Button>
@@ -182,7 +285,7 @@ export function MainContent() {
                   variant="ghost"
                   className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
                   onClick={() => handleSendMessage("What is the meaning of life?")}
-                  disabled={isLoading}
+                  disabled={isTemporaryMode ? isStreaming : isLoading}
                 >
                   What is the meaning of life?
                 </Button>
@@ -216,7 +319,7 @@ export function MainContent() {
               ))}
 
               {/* Loading indicator */}
-              {isLoading && displayMessages.length > 0 && (
+              {((isLoading && !isTemporaryMode) || (isStreaming && isTemporaryMode)) && displayMessages.length > 0 && (
                 <div className="flex items-center space-x-2 text-mauve-subtle">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-mauve-accent border-t-transparent"></div>
                   <span className="text-sm">AI is thinking...</span>
@@ -230,13 +333,13 @@ export function MainContent() {
           <div className="sticky bottom-0 bg-gradient-to-t from-mauve-dark to-transparent px-4 pb-4 md:pb-8">
             <ChatInput
               onSendMessage={handleSendMessage}
-              isLoading={isLoading}
+              isLoading={isTemporaryMode ? isStreaming : isLoading}
               onStopGeneration={stopStreaming}
               selectedModel={selectedModel}
               onModelChange={(model: string) => changeModel(model as any)}
               temperature={temperature}
               onTemperatureChange={setTemperature}
-              disabled={!!error}
+              disabled={!!error || (isTemporaryMode && isStreaming)}
             />
           </div>
         </div>
