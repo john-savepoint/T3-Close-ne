@@ -15,6 +15,7 @@ import { ModelSwitcher } from "@/components/model-switcher"
 import { EnhancedFileUpload } from "@/components/enhanced-file-upload"
 import { Badge } from "@/components/ui/badge"
 import type { Attachment } from "@/types/attachment"
+import { formatFileSize } from "@/lib/file-utils"
 
 interface ChatInputProps {
   onSendMessage?: (content: string, attachments?: Attachment[]) => void
@@ -59,27 +60,8 @@ export function ChatInput({
 
   const removeAttachment = (attachmentId: string) => {
     setAttachedFiles((prev) =>
-      prev.filter((att) => att.id !== attachmentId && att._id !== attachmentId)
+      prev.filter((att) => att._id !== attachmentId)
     )
-  }
-
-  const handleSendMessage = () => {
-    if (!message.trim() && attachedFiles.length === 0) return
-
-    // Here you would call your message sending function with attachments
-    // Example: sendMessage(message, attachedFiles.map(f => f._id))
-
-    // Clear inputs after sending
-    setMessage("")
-    setAttachedFiles([])
-  }
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
   }
 
   const handleSendMessage = async () => {
@@ -122,7 +104,7 @@ export function ChatInput({
           <div className="mb-2 flex flex-wrap gap-2 rounded-lg bg-mauve-dark/20 p-2">
             {attachedFiles.map((file) => (
               <Badge
-                key={file.id}
+                key={file._id}
                 variant="outline"
                 className="border-mauve-accent/50 bg-mauve-accent/20 pr-1 text-xs"
               >
@@ -130,10 +112,10 @@ export function ChatInput({
                   {file.filename}
                 </span>
                 <span className="ml-1 text-mauve-subtle/70">
-                  ({formatFileSize(file.sizeBytes || file.size)})
+                  ({formatFileSize(file.size)})
                 </span>
                 <button
-                  onClick={() => removeAttachment(file.id || file._id)}
+                  onClick={() => removeAttachment(file._id)}
                   className="ml-1 transition-colors hover:text-red-400"
                 >
                   ×

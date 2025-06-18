@@ -23,6 +23,8 @@ import {
   X,
 } from "lucide-react"
 import type { Attachment } from "@/types/attachment"
+import { formatFileSize, getFileTypeIcon, isImageFile, isTextFile } from "@/lib/file-utils"
+import { useToast } from "@/hooks/use-toast"
 
 interface MessageAttachmentsProps {
   attachments: Attachment[]
@@ -38,37 +40,22 @@ export function MessageAttachments({
   compact = false,
 }: MessageAttachmentsProps) {
   const [previewAttachment, setPreviewAttachment] = useState<Attachment | null>(null)
+  const { success, error: showError } = useToast()
 
   if (!attachments || attachments.length === 0) {
     return null
   }
 
   const getFileIcon = (contentType: string, category?: string) => {
-    if (contentType.startsWith("image/")) return ImageIcon
-    if (category === "documents" || contentType.includes("text") || contentType.includes("pdf"))
-      return FileText
-    if (
-      category === "code" ||
-      contentType.includes("javascript") ||
-      contentType.includes("typescript")
-    )
-      return Code
-    if (category === "data" || contentType.includes("csv") || contentType.includes("json"))
-      return Database
-    return File
+    const iconType = getFileTypeIcon(contentType, category)
+    switch (iconType) {
+      case "image": return ImageIcon
+      case "document": return FileText
+      case "code": return Code
+      case "data": return Database
+      default: return File
+    }
   }
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-  }
-
-  const isImage = (contentType: string) => contentType.startsWith("image/")
-  const isText = (contentType: string) =>
-    contentType.startsWith("text/") || contentType.includes("json")
 
   const handleDownload = async (attachment: Attachment) => {
     if (attachment.url) {
@@ -83,9 +70,13 @@ export function MessageAttachments({
         a.click()
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
+        success(`Downloaded ${attachment.originalFilename || attachment.filename}`)
       } catch (error) {
         console.error("Download failed:", error)
+        showError(`Failed to download ${attachment.originalFilename || attachment.filename}`)
       }
+    } else {
+      showError("File URL not available for download")
     }
   }
 
@@ -127,17 +118,17 @@ export function MessageAttachments({
     <div className="mt-3 space-y-2">
       {attachments.map((attachment) => {
         const Icon = getFileIcon(attachment.contentType, attachment.category)
-        const isImageFile = isImage(attachment.contentType)
+        const isImageFileType = isImageFile(attachment.contentType)
 
         return (
           <Card key={attachment._id} className="border-mauve-dark/50 bg-mauve-dark/20">
             <CardContent className="p-3">
               <div className="flex items-center gap-3">
-                {isImageFile && attachment.url ? (
+                {isImageFileType && attachment.url ? (
                   <div className="relative">
                     <img
                       src={attachment.url}
-                      alt={attachment.originalFilename || attachment.filename}
+                      alt={`Attachment: ${attachment.originalFilename || attachment.filename}`}
                       className="h-12 w-12 rounded border border-mauve-dark/50 object-cover"
                     />
                     <button
@@ -190,7 +181,7 @@ export function MessageAttachments({
                     size="icon"
                     className="h-6 w-6"
                     onClick={() => setPreviewAttachment(attachment)}
-                    title="Preview"
+                    aria-label={`Preview ${attachment.originalFilename || attachment.filename}`}
                   >
                     <Eye className="h-3 w-3" />
                   </Button>
@@ -199,7 +190,7 @@ export function MessageAttachments({
                     size="icon"
                     className="h-6 w-6"
                     onClick={() => handleDownload(attachment)}
-                    title="Download"
+                    aria-label={`Download ${attachment.originalFilename || attachment.filename}`}
                   >
                     <Download className="h-3 w-3" />
                   </Button>
@@ -209,7 +200,7 @@ export function MessageAttachments({
                       size="icon"
                       className="h-6 w-6"
                       onClick={() => window.open(attachment.url, "_blank")}
-                      title="Open in new tab"
+                      aria-label={`Open ${attachment.originalFilename || attachment.filename} in new tab`}
                     >
                       <ExternalLink className="h-3 w-3" />
                     </Button>
@@ -220,7 +211,7 @@ export function MessageAttachments({
                       size="icon"
                       className="h-6 w-6 text-red-400 hover:text-red-300"
                       onClick={() => onRemoveAttachment(attachment._id)}
-                      title="Remove attachment"
+                      aria-label={`Remove ${attachment.originalFilename || attachment.filename} attachment`}
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -250,17 +241,8 @@ interface AttachmentPreviewDialogProps {
 }
 
 function AttachmentPreviewDialog({ attachment, isOpen, onClose }: AttachmentPreviewDialogProps) {
-  const isImageFile = attachment.contentType.startsWith("image/")
-  const isTextFile =
-    attachment.contentType.startsWith("text/") || attachment.contentType.includes("json")
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-  }
+  const isImageFileType = isImageFile(attachment.contentType)
+  const isTextFileType = isTextFile(attachment.contentType)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -272,15 +254,15 @@ function AttachmentPreviewDialog({ attachment, isOpen, onClose }: AttachmentPrev
         </DialogHeader>
 
         <div className="flex-1 overflow-auto">
-          {isImageFile && attachment.url ? (
+          {isImageFileType && attachment.url ? (
             <div className="flex justify-center">
               <img
                 src={attachment.url}
-                alt={attachment.originalFilename || attachment.filename}
+                alt={`Attachment preview: ${attachment.originalFilename || attachment.filename}`}
                 className="max-h-96 max-w-full rounded border border-mauve-dark/50 object-contain"
               />
             </div>
-          ) : isTextFile && attachment.url ? (
+          ) : isTextFileType && attachment.url ? (
             <div className="rounded bg-mauve-dark/30 p-4 font-mono text-sm">
               <iframe
                 src={attachment.url}
