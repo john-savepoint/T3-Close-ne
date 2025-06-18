@@ -43,10 +43,24 @@ export function ChatInput({
   const [message, setMessage] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isMobile = useIsMobile()
-  const { selectedModel: modelsSelectedModel, setSelectedModel } = useModels()
+  const { selectedModel: modelsSelectedModel, setSelectedModel, getModelById } = useModels()
   
   // Use prop selectedModel if provided, otherwise fall back to models hook
   const currentSelectedModel = selectedModel || modelsSelectedModel?.id || "openai/gpt-4o-mini"
+
+  const handleModelChange = (model: string | import("@/types/models").ChatModel) => {
+    if (typeof model === "string") {
+      // Handle legacy string format - find the model by ID
+      const foundModel = getModelById(model)
+      if (foundModel) {
+        setSelectedModel(foundModel)
+        onModelChange?.(model)
+      }
+    } else {
+      setSelectedModel(model)
+      onModelChange?.(model.id)
+    }
+  }
   const [attachedFiles, setAttachedFiles] = useState<Attachment[]>([])
 
   // Auto-resize textarea as user types
@@ -145,10 +159,7 @@ export function ChatInput({
           <div className="flex flex-wrap items-center gap-1 md:gap-2">
             <EnhancedModelSwitcher
               selectedModel={modelsSelectedModel}
-              onModelChange={(model) => {
-                setSelectedModel(model)
-                onModelChange?.(typeof model === 'string' ? model : model.id)
-              }}
+              onModelChange={handleModelChange}
               showCost={true}
               estimatedTokens={message.length > 0 ? Math.max(100, message.length * 2) : undefined}
             />

@@ -3,6 +3,13 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { OpenRouterModel, ChatModel } from "@/types/models"
 
+interface ModelError {
+  type: "network" | "auth" | "parsing" | "ratelimit" | "unknown"
+  message: string
+  retryable: boolean
+  statusCode?: number
+}
+
 interface ModelFilters {
   category?: string
   priceRange?: [number, number]
@@ -14,7 +21,7 @@ interface ModelFilters {
 interface UseModelsReturn {
   models: ChatModel[]
   loading: boolean
-  error: string | null
+  error: ModelError | null
   refetch: () => Promise<void>
   filter: (filters: ModelFilters) => void
   filteredModels: ChatModel[]
@@ -24,6 +31,7 @@ interface UseModelsReturn {
   getModelById: (id: string) => ChatModel | undefined
   categories: string[]
   providers: string[]
+  retryCount: number
 }
 
 const OPENROUTER_API_BASE = "https://openrouter.ai/api/v1"
@@ -49,63 +57,129 @@ function convertOpenRouterModel(orModel: OpenRouterModel): ChatModel {
   }
 }
 
+const MAX_RETRIES = 3
+const RETRY_DELAY = 1000
+
+function createError(type: ModelError["type"], message: string, statusCode?: number): ModelError {
+  const retryable = type === "network" || type === "ratelimit" || type === "unknown"
+  return { type, message, retryable, statusCode }
+}
+
 export function useModels(): UseModelsReturn {
   const [models, setModels] = useState<ChatModel[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ModelError | null>(null)
   const [filters, setFilters] = useState<ModelFilters>({})
   const [selectedModel, setSelectedModel] = useState<ChatModel | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
-  const fetchModels = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch(`${OPENROUTER_API_BASE}/models`, {
-        headers: {
-          "HTTP-Referer":
-            typeof window !== "undefined" ? window.location.origin : "http://localhost:3000",
-          "X-Title": "Z6Chat",
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch models: ${response.status}`)
+  const fetchModels = useCallback(
+    async (attempt: number = 0): Promise<void> => {
+      setLoading(true)
+      if (attempt === 0) {
+        setError(null)
+        setRetryCount(0)
       }
 
-      const data = await response.json()
-      const convertedModels = data.data.map(convertOpenRouterModel)
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
 
-      // Sort by popularity/provider preference
-      const sortedModels = convertedModels.sort((a: ChatModel, b: ChatModel) => {
-        const providerOrder = ["openai", "anthropic", "google", "meta-llama", "mistralai"]
-        const aIndex = providerOrder.indexOf(a.provider.toLowerCase())
-        const bIndex = providerOrder.indexOf(b.provider.toLowerCase())
+        const response = await fetch(`${OPENROUTER_API_BASE}/models`, {
+          headers: {
+            "HTTP-Referer":
+              typeof window !== "undefined" ? window.location.origin : "http://localhost:3000",
+            "X-Title": "Z6Chat",
+          },
+          signal: controller.signal,
+        })
 
-        if (aIndex !== -1 && bIndex !== -1) {
-          return aIndex - bIndex
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          const errorType =
+            response.status === 401
+              ? "auth"
+              : response.status === 429
+                ? "ratelimit"
+                : response.status >= 500
+                  ? "network"
+                  : "unknown"
+
+          throw createError(
+            errorType,
+            `Failed to fetch models: ${response.status} ${response.statusText}`,
+            response.status
+          )
         }
-        if (aIndex !== -1) return -1
-        if (bIndex !== -1) return 1
 
-        return a.name.localeCompare(b.name)
-      })
+        const data = await response.json()
 
-      setModels(sortedModels)
+        if (!data.data || !Array.isArray(data.data)) {
+          throw createError("parsing", "Invalid response format from OpenRouter API")
+        }
 
-      // Set default selected model if none selected
-      if (!selectedModel && sortedModels.length > 0) {
-        const defaultModel =
-          sortedModels.find((m: ChatModel) => m.id === "openai/gpt-4o-mini") || sortedModels[0]
-        setSelectedModel(defaultModel)
+        const convertedModels = data.data.map(convertOpenRouterModel)
+
+        // Sort by popularity/provider preference
+        const sortedModels = convertedModels.sort((a: ChatModel, b: ChatModel) => {
+          const providerOrder = ["openai", "anthropic", "google", "meta-llama", "mistralai"]
+          const aIndex = providerOrder.indexOf(a.provider.toLowerCase())
+          const bIndex = providerOrder.indexOf(b.provider.toLowerCase())
+
+          if (aIndex !== -1 && bIndex !== -1) {
+            return aIndex - bIndex
+          }
+          if (aIndex !== -1) return -1
+          if (bIndex !== -1) return 1
+
+          return a.name.localeCompare(b.name)
+        })
+
+        setModels(sortedModels)
+        setRetryCount(0) // Reset retry count on success
+
+        // Set default selected model if none selected
+        if (!selectedModel && sortedModels.length > 0) {
+          const defaultModel =
+            sortedModels.find((m: ChatModel) => m.id === "openai/gpt-4o-mini") || sortedModels[0]
+          setSelectedModel(defaultModel)
+        }
+      } catch (err) {
+        let modelError: ModelError
+
+        if (err && typeof err === "object" && "type" in err) {
+          modelError = err as ModelError
+        } else if (err instanceof Error) {
+          if (err.name === "AbortError") {
+            modelError = createError("network", "Request timeout - please check your connection")
+          } else {
+            modelError = createError("unknown", err.message)
+          }
+        } else {
+          modelError = createError("unknown", "An unexpected error occurred")
+        }
+
+        // Retry logic for retryable errors
+        if (modelError.retryable && attempt < MAX_RETRIES) {
+          setRetryCount(attempt + 1)
+          setTimeout(
+            () => {
+              fetchModels(attempt + 1)
+            },
+            RETRY_DELAY * Math.pow(2, attempt)
+          ) // Exponential backoff
+          return
+        }
+
+        setError(modelError)
+        console.error("Error fetching models:", err)
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch models")
-      console.error("Error fetching models:", err)
-    } finally {
-      setLoading(false)
-    }
-  }, [selectedModel])
+    },
+    [selectedModel]
+  )
 
   const filteredModels = useMemo(() => {
     return models.filter((model: ChatModel) => {
@@ -178,6 +252,10 @@ export function useModels(): UseModelsReturn {
 
   useEffect(() => {
     fetchModels()
+
+    return () => {
+      // Cleanup any pending timeouts or aborts
+    }
   }, [fetchModels])
 
   return {
@@ -193,5 +271,6 @@ export function useModels(): UseModelsReturn {
     getModelById,
     categories,
     providers,
+    retryCount,
   }
 }

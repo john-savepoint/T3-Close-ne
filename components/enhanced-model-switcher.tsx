@@ -1,6 +1,23 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+
+// Custom debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -36,8 +53,8 @@ import { useModels } from "@/hooks/use-models"
 import { ChatModel } from "@/types/models"
 
 interface EnhancedModelSwitcherProps {
-  selectedModel: ChatModel | null
-  onModelChange: (model: ChatModel) => void
+  selectedModel: ChatModel | string | null // Support both formats for backward compatibility
+  onModelChange: (model: ChatModel | string) => void // Support both formats
   showCost?: boolean
   estimatedTokens?: number
 }
@@ -90,11 +107,14 @@ function ModelCard({
       : 0
 
   return (
-    <div
-      className={`group cursor-pointer rounded-lg border p-3 transition-all hover:bg-muted/50 ${
+    <button
+      className={`group w-full cursor-pointer rounded-lg border p-3 text-left transition-all hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
         isSelected ? "border-primary bg-primary/10" : "border-border"
       }`}
       onClick={onSelect}
+      aria-label={`Select ${model.name} model from ${model.provider}`}
+      aria-pressed={isSelected}
+      tabIndex={0}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
@@ -153,7 +173,7 @@ function ModelCard({
       {model.description && (
         <p className="mt-2 line-clamp-2 text-xs text-muted-foreground/70">{model.description}</p>
       )}
-    </div>
+    </button>
   )
 }
 
@@ -163,10 +183,35 @@ export function EnhancedModelSwitcher({
   showCost = true,
   estimatedTokens,
 }: EnhancedModelSwitcherProps) {
-  const { models, loading, error, filteredModels, providers, calculateCost } = useModels()
+  const {
+    models,
+    loading,
+    error,
+    filteredModels,
+    providers,
+    calculateCost,
+    getModelById,
+    refetch,
+    retryCount,
+  } = useModels()
+
+  // Convert string selectedModel to ChatModel for backward compatibility
+  const currentSelectedModel =
+    typeof selectedModel === "string" ? getModelById(selectedModel) : selectedModel
+
+  // Wrapper function to handle both formats
+  const handleModelChange = (model: ChatModel) => {
+    // Determine the expected format based on the current selectedModel type
+    if (typeof selectedModel === "string") {
+      onModelChange(model.id) // Return string ID for backward compatibility
+    } else {
+      onModelChange(model) // Return ChatModel object
+    }
+  }
 
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const debouncedSearchQuery = useDebounce(searchQuery, 300) // 300ms debounce
   const [selectedProvider, setSelectedProvider] = useState<string>("all")
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0.1])
   const [minContextLength, setMinContextLength] = useState<number>(0)
@@ -243,14 +288,23 @@ export function EnhancedModelSwitcher({
   if (error) {
     return (
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" className="text-xs text-destructive">
-          Error loading models
-        </Button>
+        <span className="text-xs text-destructive">{error.message}</span>
+        {error.retryable && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={loading}
+            className="text-xs"
+          >
+            {loading ? `Retrying... (${retryCount}/${3})` : "Retry"}
+          </Button>
+        )}
       </div>
     )
   }
 
-  const currentModel = selectedModel || (models.length > 0 ? models[0] : null)
+  const currentModel = currentSelectedModel || (models.length > 0 ? models[0] : null)
 
   return (
     <div className="flex items-center gap-2">
@@ -261,7 +315,7 @@ export function EnhancedModelSwitcher({
             variant="ghost"
             size="sm"
             className={`text-xs ${quickSelectModels.fast.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
-            onClick={() => onModelChange(quickSelectModels.fast!)}
+            onClick={() => handleModelChange(quickSelectModels.fast!)}
           >
             <Zap className="mr-1 h-3 w-3" />
             Fast
@@ -272,7 +326,7 @@ export function EnhancedModelSwitcher({
             variant="ghost"
             size="sm"
             className={`text-xs ${quickSelectModels.balanced.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
-            onClick={() => onModelChange(quickSelectModels.balanced!)}
+            onClick={() => handleModelChange(quickSelectModels.balanced!)}
           >
             <Gauge className="mr-1 h-3 w-3" />
             Balanced
@@ -283,7 +337,7 @@ export function EnhancedModelSwitcher({
             variant="ghost"
             size="sm"
             className={`text-xs ${quickSelectModels.heavy.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
-            onClick={() => onModelChange(quickSelectModels.heavy!)}
+            onClick={() => handleModelChange(quickSelectModels.heavy!)}
           >
             <Brain className="mr-1 h-3 w-3" />
             Heavy
@@ -298,9 +352,16 @@ export function EnhancedModelSwitcher({
             {currentModel?.name || "Select Model"} <ChevronDown className="ml-1 h-3 w-3" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-h-[80vh] max-w-4xl">
+        <DialogContent
+          className="max-h-[80vh] max-w-4xl"
+          aria-describedby="model-selector-description"
+        >
           <DialogHeader>
             <DialogTitle className="text-foreground">Select AI Model</DialogTitle>
+            <p id="model-selector-description" className="text-sm text-muted-foreground">
+              Choose from {displayModels.length} available AI models with real-time pricing and
+              filtering options
+            </p>
           </DialogHeader>
 
           <Tabs defaultValue="models" className="w-full">
@@ -343,7 +404,7 @@ export function EnhancedModelSwitcher({
                       model={model}
                       isSelected={model.id === currentModel?.id}
                       onSelect={() => {
-                        onModelChange(model)
+                        handleModelChange(model)
                         setOpen(false)
                       }}
                       showCost={showCost}
