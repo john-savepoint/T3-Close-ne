@@ -65,19 +65,23 @@ export function CodeBlockEnhanced({
   const [copied, setCopied] = useState(false)
   const [languageReady, setLanguageReady] = useState(false)
   const { downloadCode } = useCodeActions()
-  
+
   const detectedLanguage = language || detectLanguage(code, filename)
-  
+
   // Register language dynamically
   useEffect(() => {
     const registerLanguage = async () => {
-      if (registeredLanguages.has(detectedLanguage) || !languageRegistrations[detectedLanguage as keyof typeof languageRegistrations]) {
+      if (
+        registeredLanguages.has(detectedLanguage) ||
+        !languageRegistrations[detectedLanguage as keyof typeof languageRegistrations]
+      ) {
         setLanguageReady(true)
         return
       }
-      
+
       try {
-        const languageModule = await languageRegistrations[detectedLanguage as keyof typeof languageRegistrations]()
+        const languageModule =
+          await languageRegistrations[detectedLanguage as keyof typeof languageRegistrations]()
         // Ensure the module has the expected structure
         if (languageModule.default) {
           SyntaxHighlighter.registerLanguage(detectedLanguage, languageModule.default)
@@ -91,23 +95,23 @@ export function CodeBlockEnhanced({
         setLanguageReady(true) // Still show the component, just without highlighting
       }
     }
-    
+
     registerLanguage()
   }, [detectedLanguage])
-  
+
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(code)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error('Failed to copy code:', err)
+      console.error("Failed to copy code:", err)
       // Fallback for older browsers
-      const textArea = document.createElement('textarea')
+      const textArea = document.createElement("textarea")
       textArea.value = code
       document.body.appendChild(textArea)
       textArea.select()
-      document.execCommand('copy')
+      document.execCommand("copy")
       document.body.removeChild(textArea)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -121,59 +125,62 @@ export function CodeBlockEnhanced({
   const displayName = title || filename || detectedLanguage
 
   return (
-    <div className="relative group overflow-hidden rounded-lg border border-mauve-dark/50 bg-mauve-dark/20 backdrop-blur-sm">
+    <div className="group relative overflow-hidden rounded-lg border border-mauve-dark/50 bg-mauve-dark/20 backdrop-blur-sm">
       {/* Header with language badge and actions */}
-      <div className="flex items-center justify-between px-4 py-3 bg-mauve-dark/30 border-b border-mauve-dark/50">
+      <div className="flex items-center justify-between border-b border-mauve-dark/50 bg-mauve-dark/30 px-4 py-3">
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-mauve-subtle" />
-          <Badge variant="outline" className="text-xs font-mono bg-mauve-dark/50 border-mauve-accent/30">
+          <FileText className="h-4 w-4 text-mauve-subtle" />
+          <Badge
+            variant="outline"
+            className="border-mauve-accent/30 bg-mauve-dark/50 font-mono text-xs"
+          >
             {displayName}
           </Badge>
           {highlightLines.length > 0 && (
             <Badge variant="secondary" className="text-xs">
-              {highlightLines.length} line{highlightLines.length !== 1 ? 's' : ''} highlighted
+              {highlightLines.length} line{highlightLines.length !== 1 ? "s" : ""} highlighted
             </Badge>
           )}
         </div>
-        
+
         {showActions && (
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleCopy}
-              className="h-8 px-2 text-xs text-mauve-subtle hover:text-mauve-bright hover:bg-mauve-accent/20 transition-colors"
+              className="h-8 px-2 text-xs text-mauve-subtle transition-colors hover:bg-mauve-accent/20 hover:text-mauve-bright"
             >
               {copied ? (
                 <>
-                  <Check className="w-3 h-3 mr-1.5 text-green-400" />
+                  <Check className="mr-1.5 h-3 w-3 text-green-400" />
                   <span>Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3 h-3 mr-1.5" />
+                  <Copy className="mr-1.5 h-3 w-3" />
                   <span>Copy</span>
                 </>
               )}
             </Button>
-            
+
             <Button
               variant="ghost"
               size="sm"
               onClick={handleDownload}
-              className="h-8 px-2 text-xs text-mauve-subtle hover:text-mauve-bright hover:bg-mauve-accent/20 transition-colors"
+              className="h-8 px-2 text-xs text-mauve-subtle transition-colors hover:bg-mauve-accent/20 hover:text-mauve-bright"
             >
-              <Download className="w-3 h-3 mr-1.5" />
+              <Download className="mr-1.5 h-3 w-3" />
               <span>Download</span>
             </Button>
           </div>
         )}
       </div>
-      
+
       {/* Code content with scrolling */}
-      <div 
-        style={{ maxHeight }} 
-        className="overflow-auto scrollbar-thin scrollbar-track-mauve-dark/30 scrollbar-thumb-mauve-accent/50"
+      <div
+        style={{ maxHeight }}
+        className="scrollbar-thin scrollbar-track-mauve-dark/30 scrollbar-thumb-mauve-accent/50 overflow-auto"
       >
         {!languageReady ? (
           <div className="p-4 text-center text-mauve-subtle">
@@ -181,40 +188,40 @@ export function CodeBlockEnhanced({
           </div>
         ) : (
           <SyntaxHighlighter
-            language={registeredLanguages.has(detectedLanguage) ? detectedLanguage : 'text'}
+            language={registeredLanguages.has(detectedLanguage) ? detectedLanguage : "text"}
             style={vscDarkPlus}
             showLineNumbers={showLineNumbers}
             wrapLongLines={true}
             lineProps={(lineNumber) => ({
               style: {
-                backgroundColor: highlightLines.includes(lineNumber) 
-                  ? 'rgba(167, 139, 250, 0.1)' // Purple highlight for dark theme
-                  : 'transparent',
+                backgroundColor: highlightLines.includes(lineNumber)
+                  ? "rgba(167, 139, 250, 0.1)" // Purple highlight for dark theme
+                  : "transparent",
                 borderLeft: highlightLines.includes(lineNumber)
-                  ? '3px solid rgb(167, 139, 250)' // Purple accent border
-                  : '3px solid transparent',
-                paddingLeft: '0.75rem',
-                display: 'block',
-              }
+                  ? "3px solid rgb(167, 139, 250)" // Purple accent border
+                  : "3px solid transparent",
+                paddingLeft: "0.75rem",
+                display: "block",
+              },
             })}
             customStyle={{
               margin: 0,
-              padding: '1rem',
-              fontSize: '0.875rem',
-              lineHeight: '1.6',
-              background: 'transparent',
+              padding: "1rem",
+              fontSize: "0.875rem",
+              lineHeight: "1.6",
+              background: "transparent",
               fontFamily: 'JetBrains Mono, Consolas, Monaco, "Courier New", monospace',
             }}
             lineNumberStyle={{
-              color: 'hsl(322, 8%, 40%)',
-              paddingRight: '1rem',
-              textAlign: 'right',
-              userSelect: 'none',
+              color: "hsl(322, 8%, 40%)",
+              paddingRight: "1rem",
+              textAlign: "right",
+              userSelect: "none",
             }}
             // Enhanced accessibility attributes
             PreTag={(props) => (
-              <pre 
-                {...props} 
+              <pre
+                {...props}
                 role="code"
                 aria-label={`Code block in ${detectedLanguage}`}
                 tabIndex={0}
@@ -227,8 +234,8 @@ export function CodeBlockEnhanced({
       </div>
 
       {/* Gradient overlay for long code blocks */}
-      {code.split('\n').length > 20 && (
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-mauve-dark/20 to-transparent pointer-events-none" />
+      {code.split("\n").length > 20 && (
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-mauve-dark/20 to-transparent" />
       )}
     </div>
   )

@@ -25,9 +25,7 @@ export const list = query({
     // Apply search filter if provided
     if (args.search) {
       const searchLower = args.search.toLowerCase()
-      chats = chats.filter(chat => 
-        chat.title.toLowerCase().includes(searchLower)
-      )
+      chats = chats.filter((chat) => chat.title.toLowerCase().includes(searchLower))
     }
 
     // Apply limit if provided
@@ -42,8 +40,8 @@ export const list = query({
           .query("messages")
           .withIndex("by_chat", (q) => q.eq("chatId", chat._id))
           .collect()
-          .then(messages => messages.length)
-        
+          .then((messages) => messages.length)
+
         return { ...chat, messageCount }
       })
     )
@@ -80,18 +78,22 @@ export const listWithPreview = query({
           .withIndex("by_chat", (q) => q.eq("chatId", chat._id))
           .order("desc")
           .collect()
-        
+
         const latestMessage = messages[0] || null
         const messageCount = messages.length
 
-        return { 
-          ...chat, 
+        return {
+          ...chat,
           messageCount,
-          latestMessage: latestMessage ? {
-            content: latestMessage.content.substring(0, 100) + (latestMessage.content.length > 100 ? '...' : ''),
-            timestamp: latestMessage.timestamp,
-            type: latestMessage.type
-          } : null
+          latestMessage: latestMessage
+            ? {
+                content:
+                  latestMessage.content.substring(0, 100) +
+                  (latestMessage.content.length > 100 ? "..." : ""),
+                timestamp: latestMessage.timestamp,
+                type: latestMessage.type,
+              }
+            : null,
         }
       })
     )
@@ -164,7 +166,7 @@ export const update = mutation({
     }
 
     const updates: any = { updatedAt: Date.now() }
-    
+
     if (args.title !== undefined) updates.title = args.title
     if (args.systemPrompt !== undefined) updates.systemPrompt = args.systemPrompt
     if (args.model !== undefined) updates.model = args.model
@@ -189,7 +191,7 @@ export const duplicate = mutation({
     }
 
     const now = Date.now()
-    
+
     // Create new chat
     const newChatId = await ctx.db.insert("chats", {
       title: args.newTitle || `${originalChat.title} (Copy)`,
@@ -221,14 +223,16 @@ export const duplicate = mutation({
         type: message.type,
         userId: message.userId,
         model: message.model,
-        parentMessageId: message.parentMessageId ? messageIdMap.get(message.parentMessageId) : undefined,
+        parentMessageId: message.parentMessageId
+          ? messageIdMap.get(message.parentMessageId)
+          : undefined,
         timestamp: message.timestamp,
         isEdited: message.isEdited,
         editedAt: message.editedAt,
         metadata: message.metadata,
         // Note: attachments are not copied to avoid file duplication
       })
-      
+
       messageIdMap.set(message._id, newMessageId)
     }
 
@@ -251,7 +255,7 @@ export const deletePermanently = mutation({
       .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
       .collect()
 
-    await Promise.all(messages.map(message => ctx.db.delete(message._id)))
+    await Promise.all(messages.map((message) => ctx.db.delete(message._id)))
 
     // Delete chat shares
     const chatShares = await ctx.db
@@ -259,7 +263,7 @@ export const deletePermanently = mutation({
       .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
       .collect()
 
-    await Promise.all(chatShares.map(share => ctx.db.delete(share._id)))
+    await Promise.all(chatShares.map((share) => ctx.db.delete(share._id)))
 
     // Delete the chat itself
     await ctx.db.delete(args.chatId)
@@ -277,9 +281,9 @@ export const getStats = query({
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .collect()
 
-    const activeChats = allChats.filter(chat => chat.status === "active")
-    const archivedChats = allChats.filter(chat => chat.status === "archived") 
-    const trashedChats = allChats.filter(chat => chat.status === "trashed")
+    const activeChats = allChats.filter((chat) => chat.status === "active")
+    const archivedChats = allChats.filter((chat) => chat.status === "archived")
+    const trashedChats = allChats.filter((chat) => chat.status === "trashed")
 
     // Get total message count
     const allMessages = await ctx.db
@@ -293,8 +297,8 @@ export const getStats = query({
       archivedChats: archivedChats.length,
       trashedChats: trashedChats.length,
       totalMessages: allMessages.length,
-      oldestChat: allChats.length > 0 ? Math.min(...allChats.map(c => c.createdAt)) : null,
-      newestChat: allChats.length > 0 ? Math.max(...allChats.map(c => c.createdAt)) : null,
+      oldestChat: allChats.length > 0 ? Math.min(...allChats.map((c) => c.createdAt)) : null,
+      newestChat: allChats.length > 0 ? Math.max(...allChats.map((c) => c.createdAt)) : null,
     }
   },
 })
@@ -308,20 +312,18 @@ export const bulkUpdateStatus = mutation({
   },
   handler: async (ctx, args) => {
     // Verify all chats belong to the user
-    const chats = await Promise.all(
-      args.chatIds.map(id => ctx.db.get(id))
-    )
-    
-    const invalidChats = chats.filter(chat => !chat || chat.userId !== args.userId)
+    const chats = await Promise.all(args.chatIds.map((id) => ctx.db.get(id)))
+
+    const invalidChats = chats.filter((chat) => !chat || chat.userId !== args.userId)
     if (invalidChats.length > 0) {
       throw new Error("Some chats don't belong to the specified user")
     }
 
     const now = Date.now()
-    
+
     // Update all chats
     await Promise.all(
-      args.chatIds.map(chatId => 
+      args.chatIds.map((chatId) =>
         ctx.db.patch(chatId, {
           status: args.status,
           statusChangedAt: now,

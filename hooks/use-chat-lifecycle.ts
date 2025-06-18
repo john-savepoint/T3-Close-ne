@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
 import type { Chat, ConvexChat } from "@/types/chat"
-import { adaptConvexChatToChat, getChatId } from "@/types/chat"
+import { adaptConvexChatToChat, getChatId, toChatId } from "@/types/chat"
 import { useAuth } from "@/hooks/use-auth"
 
 export function useChatLifecycle() {
@@ -47,7 +47,7 @@ export function useChatLifecycle() {
       setLoading(true)
       try {
         await updateStatusMutation({
-          chatId: chatId as Id<"chats">,
+          chatId: toChatId(chatId),
           status: "archived",
         })
       } catch (error) {
@@ -65,7 +65,7 @@ export function useChatLifecycle() {
       setLoading(true)
       try {
         await updateStatusMutation({
-          chatId: chatId as Id<"chats">,
+          chatId: toChatId(chatId),
           status: "trashed",
         })
       } catch (error) {
@@ -83,7 +83,7 @@ export function useChatLifecycle() {
       setLoading(true)
       try {
         await updateStatusMutation({
-          chatId: chatId as Id<"chats">,
+          chatId: toChatId(chatId),
           status: "active",
         })
       } catch (error) {
@@ -101,7 +101,7 @@ export function useChatLifecycle() {
       setLoading(true)
       try {
         await updateStatusMutation({
-          chatId: chatId as Id<"chats">,
+          chatId: toChatId(chatId),
           status: "active",
         })
       } catch (error) {
@@ -119,7 +119,7 @@ export function useChatLifecycle() {
       setLoading(true)
       try {
         await deletePermanentlyMutation({
-          chatId: chatId as Id<"chats">,
+          chatId: toChatId(chatId),
         })
       } catch (error) {
         console.error("Failed to permanently delete chat:", error)
@@ -136,7 +136,7 @@ export function useChatLifecycle() {
 
     setLoading(true)
     try {
-      const chatIds = trashedChats.map((chat) => chat.id as Id<"chats">)
+      const chatIds = trashedChats.map((chat) => toChatId(chat.id))
 
       // Delete all trashed chats permanently
       await Promise.all(chatIds.map((chatId) => deletePermanentlyMutation({ chatId })))
@@ -166,7 +166,7 @@ export function useChatLifecycle() {
       setLoading(true)
       try {
         await bulkUpdateStatusMutation({
-          chatIds: chatIds as Id<"chats">[],
+          chatIds: chatIds.map(toChatId),
           status: "archived",
           userId: user._id,
         })
@@ -187,7 +187,7 @@ export function useChatLifecycle() {
       setLoading(true)
       try {
         await bulkUpdateStatusMutation({
-          chatIds: chatIds as Id<"chats">[],
+          chatIds: chatIds.map(toChatId),
           status: "trashed",
           userId: user._id,
         })
@@ -208,7 +208,7 @@ export function useChatLifecycle() {
       setLoading(true)
       try {
         await bulkUpdateStatusMutation({
-          chatIds: chatIds as Id<"chats">[],
+          chatIds: chatIds.map(toChatId),
           status: "active",
           userId: user._id,
         })
@@ -239,9 +239,7 @@ export function useChatLifecycle() {
 
         try {
           await Promise.all(
-            chatsToDelete.map((chat) =>
-              deletePermanentlyMutation({ chatId: chat.id as Id<"chats"> })
-            )
+            chatsToDelete.map((chat) => deletePermanentlyMutation({ chatId: toChatId(chat.id) }))
           )
         } catch (error) {
           console.error("Auto-purge failed:", error)

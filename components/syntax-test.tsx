@@ -163,18 +163,18 @@ if __name__ == "__main__":
   ],
   "author": "Claude AI",
   "license": "MIT"
-}`
+}`,
 }
 
 export function SyntaxTest() {
   return (
-    <div className="p-6 space-y-8">
-      <h1 className="text-2xl font-bold text-center mb-8">Syntax Highlighting Test</h1>
-      
+    <div className="space-y-8 p-6">
+      <h1 className="mb-8 text-center text-2xl font-bold">Syntax Highlighting Test</h1>
+
       <div className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold mb-3">JavaScript</h2>
-          <CodeBlockEnhanced 
+          <h2 className="mb-3 text-lg font-semibold">JavaScript</h2>
+          <CodeBlockEnhanced
             code={testCode.javascript}
             language="javascript"
             showLineNumbers={true}
@@ -183,8 +183,8 @@ export function SyntaxTest() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-3">TypeScript</h2>
-          <CodeBlockEnhanced 
+          <h2 className="mb-3 text-lg font-semibold">TypeScript</h2>
+          <CodeBlockEnhanced
             code={testCode.typescript}
             language="typescript"
             showLineNumbers={true}
@@ -193,8 +193,8 @@ export function SyntaxTest() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-3">TypeScript React (TSX)</h2>
-          <CodeBlockEnhanced 
+          <h2 className="mb-3 text-lg font-semibold">TypeScript React (TSX)</h2>
+          <CodeBlockEnhanced
             code={testCode.tsx}
             language="tsx"
             showLineNumbers={true}
@@ -203,8 +203,8 @@ export function SyntaxTest() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-3">Python</h2>
-          <CodeBlockEnhanced 
+          <h2 className="mb-3 text-lg font-semibold">Python</h2>
+          <CodeBlockEnhanced
             code={testCode.python}
             language="python"
             showLineNumbers={true}
@@ -213,8 +213,8 @@ export function SyntaxTest() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-3">CSS</h2>
-          <CodeBlockEnhanced 
+          <h2 className="mb-3 text-lg font-semibold">CSS</h2>
+          <CodeBlockEnhanced
             code={testCode.css}
             language="css"
             showLineNumbers={true}
@@ -223,8 +223,8 @@ export function SyntaxTest() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-3">JSON</h2>
-          <CodeBlockEnhanced 
+          <h2 className="mb-3 text-lg font-semibold">JSON</h2>
+          <CodeBlockEnhanced
             code={testCode.json}
             language="json"
             showLineNumbers={true}
@@ -233,8 +233,8 @@ export function SyntaxTest() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-3">Auto-Detected Language (TypeScript)</h2>
-          <CodeBlockEnhanced 
+          <h2 className="mb-3 text-lg font-semibold">Auto-Detected Language (TypeScript)</h2>
+          <CodeBlockEnhanced
             code={testCode.typescript}
             filename="api.ts"
             showLineNumbers={true}
@@ -243,8 +243,8 @@ export function SyntaxTest() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-3">Line Highlighting Demo</h2>
-          <CodeBlockEnhanced 
+          <h2 className="mb-3 text-lg font-semibold">Line Highlighting Demo</h2>
+          <CodeBlockEnhanced
             code={testCode.javascript}
             language="javascript"
             highlightLines={[2, 3, 7]}

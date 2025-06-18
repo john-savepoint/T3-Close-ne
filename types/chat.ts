@@ -68,6 +68,36 @@ export function getChatId(chat: Chat | ConvexChat): Id<"chats"> {
   return ("_id" in chat ? chat._id : chat.id) as Id<"chats">
 }
 
+// Type-safe ID conversion utilities
+export type ChatIdentifier = Id<"chats"> | string
+
+export function toChatId(id: ChatIdentifier): Id<"chats"> {
+  return id as Id<"chats">
+}
+
+export function toStringId(id: ChatIdentifier): string {
+  return String(id)
+}
+
+// Safe type conversion for chat operations
+export function ensureChatId(id: unknown): Id<"chats"> {
+  if (typeof id === "string") {
+    return id as Id<"chats">
+  }
+  throw new Error(`Invalid chat ID: ${id}`)
+}
+
+export function ensureStringId(id: unknown): string {
+  return String(id)
+}
+
+// Project ID utilities
+export type ProjectIdentifier = Id<"projects"> | string
+
+export function toProjectId(id: ProjectIdentifier): Id<"projects"> {
+  return id as Id<"projects">
+}
+
 export interface ConversationBranch {
   id: string
   name?: string
@@ -77,8 +107,9 @@ export interface ConversationBranch {
 }
 
 export interface ConversationTree {
+  nodes: Map<string, ChatMessage>
   branches: ConversationBranch[]
-  activeBranchId: string
+  activeBranchId?: string
 }
 
 export interface ChatFilters {

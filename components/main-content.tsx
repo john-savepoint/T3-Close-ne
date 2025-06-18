@@ -53,7 +53,7 @@ export function MainContent() {
   // Conversation tree
   const { conversationTree, renameBranch, getMessagePath } = useConversationTree({
     messages: isTemporaryMode ? temporaryChat?.messages || [] : messages,
-    activeLeafId: currentMessageId
+    activeLeafId: currentMessageId,
   })
 
   // Show the first non-dismissed suggestion (only in non-temporary mode)

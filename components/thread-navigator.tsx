@@ -166,11 +166,11 @@ export function ThreadNavigator({
 
   const renderTreeView = () => {
     // Add the tree rendering logic here
-    return (
-      <div className="space-y-2 pr-4">
-        {Array.from(conversationTree.branches.values()).map(renderBranch)}
-      </div>
-    )
+    const branches = Array.isArray(conversationTree.branches)
+      ? conversationTree.branches
+      : Array.from(conversationTree.branches.values())
+
+    return <div className="space-y-2 pr-4">{branches.map(renderBranch)}</div>
   }
 
   const renderBranch = (branch: ConversationBranch) => {

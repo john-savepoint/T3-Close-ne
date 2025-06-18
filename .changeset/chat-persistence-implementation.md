@@ -7,6 +7,7 @@ feat: Implement comprehensive chat persistence with real-time updates
 This major feature implementation replaces all dummy data with real Convex database persistence while maintaining perfect UI consistency. Key improvements include:
 
 **Core Features:**
+
 - Real-time chat creation and management with database persistence
 - Message persistence between sessions with live synchronization
 - Enhanced sidebar with dynamic chat lists and time-based grouping
@@ -16,6 +17,7 @@ This major feature implementation replaces all dummy data with real Convex datab
 - Professional loading and empty states
 
 **Technical Implementation:**
+
 - Complete Convex CRUD operations for messages and enhanced chat management
 - New use-chats.ts hook providing comprehensive persistence with optimistic updates
 - Real-time UI synchronization via Convex live queries
@@ -23,6 +25,7 @@ This major feature implementation replaces all dummy data with real Convex datab
 - Comprehensive error handling and performance optimization
 
 **UI/UX Improvements:**
+
 - Removed all dummy/mock data from chat interface
 - Maintained perfect consistency with existing mauve design system
 - Added proper loading states and user-friendly empty state messaging

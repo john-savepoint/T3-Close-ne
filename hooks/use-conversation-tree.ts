@@ -12,26 +12,6 @@ export function useConversationTree(props: UseConversationTreeProps) {
   const { messages, activeLeafId } = props
   const [selectedBranch, setSelectedBranch] = useState<string[]>([])
 
-  // Early return if no messages
-  if (messages.length === 0) {
-    return {
-      conversationTree: { nodes: new Map(), branches: new Map() },
-      selectedBranch: [],
-      setSelectedBranch,
-      addMessage: () => {},
-      updateMessage: () => {},
-      deleteMessage: () => {},
-      renameBranch: () => {},
-      getMessagePath: () => [],
-      getAvailableBranches: () => [],
-      switchToBranch: () => {},
-      createBranchFromMessage: () => {},
-      getBranchingPoints: () => [],
-      getLinearPath: () => [],
-      optimizeConversationTree: () => {},
-    }
-  }
-
   // Build conversation tree
   const conversationTree = useMemo(() => {
     const nodes = new Map<string, ChatMessage>()
@@ -47,9 +27,7 @@ export function useConversationTree(props: UseConversationTreeProps) {
   // Get available branches from a message
   const getAvailableBranches = useCallback(
     (messageId: string): string[] => {
-      return messages
-        .filter(msg => msg.parentId === messageId)
-        .map(msg => msg.id)
+      return messages.filter((msg) => msg.parentId === messageId).map((msg) => msg.id)
     },
     [messages]
   )
@@ -64,9 +42,9 @@ export function useConversationTree(props: UseConversationTreeProps) {
     (messageId: string): ChatMessage[] => {
       const path: ChatMessage[] = []
       let currentId = messageId
-      
+
       while (currentId) {
-        const message = messages.find(m => m.id === currentId)
+        const message = messages.find((m) => m.id === currentId)
         if (message) {
           path.unshift(message)
           currentId = message.parentId || ""
@@ -74,7 +52,7 @@ export function useConversationTree(props: UseConversationTreeProps) {
           break
         }
       }
-      
+
       return path
     },
     [messages]
@@ -94,7 +72,7 @@ export function useConversationTree(props: UseConversationTreeProps) {
     const branchingPoints: string[] = []
     const childCounts = new Map<string, number>()
 
-    messages.forEach(message => {
+    messages.forEach((message) => {
       if (message.parentId) {
         childCounts.set(message.parentId, (childCounts.get(message.parentId) || 0) + 1)
       }
@@ -114,10 +92,10 @@ export function useConversationTree(props: UseConversationTreeProps) {
     if (activeLeafId) {
       return getMessagePath(activeLeafId)
     }
-    
+
     // Return chronological order if no active leaf
-    return [...messages].sort((a, b) => 
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    return [...messages].sort(
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     )
   }, [messages, activeLeafId, getMessagePath])
 
@@ -127,6 +105,26 @@ export function useConversationTree(props: UseConversationTreeProps) {
   const deleteMessage = useCallback(() => {}, [])
   const renameBranch = useCallback(() => {}, [])
   const optimizeConversationTree = useCallback(() => {}, [])
+
+  // Handle empty messages case
+  if (messages.length === 0) {
+    return {
+      conversationTree: { nodes: new Map(), branches: [] },
+      selectedBranch: [],
+      setSelectedBranch,
+      addMessage,
+      updateMessage,
+      deleteMessage,
+      renameBranch,
+      getMessagePath,
+      getAvailableBranches,
+      switchToBranch,
+      createBranchFromMessage,
+      getBranchingPoints,
+      getLinearPath,
+      optimizeConversationTree,
+    }
+  }
 
   return {
     conversationTree,

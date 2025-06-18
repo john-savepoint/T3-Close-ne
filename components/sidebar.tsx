@@ -17,9 +17,11 @@ import { EnhancedChatItem } from "@/components/enhanced-chat-item"
 import { useChatLifecycle } from "@/hooks/use-chat-lifecycle"
 import { useChats } from "@/hooks/use-chats"
 import { useAuth } from "@/hooks/use-auth"
+import { toChatId, ensureStringId, toProjectId } from "@/types/chat"
 import { Separator } from "@/components/ui/separator"
 import { UserProfile } from "@/components/user-profile"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp: number): string => {
@@ -91,11 +93,11 @@ const ThreadItem = ({
   onMoveToArchive: (chatId: string) => Promise<void>
 }) => {
   const handleMoveToTrash = async () => {
-    await onMoveToTrash(String(chat._id))
+    await onMoveToTrash(ensureStringId(chat._id))
   }
 
   const handleMoveToArchive = async () => {
-    await onMoveToArchive(String(chat._id))
+    await onMoveToArchive(ensureStringId(chat._id))
   }
 
   return (
@@ -130,6 +132,7 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const isMobile = useIsMobile()
   const [searchQuery, setSearchQuery] = useState("")
+  const router = useRouter()
   const { activeProject } = useProjects()
   const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
   const { archivedChats, trashedChats } = useChatLifecycle()
@@ -177,10 +180,11 @@ export function Sidebar() {
     try {
       const chatId = await createChat(
         activeProject ? `New Chat in ${activeProject.name}` : "New Chat",
-        activeProject?.id as any
+        activeProject?.id ? toProjectId(activeProject.id) : undefined
       )
       if (chatId) {
-        // Navigate to new chat (you'll need to implement navigation)
+        // Navigate to the new chat
+        router.push(`/`)
         console.log("Created new chat:", chatId)
       }
     } catch (error) {
@@ -303,8 +307,8 @@ export function Sidebar() {
                           <ThreadItem
                             key={thread._id}
                             chat={thread}
-                            onMoveToTrash={(chatId) => moveToTrash(chatId as any)}
-                            onMoveToArchive={(chatId) => moveToArchive(chatId as any)}
+                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
                           />
                         ))}
                       </>
@@ -317,8 +321,8 @@ export function Sidebar() {
                           <ThreadItem
                             key={thread._id}
                             chat={thread}
-                            onMoveToTrash={(chatId) => moveToTrash(chatId as any)}
-                            onMoveToArchive={(chatId) => moveToArchive(chatId as any)}
+                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
                           />
                         ))}
                       </>
@@ -331,8 +335,8 @@ export function Sidebar() {
                           <ThreadItem
                             key={thread._id}
                             chat={thread}
-                            onMoveToTrash={(chatId) => moveToTrash(chatId as any)}
-                            onMoveToArchive={(chatId) => moveToArchive(chatId as any)}
+                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
                           />
                         ))}
                       </>
@@ -345,8 +349,8 @@ export function Sidebar() {
                           <ThreadItem
                             key={thread._id}
                             chat={thread}
-                            onMoveToTrash={(chatId) => moveToTrash(chatId as any)}
-                            onMoveToArchive={(chatId) => moveToArchive(chatId as any)}
+                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
                           />
                         ))}
                       </>
@@ -359,8 +363,8 @@ export function Sidebar() {
                           <ThreadItem
                             key={thread._id}
                             chat={thread}
-                            onMoveToTrash={(chatId) => moveToTrash(chatId as any)}
-                            onMoveToArchive={(chatId) => moveToArchive(chatId as any)}
+                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
                           />
                         ))}
                       </>

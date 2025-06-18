@@ -6,4 +6,4 @@
  */
 
 // This file is deprecated - use specific streaming utilities instead
-export {};
+export {}

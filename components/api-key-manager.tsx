@@ -1,116 +1,116 @@
-"use client";
+"use client"
 
-import { useState } from 'react';
-import { useApiKeys } from '@/hooks/use-api-keys';
-import { ApiKeyValidator } from '@/lib/key-validation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Key, 
-  Eye, 
-  EyeOff, 
-  CheckCircle, 
-  XCircle, 
-  Loader2, 
+import { useState } from "react"
+import { useApiKeys } from "@/hooks/use-api-keys"
+import { ApiKeyValidator } from "@/lib/key-validation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Separator } from "@/components/ui/separator"
+import {
+  Key,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+  Loader2,
   ExternalLink,
   Trash2,
   TestTube,
-  AlertTriangle
-} from 'lucide-react';
+  AlertTriangle,
+} from "lucide-react"
 
 interface ProviderConfig {
-  name: string;
-  description: string;
-  icon: string;
-  placeholder: string;
-  helpUrl: string;
+  name: string
+  description: string
+  icon: string
+  placeholder: string
+  helpUrl: string
 }
 
 const PROVIDERS: Record<string, ProviderConfig> = {
   openrouter: {
-    name: 'OpenRouter',
-    description: 'Access to 50+ AI models including GPT-4, Claude, and Gemini',
-    icon: '🔀',
-    placeholder: 'sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-    helpUrl: 'https://openrouter.ai/keys'
+    name: "OpenRouter",
+    description: "Access to 50+ AI models including GPT-4, Claude, and Gemini",
+    icon: "🔀",
+    placeholder: "sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    helpUrl: "https://openrouter.ai/keys",
   },
   openai: {
-    name: 'OpenAI',
-    description: 'Direct access to GPT-4o, GPT-4o Mini, and other OpenAI models',
-    icon: '🤖',
-    placeholder: 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-    helpUrl: 'https://platform.openai.com/api-keys'
+    name: "OpenAI",
+    description: "Direct access to GPT-4o, GPT-4o Mini, and other OpenAI models",
+    icon: "🤖",
+    placeholder: "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    helpUrl: "https://platform.openai.com/api-keys",
   },
   anthropic: {
-    name: 'Anthropic',
-    description: 'Direct access to Claude 3.5 Sonnet, Opus, and Haiku models',
-    icon: '🧠',
-    placeholder: 'sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-    helpUrl: 'https://console.anthropic.com/keys'
-  }
-};
+    name: "Anthropic",
+    description: "Direct access to Claude 3.5 Sonnet, Opus, and Haiku models",
+    icon: "🧠",
+    placeholder: "sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    helpUrl: "https://console.anthropic.com/keys",
+  },
+}
 
 export function ApiKeyManager() {
-  const { 
-    config, 
-    validation, 
-    isLoading, 
-    updateKey, 
-    removeKey, 
-    validateKey, 
+  const {
+    config,
+    validation,
+    isLoading,
+    updateKey,
+    removeKey,
+    validateKey,
     validateAllKeys,
     clearAllKeys,
     getValidationStatus,
-    hasKeys
-  } = useApiKeys();
+    hasKeys,
+  } = useApiKeys()
 
-  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
-  const [editingKey, setEditingKey] = useState<Record<string, string>>({});
-  const [testingKey, setTestingKey] = useState<string | null>(null);
+  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({})
+  const [editingKey, setEditingKey] = useState<Record<string, string>>({})
+  const [testingKey, setTestingKey] = useState<string | null>(null)
 
   const toggleKeyVisibility = (provider: string) => {
-    setVisibleKeys(prev => ({ ...prev, [provider]: !prev[provider] }));
-  };
+    setVisibleKeys((prev) => ({ ...prev, [provider]: !prev[provider] }))
+  }
 
   const handleKeyEdit = (provider: string, value: string) => {
-    setEditingKey(prev => ({ ...prev, [provider]: value }));
-  };
+    setEditingKey((prev) => ({ ...prev, [provider]: value }))
+  }
 
   const handleKeySave = async (provider: string) => {
-    const value = editingKey[provider];
+    const value = editingKey[provider]
     if (value !== undefined) {
-      await updateKey(provider as keyof typeof config, value);
-      setEditingKey(prev => {
-        const newState = { ...prev };
-        delete newState[provider];
-        return newState;
-      });
+      await updateKey(provider as keyof typeof config, value)
+      setEditingKey((prev) => {
+        const newState = { ...prev }
+        delete newState[provider]
+        return newState
+      })
     }
-  };
+  }
 
   const handleKeyRemove = (provider: string) => {
-    removeKey(provider as keyof typeof config);
-    setEditingKey(prev => {
-      const newState = { ...prev };
-      delete newState[provider];
-      return newState;
-    });
-  };
+    removeKey(provider as keyof typeof config)
+    setEditingKey((prev) => {
+      const newState = { ...prev }
+      delete newState[provider]
+      return newState
+    })
+  }
 
   const handleKeyTest = async (provider: string) => {
-    setTestingKey(provider);
-    await validateKey(provider as keyof typeof config);
-    setTestingKey(null);
-  };
+    setTestingKey(provider)
+    await validateKey(provider as keyof typeof config)
+    setTestingKey(null)
+  }
 
   const renderValidationStatus = (provider: string) => {
-    const status = getValidationStatus(provider as keyof typeof config);
-    const result = validation[provider];
+    const status = getValidationStatus(provider as keyof typeof config)
+    const result = validation[provider]
 
     if (testingKey === provider) {
       return (
@@ -118,41 +118,41 @@ export function ApiKeyManager() {
           <Loader2 className="mr-1 h-3 w-3 animate-spin" />
           Testing...
         </Badge>
-      );
+      )
     }
 
     switch (status) {
-      case 'valid':
+      case "valid":
         return (
           <Badge className="border-green-500/50 bg-green-500/20 text-green-400">
             <CheckCircle className="mr-1 h-3 w-3" />
             Valid
           </Badge>
-        );
-      case 'invalid':
+        )
+      case "invalid":
         return (
           <Badge variant="destructive" className="border-red-500/50 bg-red-500/20 text-red-400">
             <XCircle className="mr-1 h-3 w-3" />
             Invalid
           </Badge>
-        );
+        )
       default:
         return (
           <Badge variant="outline" className="text-mauve-subtle/70">
             <AlertTriangle className="mr-1 h-3 w-3" />
             Not tested
           </Badge>
-        );
+        )
     }
-  };
+  }
 
   const renderKeyInput = (provider: string, providerConfig: ProviderConfig) => {
-    const currentKey = config[provider as keyof typeof config];
-    const isEditing = editingKey[provider] !== undefined;
-    const displayValue = isEditing ? editingKey[provider] : (currentKey || '');
-    const isVisible = visibleKeys[provider];
-    const status = getValidationStatus(provider as keyof typeof config);
-    const result = validation[provider];
+    const currentKey = config[provider as keyof typeof config]
+    const isEditing = editingKey[provider] !== undefined
+    const displayValue = isEditing ? editingKey[provider] : currentKey || ""
+    const isVisible = visibleKeys[provider]
+    const status = getValidationStatus(provider as keyof typeof config)
+    const result = validation[provider]
 
     return (
       <Card key={provider} className="border-mauve-dark bg-mauve-surface/30">
@@ -168,7 +168,7 @@ export function ApiKeyManager() {
             {renderValidationStatus(provider)}
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor={`${provider}-key`} className="text-sm font-medium">
@@ -194,18 +194,18 @@ export function ApiKeyManager() {
                   {isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
-              
+
               {isEditing || !currentKey ? (
-                <Button 
+                <Button
                   onClick={() => handleKeySave(provider)}
-                  disabled={!editingKey[provider] || editingKey[provider].trim() === ''}
+                  disabled={!editingKey[provider] || editingKey[provider].trim() === ""}
                   size="sm"
                 >
                   Save
                 </Button>
               ) : (
                 <div className="flex gap-1">
-                  <Button 
+                  <Button
                     onClick={() => handleKeyTest(provider)}
                     disabled={testingKey === provider}
                     variant="outline"
@@ -213,11 +213,7 @@ export function ApiKeyManager() {
                   >
                     <TestTube className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    onClick={() => handleKeyRemove(provider)}
-                    variant="outline"
-                    size="sm"
-                  >
+                  <Button onClick={() => handleKeyRemove(provider)} variant="outline" size="sm">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -228,9 +224,7 @@ export function ApiKeyManager() {
           {result && !result.isValid && result.error && (
             <Alert className="border-red-500/50 bg-red-500/10">
               <XCircle className="h-4 w-4" />
-              <AlertDescription className="text-red-400">
-                {result.error}
-              </AlertDescription>
+              <AlertDescription className="text-red-400">{result.error}</AlertDescription>
             </Alert>
           )}
 
@@ -241,7 +235,7 @@ export function ApiKeyManager() {
                 <div className="space-y-1">
                   <div>Connected to {result.modelInfo.provider}</div>
                   <div className="text-xs">
-                    Available models: {result.modelInfo.models.join(', ')}
+                    Available models: {result.modelInfo.models.join(", ")}
                   </div>
                 </div>
               </AlertDescription>
@@ -250,11 +244,11 @@ export function ApiKeyManager() {
 
           <div className="flex items-center justify-between text-xs text-mauve-subtle/70">
             <span>Get your API key from:</span>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="h-auto p-0 text-xs text-mauve-accent hover:text-mauve-accent/80"
-              onClick={() => window.open(providerConfig.helpUrl, '_blank')}
+              onClick={() => window.open(providerConfig.helpUrl, "_blank")}
             >
               {providerConfig.name} Dashboard
               <ExternalLink className="ml-1 h-3 w-3" />
@@ -262,14 +256,14 @@ export function ApiKeyManager() {
           </div>
         </CardContent>
       </Card>
-    );
-  };
+    )
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h2 className="flex items-center gap-2 text-2xl font-bold text-foreground">
             <Key className="h-6 w-6" />
             API Key Management
           </h2>
@@ -277,15 +271,10 @@ export function ApiKeyManager() {
             Bring your own API keys for direct access to AI models
           </p>
         </div>
-        
+
         {hasKeys && (
           <div className="flex gap-2">
-            <Button 
-              onClick={validateAllKeys}
-              disabled={isLoading}
-              variant="outline"
-              size="sm"
-            >
+            <Button onClick={validateAllKeys} disabled={isLoading} variant="outline" size="sm">
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
@@ -293,7 +282,7 @@ export function ApiKeyManager() {
               )}
               Test All Keys
             </Button>
-            <Button 
+            <Button
               onClick={clearAllKeys}
               variant="outline"
               size="sm"
@@ -312,17 +301,16 @@ export function ApiKeyManager() {
           <div className="space-y-2">
             <div className="font-medium">Secure Key Storage</div>
             <div className="text-sm">
-              Your API keys are stored securely in your browser's local storage and never sent to our servers. 
-              We recommend using OpenRouter for the best experience with access to multiple AI models.
+              Your API keys are stored securely in your browser's local storage and never sent to
+              our servers. We recommend using OpenRouter for the best experience with access to
+              multiple AI models.
             </div>
           </div>
         </AlertDescription>
       </Alert>
 
       <div className="space-y-4">
-        {Object.entries(PROVIDERS).map(([provider, config]) => 
-          renderKeyInput(provider, config)
-        )}
+        {Object.entries(PROVIDERS).map(([provider, config]) => renderKeyInput(provider, config))}
       </div>
 
       <Separator />
@@ -338,14 +326,12 @@ export function ApiKeyManager() {
                     <span className="text-lg">{config.icon}</span>
                     <span className="font-medium">{config.name}</span>
                   </div>
-                  <p className="text-xs text-mauve-subtle/70">
-                    {config.description}
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <p className="text-xs text-mauve-subtle/70">{config.description}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full text-xs"
-                    onClick={() => window.open(config.helpUrl, '_blank')}
+                    onClick={() => window.open(config.helpUrl, "_blank")}
                   >
                     Get API Key
                     <ExternalLink className="ml-1 h-3 w-3" />
@@ -357,5 +343,5 @@ export function ApiKeyManager() {
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -10,23 +10,23 @@ export const list = query({
   },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50
-    
+
     let messagesQuery = ctx.db
       .query("messages")
       .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
       .order("asc")
-    
+
     if (args.cursor) {
       messagesQuery = messagesQuery.filter((q) => q.gt(q.field("_id"), args.cursor as any))
     }
-    
+
     const messages = await messagesQuery.take(limit + 1)
     const hasMore = messages.length > limit
-    
+
     if (hasMore) {
       messages.pop()
     }
-    
+
     return {
       messages,
       hasMore,
@@ -52,11 +52,11 @@ export const getConversationTree = query({
       .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
       .order("asc")
       .collect()
-    
+
     // Build tree structure
     const messageMap = new Map()
     const children = new Map()
-    
+
     messages.forEach((msg: any) => {
       messageMap.set(msg._id, { ...msg, children: [] })
       if (!children.has(msg.parentMessageId)) {
@@ -64,19 +64,19 @@ export const getConversationTree = query({
       }
       children.get(msg.parentMessageId)?.push(msg._id)
     })
-    
+
     // Organize into tree structure
     children.forEach((childIds, parentId) => {
       if (parentId && messageMap.has(parentId)) {
         messageMap.get(parentId).children = childIds.map((id: any) => messageMap.get(id))
       }
     })
-    
+
     // Return root messages (no parent) and full tree
     const rootMessages = messages
-      .filter(msg => !msg.parentMessageId)
-      .map(msg => messageMap.get(msg._id))
-    
+      .filter((msg) => !msg.parentMessageId)
+      .map((msg) => messageMap.get(msg._id))
+
     return {
       tree: rootMessages,
       messages: Object.fromEntries(messageMap),
@@ -104,7 +104,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now()
-    
+
     const messageId = await ctx.db.insert("messages", {
       chatId: args.chatId,
       content: args.content,
@@ -117,13 +117,13 @@ export const create = mutation({
       timestamp: now,
       isEdited: false,
     })
-    
+
     // Update chat's updatedAt timestamp and active leaf if this is a leaf message
     await ctx.db.patch(args.chatId, {
       updatedAt: now,
       activeLeafMessageId: !args.parentMessageId ? messageId : undefined,
     })
-    
+
     return messageId
   },
 })
@@ -139,20 +139,20 @@ export const edit = mutation({
     if (!message) {
       throw new Error("Message not found")
     }
-    
+
     const now = Date.now()
-    
+
     await ctx.db.patch(args.messageId, {
       content: args.content,
       isEdited: true,
       editedAt: now,
     })
-    
+
     // Update chat's updatedAt timestamp
     await ctx.db.patch(message.chatId, {
       updatedAt: now,
     })
-    
+
     return args.messageId
   },
 })
@@ -167,39 +167,39 @@ export const deleteMessage = mutation({
     if (!message) {
       throw new Error("Message not found")
     }
-    
+
     // Find all child messages recursively
     const findChildren = async (parentId: string): Promise<string[]> => {
       const children = await ctx.db
         .query("messages")
         .withIndex("by_parent", (q) => q.eq("parentMessageId", parentId))
         .collect()
-      
+
       let allChildren = children.map((child: any) => child._id)
-      
+
       for (const child of children) {
         const grandChildren = await findChildren(child._id)
         allChildren = allChildren.concat(grandChildren)
       }
-      
+
       return allChildren
     }
-    
+
     const childrenIds = await findChildren(args.messageId)
-    
+
     // Delete all children first
     for (const childId of childrenIds) {
       await ctx.db.delete(childId as any)
     }
-    
+
     // Delete the message itself
     await ctx.db.delete(args.messageId)
-    
+
     // Update chat's updatedAt timestamp
     await ctx.db.patch(message.chatId, {
       updatedAt: Date.now(),
     })
-    
+
     return { deletedCount: childrenIds.length + 1 }
   },
 })
@@ -226,13 +226,13 @@ export const createBranch = mutation({
       .query("messages")
       .filter((q) => q.eq(q.field("_id"), args.parentMessageId))
       .first()
-    
+
     if (!parentMessage) {
       throw new Error("Parent message not found")
     }
-    
+
     const now = Date.now()
-    
+
     const messageId = await ctx.db.insert("messages", {
       chatId: parentMessage.chatId,
       content: args.content,
@@ -244,12 +244,12 @@ export const createBranch = mutation({
       timestamp: now,
       isEdited: false,
     })
-    
+
     // Update chat's updatedAt timestamp
     await ctx.db.patch(parentMessage.chatId, {
       updatedAt: now,
     })
-    
+
     return messageId
   },
 })
@@ -271,7 +271,7 @@ export const getLatestForChat = query({
   args: { chatId: v.id("chats"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 3
-    
+
     return await ctx.db
       .query("messages")
       .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
@@ -288,7 +288,7 @@ export const bulkDelete = mutation({
   handler: async (ctx, args) => {
     let deletedCount = 0
     let chatId: any = null
-    
+
     for (const messageId of args.messageIds) {
       const message = await ctx.db.get(messageId)
       if (message) {
@@ -297,14 +297,14 @@ export const bulkDelete = mutation({
         if (!chatId) chatId = message.chatId
       }
     }
-    
+
     // Update chat's updatedAt timestamp if we deleted any messages
     if (chatId && deletedCount > 0) {
       await ctx.db.patch(chatId, {
         updatedAt: Date.now(),
       })
     }
-    
+
     return { deletedCount }
   },
 })

@@ -11,55 +11,62 @@ interface LanguagePattern {
 
 const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
   javascript: {
-    keywords: ['function', 'const', 'let', 'var', 'import', 'export', 'class', 'extends'],
+    keywords: ["function", "const", "let", "var", "import", "export", "class", "extends"],
     patterns: [
       /\b(async|await)\b/,
       /=>\s*{/,
       /\.(forEach|map|filter|reduce)\(/,
       /console\.(log|error|warn)/,
       /require\(['"`]/,
-      /module\.exports/
+      /module\.exports/,
     ],
-    fileExtensions: ['js', 'mjs', 'cjs']
+    fileExtensions: ["js", "mjs", "cjs"],
   },
-  
+
   typescript: {
-    keywords: ['interface', 'type', 'enum', 'namespace', 'declare', 'abstract'],
+    keywords: ["interface", "type", "enum", "namespace", "declare", "abstract"],
     patterns: [
       /:\s*(string|number|boolean|object|any|unknown|never|void)/,
       /\?\s*:/,
       /<[A-Z][A-Za-z0-9]*>/,
       /as\s+[A-Z]/,
-      /implements\s+[A-Z]/
+      /implements\s+[A-Z]/,
     ],
-    fileExtensions: ['ts', 'mts', 'cts']
+    fileExtensions: ["ts", "mts", "cts"],
   },
-  
+
   tsx: {
-    keywords: ['React', 'Component', 'Props', 'State', 'JSX'],
+    keywords: ["React", "Component", "Props", "State", "JSX"],
     patterns: [
       /<[A-Z][A-Za-z0-9]*\s*[^>]*>/,
       /\{.*\}/,
       /className=/,
       /onClick=/,
-      /useState|useEffect|useCallback|useMemo/
+      /useState|useEffect|useCallback|useMemo/,
     ],
-    fileExtensions: ['tsx']
+    fileExtensions: ["tsx"],
   },
-  
+
   jsx: {
-    keywords: ['React', 'Component', 'render', 'props', 'state'],
-    patterns: [
-      /<[A-Z][A-Za-z0-9]*\s*[^>]*>/,
-      /className=/,
-      /onClick=/,
-      /\{.*\}/
-    ],
-    fileExtensions: ['jsx']
+    keywords: ["React", "Component", "render", "props", "state"],
+    patterns: [/<[A-Z][A-Za-z0-9]*\s*[^>]*>/, /className=/, /onClick=/, /\{.*\}/],
+    fileExtensions: ["jsx"],
   },
-  
+
   python: {
-    keywords: ['def', 'class', 'import', 'from', 'if', 'elif', 'else', 'for', 'while', 'try', 'except'],
+    keywords: [
+      "def",
+      "class",
+      "import",
+      "from",
+      "if",
+      "elif",
+      "else",
+      "for",
+      "while",
+      "try",
+      "except",
+    ],
     patterns: [
       /def\s+\w+\s*\(/,
       /class\s+\w+/,
@@ -67,73 +74,68 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /from\s+\w+\s+import/,
       /#.*$/m,
       /print\(/,
-      /\bself\b/
+      /\bself\b/,
     ],
-    fileExtensions: ['py', 'pyw', 'pyi']
+    fileExtensions: ["py", "pyw", "pyi"],
   },
-  
+
   java: {
-    keywords: ['public', 'private', 'protected', 'class', 'interface', 'extends', 'implements'],
+    keywords: ["public", "private", "protected", "class", "interface", "extends", "implements"],
     patterns: [
       /public\s+(class|interface)/,
       /\bSystem\.out\.print/,
       /\bString\[\]/,
       /\bnew\s+\w+\(/,
-      /\@Override/
+      /\@Override/,
     ],
-    fileExtensions: ['java']
+    fileExtensions: ["java"],
   },
-  
+
   cpp: {
-    keywords: ['#include', 'using', 'namespace', 'class', 'struct', 'template'],
+    keywords: ["#include", "using", "namespace", "class", "struct", "template"],
     patterns: [
       /#include\s*<.*>/,
       /using\s+namespace/,
       /std::/,
       /cout\s*<</,
       /cin\s*>>/,
-      /\btemplate\s*</
+      /\btemplate\s*</,
     ],
-    fileExtensions: ['cpp', 'cxx', 'cc', 'c++']
+    fileExtensions: ["cpp", "cxx", "cc", "c++"],
   },
-  
+
   c: {
-    keywords: ['#include', 'int', 'char', 'float', 'double', 'void', 'struct'],
+    keywords: ["#include", "int", "char", "float", "double", "void", "struct"],
     patterns: [
       /#include\s*<.*\.h>/,
       /printf\(/,
       /scanf\(/,
       /int\s+main\s*\(/,
       /\bmalloc\(/,
-      /\bfree\(/
+      /\bfree\(/,
     ],
-    fileExtensions: ['c', 'h']
+    fileExtensions: ["c", "h"],
   },
-  
+
   css: {
-    keywords: ['@import', '@media', '@keyframes', '@font-face'],
+    keywords: ["@import", "@media", "@keyframes", "@font-face"],
     patterns: [
       /\.[a-zA-Z][\w-]*\s*\{/,
       /#[a-zA-Z][\w-]*\s*\{/,
       /[a-zA-Z-]+\s*:\s*[^;]+;/,
       /@media\s*\(/,
       /rgba?\(/,
-      /hsla?\(/
+      /hsla?\(/,
     ],
-    fileExtensions: ['css', 'scss', 'sass', 'less']
+    fileExtensions: ["css", "scss", "sass", "less"],
   },
-  
+
   html: {
-    keywords: ['<!DOCTYPE', '<html', '<head', '<body', '<div', '<span'],
-    patterns: [
-      /<!DOCTYPE\s+html>/i,
-      /<\/?\w+[^>]*>/,
-      /\s+(class|id|src|href)=/,
-      /<!--.*-->/
-    ],
-    fileExtensions: ['html', 'htm', 'xhtml']
+    keywords: ["<!DOCTYPE", "<html", "<head", "<body", "<div", "<span"],
+    patterns: [/<!DOCTYPE\s+html>/i, /<\/?\w+[^>]*>/, /\s+(class|id|src|href)=/, /<!--.*-->/],
+    fileExtensions: ["html", "htm", "xhtml"],
   },
-  
+
   json: {
     keywords: [],
     patterns: [
@@ -141,11 +143,11 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /^\s*\[[\s\S]*\]\s*$/,
       /"[^"]*"\s*:\s*("[^"]*"|\d+|true|false|null|\{|\[)/,
     ],
-    fileExtensions: ['json', 'jsonc']
+    fileExtensions: ["json", "jsonc"],
   },
-  
+
   sql: {
-    keywords: ['SELECT', 'FROM', 'WHERE', 'INSERT', 'UPDATE', 'DELETE', 'CREATE', 'ALTER', 'DROP'],
+    keywords: ["SELECT", "FROM", "WHERE", "INSERT", "UPDATE", "DELETE", "CREATE", "ALTER", "DROP"],
     patterns: [
       /\bSELECT\s+.*\s+FROM\b/i,
       /\bINSERT\s+INTO\b/i,
@@ -153,26 +155,28 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /\bCREATE\s+(TABLE|INDEX|VIEW)\b/i,
       /\bJOIN\b/i,
       /\bGROUP\s+BY\b/i,
-      /\bORDER\s+BY\b/i
+      /\bORDER\s+BY\b/i,
     ],
-    fileExtensions: ['sql', 'psql', 'mysql']
+    fileExtensions: ["sql", "psql", "mysql"],
   },
-  
+
   bash: {
-    keywords: ['#!/bin/bash', '#!/bin/sh', 'if', 'then', 'else', 'fi', 'for', 'while', 'do', 'done'],
-    patterns: [
-      /^#!/,
-      /\$\w+/,
-      /\$\{.*\}/,
-      /\|\s*\w+/,
-      /&&|\|\|/,
-      /echo\s+/,
-      /grep\s+/,
-      /find\s+/
+    keywords: [
+      "#!/bin/bash",
+      "#!/bin/sh",
+      "if",
+      "then",
+      "else",
+      "fi",
+      "for",
+      "while",
+      "do",
+      "done",
     ],
-    fileExtensions: ['sh', 'bash', 'zsh', 'fish']
+    patterns: [/^#!/, /\$\w+/, /\$\{.*\}/, /\|\s*\w+/, /&&|\|\|/, /echo\s+/, /grep\s+/, /find\s+/],
+    fileExtensions: ["sh", "bash", "zsh", "fish"],
   },
-  
+
   yaml: {
     keywords: [],
     patterns: [
@@ -181,11 +185,11 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /:\s*\|/,
       /:\s*>/,
       /^---\s*$/m,
-      /^\.\.\.\s*$/m
+      /^\.\.\.\s*$/m,
     ],
-    fileExtensions: ['yaml', 'yml']
+    fileExtensions: ["yaml", "yml"],
   },
-  
+
   markdown: {
     keywords: [],
     patterns: [
@@ -196,13 +200,25 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /^\s*\d+\.\s+/m,
       /```[\w]*$/m,
       /`[^`]+`/,
-      /\[.*\]\(.*\)/
+      /\[.*\]\(.*\)/,
     ],
-    fileExtensions: ['md', 'markdown', 'mdown', 'mkdown']
+    fileExtensions: ["md", "markdown", "mdown", "mkdown"],
   },
 
   go: {
-    keywords: ['func', 'package', 'import', 'var', 'const', 'type', 'struct', 'interface', 'range', 'go', 'defer'],
+    keywords: [
+      "func",
+      "package",
+      "import",
+      "var",
+      "const",
+      "type",
+      "struct",
+      "interface",
+      "range",
+      "go",
+      "defer",
+    ],
     patterns: [
       /package\s+\w+/,
       /func\s+\w+\s*\(/,
@@ -212,13 +228,13 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /\brange\b/,
       /\bdefer\b/,
       /\berr\s*:=/,
-      /\bnil\b/
+      /\bnil\b/,
     ],
-    fileExtensions: ['go']
+    fileExtensions: ["go"],
   },
 
   rust: {
-    keywords: ['fn', 'let', 'mut', 'use', 'mod', 'struct', 'enum', 'impl', 'trait', 'match', 'pub'],
+    keywords: ["fn", "let", "mut", "use", "mod", "struct", "enum", "impl", "trait", "match", "pub"],
     patterns: [
       /fn\s+\w+\s*\(/,
       /let\s+(mut\s+)?\w+/,
@@ -228,13 +244,13 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /\bOption<.*>/,
       /\bpub\s+(fn|struct|enum)/,
       /\b&str\b/,
-      /\bString::/
+      /\bString::/,
     ],
-    fileExtensions: ['rs']
+    fileExtensions: ["rs"],
   },
 
   php: {
-    keywords: ['<?php', 'function', 'class', 'public', 'private', 'protected', 'namespace', 'use'],
+    keywords: ["<?php", "function", "class", "public", "private", "protected", "namespace", "use"],
     patterns: [
       /^<\?php/,
       /\$\w+/,
@@ -243,13 +259,22 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /echo\s+/,
       /\$this->/,
       /->/,
-      /namespace\s+\w+/
+      /namespace\s+\w+/,
     ],
-    fileExtensions: ['php', 'phtml']
+    fileExtensions: ["php", "phtml"],
   },
 
   ruby: {
-    keywords: ['def', 'class', 'module', 'require', 'include', 'attr_accessor', 'attr_reader', 'attr_writer'],
+    keywords: [
+      "def",
+      "class",
+      "module",
+      "require",
+      "include",
+      "attr_accessor",
+      "attr_reader",
+      "attr_writer",
+    ],
     patterns: [
       /def\s+\w+/,
       /class\s+\w+/,
@@ -258,13 +283,13 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /\bdo\s*\|.*\|/,
       /\bend\b/,
       /puts\s+/,
-      /require\s+['"`]/
+      /require\s+['"`]/,
     ],
-    fileExtensions: ['rb', 'ruby']
+    fileExtensions: ["rb", "ruby"],
   },
 
   swift: {
-    keywords: ['func', 'class', 'struct', 'enum', 'protocol', 'extension', 'import', 'var', 'let'],
+    keywords: ["func", "class", "struct", "enum", "protocol", "extension", "import", "var", "let"],
     patterns: [
       /func\s+\w+\s*\(/,
       /class\s+\w+/,
@@ -273,13 +298,24 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /\blet\s+\w+\s*=/,
       /print\(/,
       /\bswitch\s+\w+/,
-      /\bguard\s+let/
+      /\bguard\s+let/,
     ],
-    fileExtensions: ['swift']
+    fileExtensions: ["swift"],
   },
 
   kotlin: {
-    keywords: ['fun', 'class', 'object', 'interface', 'data', 'sealed', 'abstract', 'open', 'val', 'var'],
+    keywords: [
+      "fun",
+      "class",
+      "object",
+      "interface",
+      "data",
+      "sealed",
+      "abstract",
+      "open",
+      "val",
+      "var",
+    ],
     patterns: [
       /fun\s+\w+\s*\(/,
       /class\s+\w+/,
@@ -288,25 +324,25 @@ const LANGUAGE_PATTERNS: Record<string, LanguagePattern> = {
       /\bvar\s+\w+:\s*\w+/,
       /println\(/,
       /\bwhen\s*\(/,
-      /\bnull\b/
+      /\bnull\b/,
     ],
-    fileExtensions: ['kt', 'kts']
-  }
+    fileExtensions: ["kt", "kts"],
+  },
 }
 
 /**
  * Detect programming language from file extension
  */
 export function detectLanguageFromExtension(filename: string): string | null {
-  const ext = filename.split('.').pop()?.toLowerCase()
+  const ext = filename.split(".").pop()?.toLowerCase()
   if (!ext) return null
-  
+
   for (const [language, patterns] of Object.entries(LANGUAGE_PATTERNS)) {
     if (patterns.fileExtensions.includes(ext)) {
       return language
     }
   }
-  
+
   return null
 }
 
@@ -314,24 +350,24 @@ export function detectLanguageFromExtension(filename: string): string | null {
  * Detect programming language from code content using heuristics
  */
 export function detectLanguageFromContent(code: string): string {
-  const lines = code.split('\n')
-  const firstFewLines = lines.slice(0, 10).join('\n')
+  const lines = code.split("\n")
+  const firstFewLines = lines.slice(0, 10).join("\n")
   const sampleCode = code.length > 1000 ? code.substring(0, 1000) : code
-  
+
   const scores: Record<string, number> = {}
-  
+
   for (const [language, patterns] of Object.entries(LANGUAGE_PATTERNS)) {
     let score = 0
-    
+
     // Check for keywords
     for (const keyword of patterns.keywords) {
-      const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi')
+      const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi")
       const matches = sampleCode.match(regex)
       if (matches) {
         score += matches.length * 2
       }
     }
-    
+
     // Check for patterns
     for (const pattern of patterns.patterns) {
       const matches = sampleCode.match(pattern)
@@ -339,9 +375,9 @@ export function detectLanguageFromContent(code: string): string {
         score += matches.length * 3
       }
     }
-    
+
     // Special scoring for specific languages
-    if (language === 'json') {
+    if (language === "json") {
       try {
         JSON.parse(code.trim())
         score += 50 // High confidence for valid JSON
@@ -349,26 +385,26 @@ export function detectLanguageFromContent(code: string): string {
         score = Math.max(0, score - 10) // Penalty for invalid JSON
       }
     }
-    
+
     scores[language] = score
   }
-  
+
   // Find the language with the highest score
   const sortedLanguages = Object.entries(scores)
     .filter(([_, score]) => score > 0)
     .sort(([_, a], [__, b]) => b - a)
-  
+
   if (sortedLanguages.length === 0) {
-    return 'text'
+    return "text"
   }
-  
+
   const [bestLanguage, bestScore] = sortedLanguages[0]
-  
+
   // Require a minimum confidence threshold
   if (bestScore < 3) {
-    return 'text'
+    return "text"
   }
-  
+
   return bestLanguage
 }
 
@@ -383,7 +419,7 @@ export function detectLanguage(code: string, filename?: string): string {
       return extensionLanguage
     }
   }
-  
+
   // Fallback to content-based detection
   return detectLanguageFromContent(code)
 }
@@ -393,34 +429,34 @@ export function detectLanguage(code: string, filename?: string): string {
  */
 export function getLanguageDisplayName(language: string): string {
   const displayNames: Record<string, string> = {
-    javascript: 'JavaScript',
-    typescript: 'TypeScript',
-    tsx: 'TypeScript React',
-    jsx: 'JavaScript React',
-    python: 'Python',
-    java: 'Java',
-    cpp: 'C++',
-    c: 'C',
-    csharp: 'C#',
-    css: 'CSS',
-    scss: 'SCSS',
-    sass: 'Sass',
-    less: 'Less',
-    html: 'HTML',
-    xml: 'XML',
-    json: 'JSON',
-    yaml: 'YAML',
-    yml: 'YAML',
-    sql: 'SQL',
-    bash: 'Bash',
-    shell: 'Shell',
-    sh: 'Shell',
-    markdown: 'Markdown',
-    md: 'Markdown',
-    text: 'Plain Text',
-    txt: 'Plain Text'
+    javascript: "JavaScript",
+    typescript: "TypeScript",
+    tsx: "TypeScript React",
+    jsx: "JavaScript React",
+    python: "Python",
+    java: "Java",
+    cpp: "C++",
+    c: "C",
+    csharp: "C#",
+    css: "CSS",
+    scss: "SCSS",
+    sass: "Sass",
+    less: "Less",
+    html: "HTML",
+    xml: "XML",
+    json: "JSON",
+    yaml: "YAML",
+    yml: "YAML",
+    sql: "SQL",
+    bash: "Bash",
+    shell: "Shell",
+    sh: "Shell",
+    markdown: "Markdown",
+    md: "Markdown",
+    text: "Plain Text",
+    txt: "Plain Text",
   }
-  
+
   return displayNames[language.toLowerCase()] || language.toUpperCase()
 }
 
@@ -429,10 +465,30 @@ export function getLanguageDisplayName(language: string): string {
  */
 export function isLanguageSupported(language: string): boolean {
   const supportedLanguages = [
-    'javascript', 'typescript', 'tsx', 'jsx', 'python', 'java', 'cpp', 'c',
-    'css', 'scss', 'sass', 'less', 'html', 'xml', 'json', 'yaml', 'yml',
-    'sql', 'bash', 'shell', 'sh', 'markdown', 'md'
+    "javascript",
+    "typescript",
+    "tsx",
+    "jsx",
+    "python",
+    "java",
+    "cpp",
+    "c",
+    "css",
+    "scss",
+    "sass",
+    "less",
+    "html",
+    "xml",
+    "json",
+    "yaml",
+    "yml",
+    "sql",
+    "bash",
+    "shell",
+    "sh",
+    "markdown",
+    "md",
   ]
-  
+
   return supportedLanguages.includes(language.toLowerCase())
 }
