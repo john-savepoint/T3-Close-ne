@@ -135,6 +135,13 @@ export const create = mutation({
  * - Updates content and marks as edited with timestamp
  * - Updates chat's updatedAt timestamp
  */
+/**
+ * Mutation to edit a message's content
+ * - Verifies user authentication
+ * - Verifies user owns the message (via chat ownership)
+ * - Updates content and marks as edited with timestamp
+ * - Updates chat's updatedAt timestamp
+ */
 export const edit = mutation({
   args: {
     messageId: v.id("messages"),
@@ -162,7 +169,7 @@ export const edit = mutation({
     // if (chat.userId !== identity.subject) {
     //   throw new Error("Unauthorized: You can only edit your own messages")
     // }
-    
+
     const now = Date.now()
 
     await ctx.db.patch(args.messageId, {
@@ -175,14 +182,14 @@ export const edit = mutation({
     await ctx.db.patch(message.chatId, {
       updatedAt: now,
     })
-    
+
     return { messageId: args.messageId, success: true }
   },
 })
 
 /**
  * Mutation to delete a message and all its children recursively
- * - Verifies user authentication  
+ * - Verifies user authentication
  * - Verifies user owns the message (via chat ownership)
  * - Recursively finds and deletes all child messages
  * - Deletes the message itself
@@ -194,6 +201,11 @@ export const deleteMessage = mutation({
     messageId: v.id("messages"),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      throw new Error("Authentication required")
+    }
+
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
       throw new Error("Authentication required")
@@ -215,7 +227,7 @@ export const deleteMessage = mutation({
     // if (chat.userId !== identity.subject) {
     //   throw new Error("Unauthorized: You can only delete your own messages")
     // }
-    
+
     // Find all child messages recursively
     const findChildren = async (parentId: string): Promise<string[]> => {
       const children = await ctx.db
@@ -247,7 +259,7 @@ export const deleteMessage = mutation({
     await ctx.db.patch(message.chatId, {
       updatedAt: Date.now(),
     })
-    
+
     return { deletedCount: childrenIds.length + 1, success: true }
   },
 })

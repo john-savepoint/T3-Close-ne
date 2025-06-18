@@ -31,7 +31,7 @@ export function useChat(options: UseChatOptions = {}) {
   )
   const [apiKey, setApiKey] = useState<string | undefined>(options.apiKey)
   const [temperature, setTemperature] = useState<number>(0.7)
-  
+
   // Convex mutations
   const editMessageMutation = useMutation(api.messages.edit)
   const deleteMessageMutation = useMutation(api.messages.deleteMessage)
@@ -127,7 +127,7 @@ export function useChat(options: UseChatOptions = {}) {
             messageId: messageId as any, // TODO: Fix type conversion for Convex ID
             content: newContent.trim(),
           })
-          
+
           if (result.success) {
             console.log("Message edited successfully:", result.messageId)
             // The message will be updated via Convex live queries
@@ -150,7 +150,7 @@ export function useChat(options: UseChatOptions = {}) {
         const result = await deleteMessageMutation({
           messageId: messageId as any, // TODO: Fix type conversion for Convex ID
         })
-        
+
         if (result.success) {
           console.log(`Successfully deleted ${result.deletedCount} message(s)`)
           // The messages will be removed via Convex live queries

@@ -33,187 +33,189 @@ interface TreeNode {
 }
 
 // Memoized tree node component for performance
-const TreeNodeComponent = memo(({ 
-  node, 
-  depth, 
-  currentMessageId, 
-  onMessageSelect, 
-  expandedNodes, 
-  toggleNode, 
-  editingNode, 
-  editValue, 
-  setEditValue, 
-  startEditingNode, 
-  saveNodeName, 
-  cancelEdit, 
-  nodeNames, 
-  getBranchingPoints 
-}: {
-  node: TreeNode
-  depth: number
-  currentMessageId?: string | null
-  onMessageSelect: (messageId: string) => void
-  expandedNodes: Set<string>
-  toggleNode: (nodeId: string) => void
-  editingNode: string | null
-  editValue: string
-  setEditValue: (value: string) => void
-  startEditingNode: (nodeId: string, currentName?: string) => void
-  saveNodeName: (nodeId: string) => void
-  cancelEdit: () => void
-  nodeNames: Map<string, string>
-  getBranchingPoints: () => string[]
-}) => {
-  const { message, children, isActivePath } = node
-  const hasChildren = children.length > 0
-  const isExpanded = expandedNodes.has(message.id)
-  const isEditing = editingNode === message.id
-  const nodeName = nodeNames.get(message.id)
-  const branchingPoints = getBranchingPoints()
-  const isBranchingPoint = branchingPoints.includes(message.id)
+const TreeNodeComponent = memo(
+  ({
+    node,
+    depth,
+    currentMessageId,
+    onMessageSelect,
+    expandedNodes,
+    toggleNode,
+    editingNode,
+    editValue,
+    setEditValue,
+    startEditingNode,
+    saveNodeName,
+    cancelEdit,
+    nodeNames,
+    getBranchingPoints,
+  }: {
+    node: TreeNode
+    depth: number
+    currentMessageId?: string | null
+    onMessageSelect: (messageId: string) => void
+    expandedNodes: Set<string>
+    toggleNode: (nodeId: string) => void
+    editingNode: string | null
+    editValue: string
+    setEditValue: (value: string) => void
+    startEditingNode: (nodeId: string, currentName?: string) => void
+    saveNodeName: (nodeId: string) => void
+    cancelEdit: () => void
+    nodeNames: Map<string, string>
+    getBranchingPoints: () => string[]
+  }) => {
+    const { message, children, isActivePath } = node
+    const hasChildren = children.length > 0
+    const isExpanded = expandedNodes.has(message.id)
+    const isEditing = editingNode === message.id
+    const nodeName = nodeNames.get(message.id)
+    const branchingPoints = getBranchingPoints()
+    const isBranchingPoint = branchingPoints.includes(message.id)
 
-  return (
-    <div key={message.id} className="w-full">
-      <div
-        role="treeitem"
-        aria-expanded={hasChildren ? isExpanded : undefined}
-        aria-selected={message.id === currentMessageId}
-        aria-label={`${message.type === "user" ? "User" : "AI"} message: ${message.content.substring(0, 50)}${message.content.length > 50 ? "..." : ""}`}
-        tabIndex={0}
-        className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-mauve-accent ${isActivePath ? "border-l-2 border-mauve-accent bg-mauve-accent/20" : "hover:bg-mauve-dark/30"} ${message.id === currentMessageId ? "ring-1 ring-mauve-accent" : ""} `}
-        style={{ marginLeft: `${depth * 20}px` }}
-        onClick={() => onMessageSelect(message.id)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault()
-            onMessageSelect(message.id)
-          }
-          if (e.key === "ArrowRight" && hasChildren && !isExpanded) {
-            e.preventDefault()
-            toggleNode(message.id)
-          }
-          if (e.key === "ArrowLeft" && hasChildren && isExpanded) {
-            e.preventDefault()
-            toggleNode(message.id)
-          }
-        }}
-      >
-        {hasChildren && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-4 w-4 p-0"
-            onClick={(e) => {
-              e.stopPropagation()
+    return (
+      <div key={message.id} className="w-full">
+        <div
+          role="treeitem"
+          aria-expanded={hasChildren ? isExpanded : undefined}
+          aria-selected={message.id === currentMessageId}
+          aria-label={`${message.type === "user" ? "User" : "AI"} message: ${message.content.substring(0, 50)}${message.content.length > 50 ? "..." : ""}`}
+          tabIndex={0}
+          className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-mauve-accent ${isActivePath ? "border-l-2 border-mauve-accent bg-mauve-accent/20" : "hover:bg-mauve-dark/30"} ${message.id === currentMessageId ? "ring-1 ring-mauve-accent" : ""} `}
+          style={{ marginLeft: `${depth * 20}px` }}
+          onClick={() => onMessageSelect(message.id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              onMessageSelect(message.id)
+            }
+            if (e.key === "ArrowRight" && hasChildren && !isExpanded) {
+              e.preventDefault()
               toggleNode(message.id)
-            }}
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-3 w-3" />
-            ) : (
-              <ChevronRight className="h-3 w-3" />
-            )}
-          </Button>
-        )}
+            }
+            if (e.key === "ArrowLeft" && hasChildren && isExpanded) {
+              e.preventDefault()
+              toggleNode(message.id)
+            }
+          }}
+        >
+          {hasChildren && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-4 w-4 p-0"
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleNode(message.id)
+              }}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3" />
+              ) : (
+                <ChevronRight className="h-3 w-3" />
+              )}
+            </Button>
+          )}
 
-        {message.type === "user" ? (
-          <User className="h-4 w-4 flex-shrink-0 text-blue-400" />
-        ) : (
-          <Bot className="h-4 w-4 flex-shrink-0 text-mauve-accent" />
-        )}
-
-        {isBranchingPoint && <GitBranch className="h-3 w-3 text-purple-400" />}
-
-        <div className="min-w-0 flex-1">
-          {isEditing ? (
-            <div className="flex items-center gap-1">
-              <Input
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                className="h-6 text-xs"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") saveNodeName(message.id)
-                  if (e.key === "Escape") cancelEdit()
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 p-0"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  saveNodeName(message.id)
-                }}
-              >
-                <Check className="h-3 w-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 p-0"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  cancelEdit()
-                }}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
+          {message.type === "user" ? (
+            <User className="h-4 w-4 flex-shrink-0 text-blue-400" />
           ) : (
-            <div className="flex items-center gap-1">
-              <span className="truncate text-xs">
-                {nodeName ||
-                  `${message.content.substring(0, 30)}${message.content.length > 30 ? "..." : ""}`}
-              </span>
-              {message.type === "user" && (
+            <Bot className="h-4 w-4 flex-shrink-0 text-mauve-accent" />
+          )}
+
+          {isBranchingPoint && <GitBranch className="h-3 w-3 text-purple-400" />}
+
+          <div className="min-w-0 flex-1">
+            {isEditing ? (
+              <div className="flex items-center gap-1">
+                <Input
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  className="h-6 text-xs"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveNodeName(message.id)
+                    if (e.key === "Escape") cancelEdit()
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                />
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100"
+                  className="h-5 w-5 p-0"
                   onClick={(e) => {
                     e.stopPropagation()
-                    startEditingNode(message.id, message.content.substring(0, 30))
+                    saveNodeName(message.id)
                   }}
                 >
-                  <Edit3 className="h-3 w-3" />
+                  <Check className="h-3 w-3" />
                 </Button>
-              )}
-            </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    cancelEdit()
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <span className="truncate text-xs">
+                  {nodeName ||
+                    `${message.content.substring(0, 30)}${message.content.length > 30 ? "..." : ""}`}
+                </span>
+                {message.type === "user" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      startEditingNode(message.id, message.content.substring(0, 30))
+                    }}
+                  >
+                    <Edit3 className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {children.length > 1 && (
+            <span className="text-xs text-mauve-subtle/70">{children.length} branches</span>
           )}
         </div>
 
-        {children.length > 1 && (
-          <span className="text-xs text-mauve-subtle/70">{children.length} branches</span>
+        {hasChildren && isExpanded && (
+          <div className="mt-1">
+            {children.map((child) => (
+              <TreeNodeComponent
+                key={child.message.id}
+                node={child}
+                depth={depth + 1}
+                currentMessageId={currentMessageId}
+                onMessageSelect={onMessageSelect}
+                expandedNodes={expandedNodes}
+                toggleNode={toggleNode}
+                editingNode={editingNode}
+                editValue={editValue}
+                setEditValue={setEditValue}
+                startEditingNode={startEditingNode}
+                saveNodeName={saveNodeName}
+                cancelEdit={cancelEdit}
+                nodeNames={nodeNames}
+                getBranchingPoints={getBranchingPoints}
+              />
+            ))}
+          </div>
         )}
       </div>
-
-      {hasChildren && isExpanded && (
-        <div className="mt-1">
-          {children.map((child) => (
-            <TreeNodeComponent
-              key={child.message.id}
-              node={child}
-              depth={depth + 1}
-              currentMessageId={currentMessageId}
-              onMessageSelect={onMessageSelect}
-              expandedNodes={expandedNodes}
-              toggleNode={toggleNode}
-              editingNode={editingNode}
-              editValue={editValue}
-              setEditValue={setEditValue}
-              startEditingNode={startEditingNode}
-              saveNodeName={saveNodeName}
-              cancelEdit={cancelEdit}
-              nodeNames={nodeNames}
-              getBranchingPoints={getBranchingPoints}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  )
-})
+    )
+  }
+)
 
 TreeNodeComponent.displayName = "TreeNodeComponent"
 
@@ -257,37 +259,44 @@ export function ConversationTreeView({
     return rootMessages.map(buildNode)
   }, [messages, currentMessageId, getMessagePath, getBranchingPoints])
 
-  const toggleNode = useCallback((nodeId: string) => {
-    const newExpanded = new Set(expandedNodes)
-    if (newExpanded.has(nodeId)) {
-      newExpanded.delete(nodeId)
-    } else {
-      newExpanded.add(nodeId)
-    }
-    setExpandedNodes(newExpanded)
-  }, [expandedNodes])
+  const toggleNode = useCallback(
+    (nodeId: string) => {
+      const newExpanded = new Set(expandedNodes)
+      if (newExpanded.has(nodeId)) {
+        newExpanded.delete(nodeId)
+      } else {
+        newExpanded.add(nodeId)
+      }
+      setExpandedNodes(newExpanded)
+    },
+    [expandedNodes]
+  )
 
-  const startEditingNode = useCallback((nodeId: string, currentName?: string) => {
-    setEditingNode(nodeId)
-    setEditValue(nodeNames.get(nodeId) || currentName || "")
-  }, [nodeNames])
+  const startEditingNode = useCallback(
+    (nodeId: string, currentName?: string) => {
+      setEditingNode(nodeId)
+      setEditValue(nodeNames.get(nodeId) || currentName || "")
+    },
+    [nodeNames]
+  )
 
-  const saveNodeName = useCallback((nodeId: string) => {
-    if (editValue.trim()) {
-      const newNames = new Map(nodeNames)
-      newNames.set(nodeId, editValue.trim())
-      setNodeNames(newNames)
-    }
-    setEditingNode(null)
-    setEditValue("")
-  }, [editValue, nodeNames])
+  const saveNodeName = useCallback(
+    (nodeId: string) => {
+      if (editValue.trim()) {
+        const newNames = new Map(nodeNames)
+        newNames.set(nodeId, editValue.trim())
+        setNodeNames(newNames)
+      }
+      setEditingNode(null)
+      setEditValue("")
+    },
+    [editValue, nodeNames]
+  )
 
   const cancelEdit = useCallback(() => {
     setEditingNode(null)
     setEditValue("")
   }, [])
-
-
 
   return (
     <Sheet>
@@ -311,11 +320,7 @@ export function ConversationTreeView({
         </div>
 
         <ScrollArea className="mt-4 h-[calc(100vh-180px)]">
-          <div 
-            role="tree" 
-            aria-label="Conversation tree navigation"
-            className="space-y-1 pr-4"
-          >
+          <div role="tree" aria-label="Conversation tree navigation" className="space-y-1 pr-4">
             {tree.map((node) => (
               <TreeNodeComponent
                 key={node.message.id}

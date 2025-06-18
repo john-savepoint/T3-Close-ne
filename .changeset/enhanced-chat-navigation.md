@@ -13,7 +13,7 @@ feat(navigation): implement comprehensive enhanced chat navigation with backend 
   - Confirmation dialog with loading states
   - Recursive deletion of child messages
   - Backend persistence via Convex mutations
-- **Keyboard Navigation**: 
+- **Keyboard Navigation**:
   - `Cmd/Ctrl + K` opens model switcher instantly
   - `j/k` keys navigate between messages with smooth scrolling
   - `Ctrl+N/P` for Vim-style navigation
