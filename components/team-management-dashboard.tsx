@@ -174,7 +174,7 @@ export function TeamManagementDashboard() {
                           <Input
                             id="invite-email"
                             type="email"
-                            placeholder="colleague@example.com"
+                            placeholder="colleague@company.com"
                             value={inviteEmail}
                             onChange={(e) => setInviteEmail(e.target.value)}
                             className="border-mauve-dark bg-mauve-dark/50"

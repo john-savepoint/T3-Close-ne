@@ -65,7 +65,7 @@ export function UserProfile() {
             </Avatar>
             <div className="flex flex-col text-left">
               <span className="text-sm font-semibold text-white">
-                {userName || userEmail || "Anonymous"}
+                {userName || userEmail || "User"}
               </span>
               <Badge
                 variant="outline"

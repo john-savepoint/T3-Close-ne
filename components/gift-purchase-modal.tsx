@@ -190,7 +190,7 @@ export function GiftPurchaseModal({ trigger }: GiftPurchaseModalProps) {
                     <Input
                       id="recipient-email"
                       type="email"
-                      placeholder="friend@example.com"
+                      placeholder="friend@email.com"
                       value={formData.recipientEmail}
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, recipientEmail: e.target.value }))
@@ -242,7 +242,7 @@ export function GiftPurchaseModal({ trigger }: GiftPurchaseModalProps) {
                       <Input
                         id="purchaser-email"
                         type="email"
-                        placeholder="your@example.com"
+                        placeholder="your@email.com"
                         value={formData.purchaserEmail}
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, purchaserEmail: e.target.value }))
