@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 // Define protected routes
 const isProtectedRoute = createRouteMatcher([
@@ -12,8 +13,19 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect();
+  try {
+    if (isProtectedRoute(req)) {
+      await auth.protect();
+    }
+  } catch (error) {
+    console.error("Authentication middleware error:", error);
+    
+    // Redirect to sign-in with error parameter for protected routes
+    if (isProtectedRoute(req)) {
+      const signInUrl = new URL("/sign-in", req.url);
+      signInUrl.searchParams.set("error", "auth_required");
+      return NextResponse.redirect(signInUrl);
+    }
   }
 });
 

@@ -8,8 +8,8 @@ Based on Context7 MCP research, this implementation follows the official Clerk v
 
 #### **1. Environment Variables** (`.env.local`)
 ```bash
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y29taWMtdHJvbGwtMTMuY2xlcmsuYWNjb3VudHMuZGV2JA
-CLERK_SECRET_KEY=sk_test_ufJvViINAtmCDKN0l8juSHtHO0Dw6eUwog5mSLZp6k
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<your_publishable_key>
+CLERK_SECRET_KEY=<your_secret_key>
 ```
 
 #### **2. Middleware** (`middleware.ts`)

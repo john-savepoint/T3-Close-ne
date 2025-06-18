@@ -7,9 +7,9 @@
 - All dependencies resolved successfully
 
 ### 2. **Environment Configuration**
-- Created `.env.local` with real Clerk test keys:
-  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y29taWMtdHJvbGwtMTMuY2xlcmsuYWNjb3VudHMuZGV2JA`
-  - `CLERK_SECRET_KEY=sk_test_ufJvViINAtmCDKN0l8juSHtHO0Dw6eUwog5mSLZp6k`
+- Created `.env.local` with Clerk environment variables:
+  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<your_publishable_key>`
+  - `CLERK_SECRET_KEY=<your_secret_key>`
 
 ### 3. **Core Integration**
 - **Layout**: Added ClerkProvider wrapper in `app/layout.tsx`
