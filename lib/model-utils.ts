@@ -21,6 +21,18 @@ export const MODEL_CONFIG = {
   DEBOUNCE_DELAY: 300,
 } as const
 
+// UI constants for model management
+export const MODEL_UI_CONSTANTS = {
+  DEBOUNCE_DELAY: 300,
+  MAX_COMPARE_MODELS: 3,
+  DEFAULT_PRICE_RANGE: [0, 0.1] as [number, number],
+  ITEMS_PER_PAGE: 20,
+  MAX_PRICE_FILTER: 0.1,
+  PRICE_STEP: 0.001,
+  MIN_PRICE: 0,
+  SCROLL_AREA_HEIGHT: 400,
+} as const
+
 // Model categorization logic
 export function getModelCategory(model: ChatModel): "fast" | "balanced" | "heavy" {
   const avgCost = (model.costPer1kTokens.input + model.costPer1kTokens.output) / 2
@@ -48,7 +60,7 @@ export function formatTokenCount(tokens: number): string {
 // Model sorting utility
 export function sortModelsByPreference(models: ChatModel[]): ChatModel[] {
   const providerOrder = ["openai", "anthropic", "google", "meta-llama", "mistralai"]
-  
+
   return models.sort((a: ChatModel, b: ChatModel) => {
     const aIndex = providerOrder.indexOf(a.provider.toLowerCase())
     const bIndex = providerOrder.indexOf(b.provider.toLowerCase())
