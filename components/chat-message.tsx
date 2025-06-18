@@ -20,6 +20,8 @@ import { CodeBlockEnhanced } from "@/components/code-block-enhanced"
 import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { Textarea } from "@/components/ui/textarea"
+import { MessageAttachments } from "@/components/chat/message-attachments"
+import type { Attachment } from "@/types/attachment"
 
 interface ChatMessageProps {
   id: string
@@ -27,11 +29,13 @@ interface ChatMessageProps {
   content: string
   timestamp: Date
   model?: string
+  attachments?: Attachment[]
   isEditing?: boolean
   onEdit?: (id: string, content: string) => void
   onDelete?: (id: string) => void
   onRegenerate?: (id: string) => void
   onCopy?: (content: string) => void
+  onRemoveAttachment?: (attachmentId: string) => void
 }
 
 export function ChatMessage({
@@ -40,11 +44,13 @@ export function ChatMessage({
   content,
   timestamp,
   model,
+  attachments,
   isEditing = false,
   onEdit,
   onDelete,
   onRegenerate,
   onCopy,
+  onRemoveAttachment,
 }: ChatMessageProps) {
   const [editContent, setEditContent] = useState(content)
   const [isHovered, setIsHovered] = useState(false)
@@ -229,6 +235,16 @@ export function ChatMessage({
               </div>
             ))}
           </div>
+        )}
+
+        {/* Message Attachments */}
+        {attachments && attachments.length > 0 && !isEditMode && !showDeleteConfirm && (
+          <MessageAttachments
+            attachments={attachments}
+            onRemoveAttachment={onRemoveAttachment}
+            isOwnMessage={type === "user"}
+            compact={false}
+          />
         )}
 
         {/* Enhanced Action Buttons */}

@@ -58,7 +58,20 @@ export function ChatInput({
   }
 
   const removeAttachment = (attachmentId: string) => {
-    setAttachedFiles((prev) => prev.filter((att) => att.id !== attachmentId))
+    setAttachedFiles((prev) =>
+      prev.filter((att) => att.id !== attachmentId && att._id !== attachmentId)
+    )
+  }
+
+  const handleSendMessage = () => {
+    if (!message.trim() && attachedFiles.length === 0) return
+
+    // Here you would call your message sending function with attachments
+    // Example: sendMessage(message, attachedFiles.map(f => f._id))
+
+    // Clear inputs after sending
+    setMessage("")
+    setAttachedFiles([])
   }
 
   const formatFileSize = (bytes: number) => {
@@ -181,7 +194,7 @@ export function ChatInput({
             <Button
               size="icon"
               onClick={handleSendMessage}
-              disabled={!message.trim() || disabled}
+              disabled={!message.trim() && attachedFiles.length === 0 || disabled}
               className="h-9 w-9 bg-mauve-accent/20 text-mauve-bright hover:bg-mauve-accent/30 disabled:opacity-50"
             >
               <Send className="h-4 w-4" />
