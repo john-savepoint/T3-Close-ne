@@ -72,8 +72,8 @@ export function useTemporaryChat() {
   }, [])
 
   const addMessageToTemporaryChat = useCallback(
-    (content: string, type: "user" | "assistant", model?: string) => {
-      if (!temporaryChat) return
+    (content: string, type: "user" | "assistant", model?: string): string | undefined => {
+      if (!temporaryChat) return undefined
 
       const newMessage: TemporaryChatMessage = {
         id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -90,6 +90,8 @@ export function useTemporaryChat() {
           messages: [...prev.messages, newMessage],
         }
       })
+      
+      return newMessage.id
     },
     [temporaryChat]
   )

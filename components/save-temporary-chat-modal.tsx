@@ -52,15 +52,35 @@ export function SaveTemporaryChatModal({ open, onOpenChange }: SaveTemporaryChat
 
     if (!formData.title.trim() || !temporaryChat || !user?._id) return
 
+    // Validate title length
+    const title = formData.title.trim()
+    if (title.length > 100) {
+      console.error("Title too long")
+      return
+    }
+
+    // Validate messages exist and aren't empty
+    if (temporaryChat.messages.length === 0) {
+      console.error("No messages to save")
+      return
+    }
+
     setLoading(true)
     try {
       // Convert temporary chat messages to the format expected by Convex
-      const messages = temporaryChat.messages.map(msg => ({
-        content: msg.content,
-        type: msg.type,
-        model: msg.model,
-        timestamp: msg.timestamp.toISOString(),
-      }))
+      // Filter out empty messages and validate content
+      const messages = temporaryChat.messages
+        .filter(msg => msg.content.trim().length > 0)
+        .map(msg => ({
+          content: msg.content.trim(),
+          type: msg.type,
+          model: msg.model,
+          timestamp: msg.timestamp.toISOString(),
+        }))
+
+      if (messages.length === 0) {
+        throw new Error("No valid messages to save")
+      }
 
       // Get the model from the last assistant message
       const lastAssistantMessage = temporaryChat.messages
@@ -69,7 +89,7 @@ export function SaveTemporaryChatModal({ open, onOpenChange }: SaveTemporaryChat
       
       // Create the chat in Convex
       const chatId = await createFromTemporary({
-        title: formData.title.trim(),
+        title,
         userId: user._id,
         projectId: formData.projectId === "standalone" ? undefined : formData.projectId as any,
         messages,
@@ -87,6 +107,8 @@ export function SaveTemporaryChatModal({ open, onOpenChange }: SaveTemporaryChat
       router.push(`/chat/${chatId}`)
     } catch (error) {
       console.error("Failed to save temporary chat:", error)
+      // Show user-friendly error message without exposing sensitive details
+      alert("Failed to save chat. Please try again.")
     } finally {
       setLoading(false)
     }

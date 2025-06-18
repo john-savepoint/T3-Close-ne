@@ -20,8 +20,15 @@ export default function NewChatPage() {
   // Check for temp=true parameter on mount
   useEffect(() => {
     if (searchParams.get("temp") === "true") {
-      startTemporaryChat()
-      router.push("/")
+      try {
+        startTemporaryChat()
+        // Navigate to main page after successfully starting temporary chat
+        router.push("/")
+      } catch (error) {
+        console.error("Failed to start temporary chat:", error)
+        // Still navigate to main page but let user know something went wrong
+        router.push("/?error=temp-chat-failed")
+      }
     }
   }, [searchParams, startTemporaryChat, router])
 

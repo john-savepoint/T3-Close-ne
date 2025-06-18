@@ -10,7 +10,7 @@ import { MemorySuggestionBanner } from "@/components/memory-suggestion-banner"
 import { TemporaryChatBanner } from "@/components/temporary-chat-banner"
 import { TemporaryChatStarter } from "@/components/temporary-chat-starter"
 import { ToolsGrid } from "@/components/tools-grid"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useChat } from "@/hooks/use-chat"
 import { useMemory } from "@/hooks/use-memory"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
@@ -24,6 +24,7 @@ import { useAuth } from "@/hooks/use-auth"
 export function MainContent() {
   const isMobile = useIsMobile()
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const { suggestions } = useMemory()
   const { 
     temporaryChat, 
@@ -36,6 +37,16 @@ export function MainContent() {
     setIsStreaming
   } = useTemporaryChat()
   const { user } = useAuth()
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Abort any ongoing fetch requests
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
 
   // Real chat functionality
   const {
@@ -95,6 +106,10 @@ export function MainContent() {
       // Add user message to temporary chat
       addMessageToTemporaryChat(content, "user")
       
+      // Create new abort controller for this request
+      const abortController = new AbortController()
+      abortControllerRef.current = abortController
+      
       // Call the API to get response
       try {
         setIsStreaming(true)
@@ -116,6 +131,7 @@ export function MainContent() {
             // Don't include memory/context if setting is disabled
             includeMemory: settings.includeMemoryInTempChats
           }),
+          signal: abortController.signal
         })
 
         if (!response.ok) {
@@ -129,32 +145,49 @@ export function MainContent() {
         const decoder = new TextDecoder()
 
         // Add empty assistant message that we'll update as chunks come in
-        const tempAssistantId = `msg-${Date.now()}-assistant`
-        addMessageToTemporaryChat("", "assistant", selectedModel)
+        const assistantMessageId = addMessageToTemporaryChat("", "assistant", selectedModel)
+        if (!assistantMessageId) throw new Error("Failed to create assistant message")
 
-        while (true) {
+        while (!abortController.signal.aborted) {
           const { done, value } = await reader.read()
           if (done) break
 
-          const chunk = decoder.decode(value)
-          const lines = chunk.split('\n').filter(line => line.trim() !== '')
-          
-          for (const line of lines) {
-            if (line.startsWith('0:')) {
-              const content = line.slice(2).replace(/"/g, '').replace(/\\n/g, '\n')
-              assistantMessage += content
-              updateTemporaryChatMessage(tempAssistantId, assistantMessage)
+          try {
+            const chunk = decoder.decode(value)
+            const lines = chunk.split('\n').filter(line => line.trim() !== '')
+            
+            for (const line of lines) {
+              if (line.startsWith('0:')) {
+                try {
+                  const content = line.slice(2).replace(/"/g, '').replace(/\\n/g, '\n')
+                  assistantMessage += content
+                  if (!abortController.signal.aborted) {
+                    updateTemporaryChatMessage(assistantMessageId, assistantMessage)
+                  }
+                } catch (parseError) {
+                  console.warn("Failed to parse stream chunk:", line, parseError)
+                }
+              }
             }
+          } catch (chunkError) {
+            console.error("Error processing stream chunk:", chunkError)
           }
         }
-      } catch (error) {
-        console.error("Error sending temporary message:", error)
-        addMessageToTemporaryChat(
-          "Sorry, I encountered an error. Please try again.", 
-          "assistant"
-        )
+      } catch (error: any) {
+        // Don't show error if it was aborted
+        if (error.name !== 'AbortError') {
+          console.error("Error sending temporary message:", error)
+          addMessageToTemporaryChat(
+            "Sorry, I encountered an error. Please try again.", 
+            "assistant"
+          )
+        }
       } finally {
         setIsStreaming(false)
+        // Clear the ref if this was the current request
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null
+        }
       }
     } else {
       await sendMessage(content, attachments)
