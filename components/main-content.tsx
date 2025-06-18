@@ -29,6 +29,7 @@ import { ExportChatModal } from "@/components/export-chat-modal"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { useConversationTree } from "@/hooks/use-conversation-tree"
+import { useAuth } from "@/hooks/use-auth"
 
 export function MainContent() {
   const isMobile = useIsMobile()
@@ -37,6 +38,7 @@ export function MainContent() {
   const [selectedModel, setSelectedModel] = useState("gpt-4o")
   const { suggestions } = useMemory()
   const { temporaryChat, isTemporaryMode } = useTemporaryChat()
+  const { user } = useAuth()
 
   // Keyboard navigation
   const { isModelSwitcherOpen, closeModelSwitcher, shortcuts } = useKeyboardNavigation()
@@ -52,6 +54,9 @@ export function MainContent() {
 
   // Use temporary chat messages if in temporary mode
   const displayMessages = isTemporaryMode ? temporaryChat?.messages || [] : messages
+
+  // Get user display name
+  const userName = user?.name || user?.email?.split("@")[0] || "there"
 
   const handleEditMessage = (messageId: string, newContent: string) => {
     if (isTemporaryMode) {
@@ -128,7 +133,7 @@ export function MainContent() {
             <div className="flex flex-col items-center justify-center space-y-8 p-4 text-center md:p-8">
               <div>
                 <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-                  How can I help you, John?
+                  How can I help you, {userName}?
                 </h2>
                 <p className="mt-2 text-lg text-mauve-subtle/80">
                   Choose a specialized tool or start a conversation
