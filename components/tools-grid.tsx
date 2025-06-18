@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { Mail, MessageSquare, FileText, Code, LineChart, ImageIcon } from "lucide-react"
+import { Mail, MessageSquare, FileText, Code, LineChart, ImageIcon, GitBranch } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { EmailResponderTool } from "@/components/tools/email-responder-tool"
 import { SocialMediaTool } from "@/components/tools/social-media-tool"
 import { SummarizerTool } from "@/components/tools/summarizer-tool"
+import { DiagrammerTool } from "@/components/tools/diagrammer-tool"
 
 interface ToolData {
   id: string
@@ -33,6 +34,13 @@ export function ToolsGrid({ onToolSelect }: ToolsGridProps) {
       description: "Draft professional email responses based on context",
       icon: <Mail className="h-6 w-6" />,
       component: EmailResponderTool,
+    },
+    {
+      id: "diagrammer",
+      name: "Diagrammer",
+      description: "Create flowcharts, diagrams, and visual representations",
+      icon: <GitBranch className="h-6 w-6" />,
+      component: DiagrammerTool,
     },
     {
       id: "social-media",
@@ -112,13 +120,17 @@ export function ToolsGrid({ onToolSelect }: ToolsGridProps) {
               {tools.slice(0, 3).map((tool) => (
                 <Card
                   key={tool.id}
-                  className="cursor-pointer border-mauve-dark/40 bg-mauve-surface/20 p-4 transition-colors hover:bg-mauve-surface/30"
+                  className="group cursor-pointer border-mauve-dark/40 bg-mauve-surface/20 p-4 transition-all duration-300 hover:border-mauve-accent/40 hover:bg-mauve-surface/30 hover:shadow-lg hover:shadow-mauve-accent/10 hover:-translate-y-1"
                   onClick={() => setActiveTool(tool.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="rounded-md bg-mauve-surface/30 p-2">{tool.icon}</div>
+                    <div className="rounded-md bg-mauve-surface/30 p-2 transition-all duration-300 group-hover:bg-mauve-accent/20 group-hover:scale-110">
+                      <div className="transition-colors duration-300 group-hover:text-mauve-accent">
+                        {tool.icon}
+                      </div>
+                    </div>
                     <div>
-                      <h3 className="text-left font-medium">{tool.name}</h3>
+                      <h3 className="text-left font-medium transition-colors duration-300 group-hover:text-mauve-accent">{tool.name}</h3>
                       <p className="text-left text-sm text-mauve-subtle/80">{tool.description}</p>
                     </div>
                   </div>
@@ -132,13 +144,17 @@ export function ToolsGrid({ onToolSelect }: ToolsGridProps) {
               {tools.map((tool) => (
                 <Card
                   key={tool.id}
-                  className="cursor-pointer border-mauve-dark/40 bg-mauve-surface/20 p-4 transition-colors hover:bg-mauve-surface/30"
+                  className="group cursor-pointer border-mauve-dark/40 bg-mauve-surface/20 p-4 transition-all duration-300 hover:border-mauve-accent/40 hover:bg-mauve-surface/30 hover:shadow-lg hover:shadow-mauve-accent/10 hover:-translate-y-1"
                   onClick={() => setActiveTool(tool.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="rounded-md bg-mauve-surface/30 p-2">{tool.icon}</div>
+                    <div className="rounded-md bg-mauve-surface/30 p-2 transition-all duration-300 group-hover:bg-mauve-accent/20 group-hover:scale-110">
+                      <div className="transition-colors duration-300 group-hover:text-mauve-accent">
+                        {tool.icon}
+                      </div>
+                    </div>
                     <div>
-                      <h3 className="text-left font-medium">{tool.name}</h3>
+                      <h3 className="text-left font-medium transition-colors duration-300 group-hover:text-mauve-accent">{tool.name}</h3>
                       <p className="text-left text-sm text-mauve-subtle/80">{tool.description}</p>
                     </div>
                   </div>
