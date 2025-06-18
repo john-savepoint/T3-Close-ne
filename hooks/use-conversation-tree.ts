@@ -17,12 +17,71 @@ export function useConversationTree(props: UseConversationTreeProps) {
     const nodes = new Map<string, ChatMessage>()
     const branches = new Map<string, ConversationBranch>()
 
+    if (messages.length === 0) {
+      return { nodes, branches }
+    }
+
+    const branchingPoints = new Set<string>()
+
+    // First pass: create nodes and identify branching points
     messages.forEach((message: ChatMessage) => {
       nodes.set(message.id, message)
     })
 
+    // Find messages with multiple children (branching points)
+    const childCounts = new Map<string, number>()
+    messages.forEach((message) => {
+      if (message.parentId || message.parentMessageId) {
+        const parentId = message.parentId || message.parentMessageId || ""
+        childCounts.set(parentId, (childCounts.get(parentId) || 0) + 1)
+      }
+    })
+
+    childCounts.forEach((count, messageId) => {
+      if (count > 1) {
+        branchingPoints.add(messageId)
+      }
+    })
+
+    // Build branches from leaf nodes
+    const visitedMessages = new Set<string>()
+
+    // Find all leaf messages (messages without children)
+    const leafMessages = messages.filter(
+      (msg) =>
+        !messages.some((other) => other.parentId === msg.id || other.parentMessageId === msg.id)
+    )
+
+    // Build a branch for each unique path from root to leaf
+    leafMessages.forEach((leafMessage, index) => {
+      const branch: ConversationBranch = {
+        id: `branch-${index}`,
+        name: `Branch ${index + 1}`,
+        messages: [],
+        isActive: leafMessage.id === activeLeafId,
+        depth: 0,
+      }
+
+      // Trace back from leaf to root
+      let currentMessage: ChatMessage | undefined = leafMessage
+      const branchMessages: ChatMessage[] = []
+
+      while (currentMessage) {
+        branchMessages.unshift(currentMessage)
+        visitedMessages.add(currentMessage.id)
+
+        const parentId: string | null | undefined =
+          currentMessage.parentId || currentMessage.parentMessageId
+        currentMessage = parentId ? nodes.get(parentId) : undefined
+      }
+
+      branch.messages = branchMessages
+      branch.depth = 0 // Root level branch
+      branches.set(branch.id, branch)
+    })
+
     return { nodes, branches }
-  }, [messages])
+  }, [messages, activeLeafId])
 
   // Get available branches from a message
   const getAvailableBranches = useCallback(
@@ -99,11 +158,17 @@ export function useConversationTree(props: UseConversationTreeProps) {
     )
   }, [messages, activeLeafId, getMessagePath])
 
+  // Rename branch functionality
+  const renameBranch = useCallback((branchId: string, newName: string) => {
+    // In a real implementation, this would persist to the database
+    // For now, we'll just update the local state through a callback
+    console.log("Rename branch:", branchId, newName)
+  }, [])
+
   // Placeholder functions for compatibility
   const addMessage = useCallback(() => {}, [])
   const updateMessage = useCallback(() => {}, [])
   const deleteMessage = useCallback(() => {}, [])
-  const renameBranch = useCallback(() => {}, [])
   const optimizeConversationTree = useCallback(() => {}, [])
 
   // Handle empty messages case

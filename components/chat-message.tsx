@@ -31,6 +31,8 @@ interface ChatMessageProps {
   model?: string
   attachments?: Attachment[]
   isEditing?: boolean
+  isEdited?: boolean
+  editedAt?: Date
   onEdit?: (id: string, content: string) => void
   onDelete?: (id: string) => void
   onRegenerate?: (id: string) => void
@@ -46,6 +48,8 @@ export function ChatMessage({
   model,
   attachments,
   isEditing = false,
+  isEdited = false,
+  editedAt,
   onEdit,
   onDelete,
   onRegenerate,
@@ -137,6 +141,7 @@ export function ChatMessage({
 
   return (
     <div
+      id={`message-${id}`}
       className={`group flex gap-4 rounded-lg p-4 transition-colors ${
         type === "user" ? "ml-12 bg-mauve-surface/30" : "bg-mauve-dark/20"
       }`}
@@ -163,8 +168,11 @@ export function ChatMessage({
             </Badge>
           )}
           <span className="text-xs text-mauve-subtle/70">{timestamp.toLocaleTimeString()}</span>
-          {/* Add edited indicator */}
-          {/* You would track this in your message data */}
+          {isEdited && (
+            <span className="text-xs text-mauve-subtle/50">
+              (edited{editedAt ? ` ${editedAt.toLocaleTimeString()}` : ""})
+            </span>
+          )}
         </div>
 
         {isEditMode ? (

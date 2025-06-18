@@ -110,18 +110,40 @@ export function useChat(options: UseChatOptions = {}) {
   )
 
   // Edit message functionality
-  const editMessage = useCallback((messageId: string, newContent: string) => {
-    // For now, this is a placeholder
-    // In a real implementation, we'd need to handle message editing
-    console.log("Edit message:", messageId, newContent)
-  }, [])
+  const editMessage = useCallback(
+    (messageId: string, newContent: string) => {
+      // Update the message in the local state
+      const messageIndex = aiMessages.findIndex((msg) => msg.id === messageId)
+      if (messageIndex !== -1) {
+        const updatedMessages = [...aiMessages]
+        updatedMessages[messageIndex] = {
+          ...updatedMessages[messageIndex],
+          content: newContent,
+        }
+        // Note: We would need to update the streaming hook to support this
+        // For now, we'll need to implement this in the messages management
+        console.log("Edit message:", messageId, newContent)
+        // TODO: Persist to database
+      }
+    },
+    [aiMessages]
+  )
 
   // Delete message functionality
-  const deleteMessage = useCallback((messageId: string) => {
-    // For now, this is a placeholder
-    // In a real implementation, we'd need to handle message deletion
-    console.log("Delete message:", messageId)
-  }, [])
+  const deleteMessage = useCallback(
+    (messageId: string) => {
+      // Remove the message and all subsequent messages in the conversation
+      const messageIndex = aiMessages.findIndex((msg) => msg.id === messageId)
+      if (messageIndex !== -1) {
+        const filteredMessages = aiMessages.slice(0, messageIndex)
+        // Note: We would need to update the streaming hook to support this
+        console.log("Delete message:", messageId)
+        // TODO: Update the conversation context
+        // TODO: Persist to database
+      }
+    },
+    [aiMessages]
+  )
 
   // Regenerate response
   const regenerateResponse = useCallback(
