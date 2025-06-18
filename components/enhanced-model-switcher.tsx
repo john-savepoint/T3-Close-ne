@@ -48,10 +48,14 @@ import {
   MessageSquare,
   Image as ImageIcon,
   Search,
+  Star,
+  Heart,
 } from "lucide-react"
 import { useModels } from "@/hooks/use-models"
 import { ChatModel } from "@/types/models"
 import { getModelCategory, formatPrice, formatTokenCount, searchModels, filterModelsByCapabilities, MODEL_CONFIG } from "@/lib/model-utils"
+import { ModelErrorBoundary, ModelErrorFallback } from "@/components/model-error-boundary"
+import { useModelFavorites } from "@/hooks/use-model-favorites"
 
 interface EnhancedModelSwitcherProps {
   selectedModel: ChatModel | string | null // Support both formats for backward compatibility
@@ -80,12 +84,22 @@ function ModelCard({
   onSelect,
   showCost = true,
   estimatedTokens,
+  onToggleFavorite,
+  isFavorite,
+  isComparing,
+  onToggleCompare,
+  isInComparison,
 }: {
   model: ChatModel
   isSelected: boolean
   onSelect: () => void
   showCost?: boolean
   estimatedTokens?: number
+  onToggleFavorite?: (modelId: string) => void
+  isFavorite?: boolean
+  isComparing?: boolean
+  onToggleCompare?: (modelId: string) => void
+  isInComparison?: boolean
 }) {
   const category = getModelCategory(model)
   const Icon = getModelIcon(category)
@@ -119,7 +133,41 @@ function ModelCard({
             <p className="text-xs text-muted-foreground">{model.provider}</p>
           </div>
         </div>
-        {isSelected && <div className="h-2 w-2 rounded-full bg-primary" />}
+        <div className="flex items-center gap-2">
+          {onToggleFavorite && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleFavorite(model.id)
+              }}
+              className="rounded p-1 hover:bg-muted/50 transition-colors"
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart 
+                className={`h-4 w-4 ${
+                  isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground hover:text-red-500"
+                }`} 
+              />
+            </button>
+          )}
+          {isComparing && onToggleCompare && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleCompare(model.id)
+              }}
+              className="rounded p-1 hover:bg-muted/50 transition-colors"
+              aria-label={isInComparison ? "Remove from comparison" : "Add to comparison"}
+            >
+              <div 
+                className={`h-4 w-4 rounded border-2 ${
+                  isInComparison ? "bg-blue-500 border-blue-500" : "border-muted-foreground hover:border-blue-500"
+                }`} 
+              />
+            </button>
+          )}
+          {isSelected && <div className="h-2 w-2 rounded-full bg-primary" />}
+        </div>
       </div>
 
       <div className="mt-2 flex flex-wrap gap-1">
@@ -186,6 +234,7 @@ export function EnhancedModelSwitcher({
     refetch,
     retryCount,
   } = useModels()
+  const { toggleFavorite, isFavorite, getFavoriteModels } = useModelFavorites()
 
   // Convert string selectedModel to ChatModel for backward compatibility
   const currentSelectedModel =
@@ -208,6 +257,9 @@ export function EnhancedModelSwitcher({
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0.1])
   const [minContextLength, setMinContextLength] = useState<number>(0)
   const [showImageModels, setShowImageModels] = useState(false)
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+  const [compareModels, setCompareModels] = useState<string[]>([])
+  const [showComparison, setShowComparison] = useState(false)
 
   const quickSelectModels = useMemo(() => {
     const availableModels = models.length > 0 ? models : []
@@ -230,12 +282,19 @@ export function EnhancedModelSwitcher({
   }, [searchFilteredModels, selectedProvider])
 
   const capabilityFilteredModels = useMemo(() => {
-    return filterModelsByCapabilities(providerFilteredModels, {
+    let filtered = filterModelsByCapabilities(providerFilteredModels, {
       supportsVision: showImageModels,
       minContextLength: minContextLength > 0 ? minContextLength : undefined,
       maxCost: priceRange[1],
     })
-  }, [providerFilteredModels, showImageModels, minContextLength, priceRange])
+
+    // Apply favorites filter if enabled
+    if (showFavoritesOnly) {
+      filtered = getFavoriteModels(filtered)
+    }
+
+    return filtered
+  }, [providerFilteredModels, showImageModels, minContextLength, priceRange, showFavoritesOnly, getFavoriteModels])
 
   const displayModels = useMemo(() => {
     const [minPrice] = priceRange
@@ -266,236 +325,335 @@ export function EnhancedModelSwitcher({
   }
 
   if (error) {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-destructive">{error.message}</span>
-        {error.retryable && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => refetch()}
-            disabled={loading}
-            className="text-xs"
-          >
-            {loading ? `Retrying... (${retryCount}/${3})` : "Retry"}
-          </Button>
-        )}
-      </div>
-    )
+    return <ModelErrorFallback error={new Error(error.message)} retry={() => refetch()} />
   }
 
   const currentModel = currentSelectedModel || (models.length > 0 ? models[0] : null)
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Quick Select Buttons */}
-      <div className="hidden items-center gap-1 md:flex">
-        {quickSelectModels.fast && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`text-xs ${quickSelectModels.fast.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
-            onClick={() => handleModelChange(quickSelectModels.fast!)}
-          >
-            <Zap className="mr-1 h-3 w-3" />
-            Fast
-          </Button>
-        )}
-        {quickSelectModels.balanced && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`text-xs ${quickSelectModels.balanced.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
-            onClick={() => handleModelChange(quickSelectModels.balanced!)}
-          >
-            <Gauge className="mr-1 h-3 w-3" />
-            Balanced
-          </Button>
-        )}
-        {quickSelectModels.heavy && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`text-xs ${quickSelectModels.heavy.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
-            onClick={() => handleModelChange(quickSelectModels.heavy!)}
-          >
-            <Brain className="mr-1 h-3 w-3" />
-            Heavy
-          </Button>
-        )}
-      </div>
+    <ModelErrorBoundary>
+      <div className="flex items-center gap-2">
+        {/* Quick Select Buttons */}
+        <div className="hidden items-center gap-1 md:flex">
+          {quickSelectModels.fast && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`text-xs ${quickSelectModels.fast.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
+              onClick={() => handleModelChange(quickSelectModels.fast!)}
+            >
+              <Zap className="mr-1 h-3 w-3" />
+              Fast
+            </Button>
+          )}
+          {quickSelectModels.balanced && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`text-xs ${quickSelectModels.balanced.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
+              onClick={() => handleModelChange(quickSelectModels.balanced!)}
+            >
+              <Gauge className="mr-1 h-3 w-3" />
+              Balanced
+            </Button>
+          )}
+          {quickSelectModels.heavy && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`text-xs ${quickSelectModels.heavy.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
+              onClick={() => handleModelChange(quickSelectModels.heavy!)}
+            >
+              <Brain className="mr-1 h-3 w-3" />
+              Heavy
+            </Button>
+          )}
+        </div>
 
-      {/* Enhanced Model Selector Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-            {currentModel?.name || "Select Model"} <ChevronDown className="ml-1 h-3 w-3" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent
-          className="max-h-[80vh] max-w-4xl"
-          aria-describedby="model-selector-description"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Select AI Model</DialogTitle>
-            <p id="model-selector-description" className="text-sm text-muted-foreground">
-              Choose from {displayModels.length} available AI models with real-time pricing and
-              filtering options
-            </p>
-          </DialogHeader>
+        {/* Enhanced Model Selector Dialog */}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+              {currentModel?.name || "Select Model"} <ChevronDown className="ml-1 h-3 w-3" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent
+            className="max-h-[80vh] max-w-4xl"
+            aria-describedby="model-selector-description"
+          >
+            <DialogHeader>
+              <DialogTitle className="text-foreground">Select AI Model</DialogTitle>
+              <p id="model-selector-description" className="text-sm text-muted-foreground">
+                Choose from {displayModels.length} available AI models with real-time pricing and
+                filtering options
+              </p>
+            </DialogHeader>
 
-          <Tabs defaultValue="models" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="models">All Models ({displayModels.length})</TabsTrigger>
-              <TabsTrigger value="filters">Filters & Comparison</TabsTrigger>
-            </TabsList>
+            <Tabs defaultValue="models" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="models">All Models ({displayModels.length})</TabsTrigger>
+                <TabsTrigger value="filters">Filters & Settings</TabsTrigger>
+                <TabsTrigger value="compare" disabled={compareModels.length < 2}>
+                  Compare ({compareModels.length})
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="models" className="space-y-4">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search models..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8"
-                  />
+              <TabsContent value="models" className="space-y-4">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search models..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-8"
+                    />
+                  </div>
+                  <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="All Providers" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Providers</SelectItem>
+                      {providers.map((provider) => (
+                        <SelectItem key={provider} value={provider}>
+                          {provider}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant={showFavoritesOnly ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                    className="flex items-center gap-1"
+                  >
+                    <Star className={`h-4 w-4 ${showFavoritesOnly ? "fill-current" : ""}`} />
+                    Favorites
+                  </Button>
+                  <Button
+                    variant={showComparison ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      setShowComparison(!showComparison)
+                      if (!showComparison) {
+                        setCompareModels([])
+                      }
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    Compare ({compareModels.length})
+                  </Button>
                 </div>
-                <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="All Providers" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Providers</SelectItem>
-                    {providers.map((provider) => (
-                      <SelectItem key={provider} value={provider}>
-                        {provider}
-                      </SelectItem>
+
+                <ScrollArea className="h-[400px] pr-4">
+                  <div className="grid gap-3" role="listbox" aria-label="Available AI models">
+                    {displayModels.map((model, index) => (
+                      <ModelCard
+                        key={model.id}
+                        model={model}
+                        isSelected={model.id === currentModel?.id}
+                        onSelect={() => {
+                          handleModelChange(model)
+                          setOpen(false)
+                        }}
+                        showCost={showCost}
+                        estimatedTokens={estimatedTokens}
+                        onToggleFavorite={toggleFavorite}
+                        isFavorite={isFavorite(model.id)}
+                        isComparing={showComparison}
+                        onToggleCompare={(modelId) => {
+                          setCompareModels(prev => 
+                            prev.includes(modelId) 
+                              ? prev.filter(id => id !== modelId)
+                              : prev.length < 3 ? [...prev, modelId] : prev
+                          )
+                        }}
+                        isInComparison={compareModels.includes(model.id)}
+                      />
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="grid gap-3" role="listbox" aria-label="Available AI models">
-                  {displayModels.map((model, index) => (
-                    <ModelCard
-                      key={model.id}
-                      model={model}
-                      isSelected={model.id === currentModel?.id}
-                      onSelect={() => {
-                        handleModelChange(model)
-                        setOpen(false)
-                      }}
-                      showCost={showCost}
-                      estimatedTokens={estimatedTokens}
-                    />
-                  ))}
-                  {displayModels.length === 0 && (
-                    <div className="py-8 text-center text-muted-foreground" role="status">
-                      No models found matching your criteria
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="filters" className="space-y-4">
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="price-range-slider">Price Range (per 1K tokens)</Label>
-                  <div className="px-2">
-                    <input
-                      id="price-range-slider"
-                      type="range"
-                      min={0}
-                      max={0.1}
-                      step={0.001}
-                      value={priceRange[1]}
-                      onChange={(e) => setPriceRange([priceRange[0], parseFloat(e.target.value)])}
-                      className="w-full accent-primary"
-                      aria-label={`Maximum price per 1K tokens: $${priceRange[1].toFixed(3)}`}
-                      aria-valuemin={0}
-                      aria-valuemax={0.1}
-                      aria-valuenow={priceRange[1]}
-                      aria-valuetext={`$${priceRange[1].toFixed(3)} per 1K tokens`}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground" role="group" aria-label="Price range values">
-                    <span aria-label="Minimum price">$0.000</span>
-                    <span aria-label="Maximum price">${priceRange[1].toFixed(3)}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="min-context-length">Minimum Context Length</Label>
-                  <Input
-                    id="min-context-length"
-                    type="number"
-                    value={minContextLength}
-                    onChange={(e) => setMinContextLength(Number(e.target.value))}
-                    placeholder="0"
-                    aria-label="Minimum context length in tokens"
-                    aria-describedby="context-length-help"
-                  />
-                  <p id="context-length-help" className="text-xs text-muted-foreground">
-                    Filter models by minimum number of tokens they can process
-                  </p>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="image-models"
-                    checked={showImageModels}
-                    onCheckedChange={(checked) => setShowImageModels(checked === true)}
-                    aria-describedby="vision-models-help"
-                  />
-                  <Label htmlFor="image-models">Vision Models Only</Label>
-                  <p id="vision-models-help" className="sr-only">
-                    Show only models that can process images and text
-                  </p>
-                </div>
-
-                {showCost && (
-                  <div className="rounded-lg border bg-muted/20 p-4">
-                    <h4 className="mb-2 font-medium text-foreground">Cost Estimation</h4>
-                    {currentModel && estimatedTokens ? (
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Input cost:</span>
-                          <span>{formatPrice(currentModel.costPer1kTokens.input)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Output cost:</span>
-                          <span>{formatPrice(currentModel.costPer1kTokens.output)}</span>
-                        </div>
-                        <Separator className="my-2" />
-                        <div className="flex justify-between font-medium">
-                          <span>Estimated ({estimatedTokens} tokens):</span>
-                          <span className="text-primary">
-                            $
-                            {currentModel?.id ? calculateCost(
-                              estimatedTokens / 2,
-                              estimatedTokens / 2,
-                              currentModel.id
-                            ).toFixed(4) : "0.0000"}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="h-4 animate-pulse bg-muted rounded" />
-                        <div className="h-4 animate-pulse bg-muted rounded w-3/4" />
-                        <div className="h-4 animate-pulse bg-muted rounded w-1/2" />
+                    {displayModels.length === 0 && (
+                      <div className="py-8 text-center text-muted-foreground" role="status">
+                        No models found matching your criteria
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
-    </div>
+                </ScrollArea>
+              </TabsContent>
+
+              <TabsContent value="filters" className="space-y-4">
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="price-range-slider">Price Range (per 1K tokens)</Label>
+                    <div className="px-2">
+                      <input
+                        id="price-range-slider"
+                        type="range"
+                        min={0}
+                        max={0.1}
+                        step={0.001}
+                        value={priceRange[1]}
+                        onChange={(e) => setPriceRange([priceRange[0], parseFloat(e.target.value)])}
+                        className="w-full accent-primary"
+                        aria-label={`Maximum price per 1K tokens: $${priceRange[1].toFixed(3)}`}
+                        aria-valuemin={0}
+                        aria-valuemax={0.1}
+                        aria-valuenow={priceRange[1]}
+                        aria-valuetext={`$${priceRange[1].toFixed(3)} per 1K tokens`}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground" role="group" aria-label="Price range values">
+                      <span aria-label="Minimum price">$0.000</span>
+                      <span aria-label="Maximum price">${priceRange[1].toFixed(3)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="min-context-length">Minimum Context Length</Label>
+                    <Input
+                      id="min-context-length"
+                      type="number"
+                      value={minContextLength}
+                      onChange={(e) => setMinContextLength(Number(e.target.value))}
+                      placeholder="0"
+                      aria-label="Minimum context length in tokens"
+                      aria-describedby="context-length-help"
+                    />
+                    <p id="context-length-help" className="text-xs text-muted-foreground">
+                      Filter models by minimum number of tokens they can process
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="image-models"
+                      checked={showImageModels}
+                      onCheckedChange={(checked) => setShowImageModels(checked === true)}
+                      aria-describedby="vision-models-help"
+                    />
+                    <Label htmlFor="image-models">Vision Models Only</Label>
+                    <p id="vision-models-help" className="sr-only">
+                      Show only models that can process images and text
+                    </p>
+                  </div>
+
+                  {showCost && (
+                    <div className="rounded-lg border bg-muted/20 p-4">
+                      <h4 className="mb-2 font-medium text-foreground">Cost Estimation</h4>
+                      {currentModel && estimatedTokens ? (
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Input cost:</span>
+                            <span>{formatPrice(currentModel.costPer1kTokens.input)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Output cost:</span>
+                            <span>{formatPrice(currentModel.costPer1kTokens.output)}</span>
+                          </div>
+                          <Separator className="my-2" />
+                          <div className="flex justify-between font-medium">
+                            <span>Estimated ({estimatedTokens} tokens):</span>
+                            <span className="text-primary">
+                              $
+                              {currentModel?.id ? calculateCost(
+                                estimatedTokens / 2,
+                                estimatedTokens / 2,
+                                currentModel.id
+                              ).toFixed(4) : "0.0000"}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="h-4 animate-pulse bg-muted rounded" />
+                          <div className="h-4 animate-pulse bg-muted rounded w-3/4" />
+                          <div className="h-4 animate-pulse bg-muted rounded w-1/2" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="compare" className="space-y-4">
+                <div className="grid gap-4">
+                  {compareModels.length === 0 ? (
+                    <div className="py-8 text-center text-muted-foreground">
+                      Select models to compare them side by side
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {compareModels.map((modelId) => {
+                        const model = getModelById(modelId)
+                        if (!model) return null
+                        const category = getModelCategory(model)
+                        return (
+                          <div key={modelId} className="rounded-lg border p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium">{model.name}</h4>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setCompareModels(prev => prev.filter(id => id !== modelId))}
+                              >
+                                ×
+                              </Button>
+                            </div>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Provider:</span>
+                                <span>{model.provider}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Category:</span>
+                                <Badge variant="outline" className={`text-xs ${
+                                  category === "fast" ? "border-green-500/50 text-green-400" :
+                                  category === "balanced" ? "border-yellow-500/50 text-yellow-400" :
+                                  "border-red-500/50 text-red-400"
+                                }`}>
+                                  {category}
+                                </Badge>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Context:</span>
+                                <span>{formatTokenCount(model.maxTokens)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Input cost:</span>
+                                <span>{formatPrice(model.costPer1kTokens.input)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Output cost:</span>
+                                <span>{formatPrice(model.costPer1kTokens.output)}</span>
+                              </div>
+                              {model.architecture?.input_modalities?.includes("image") && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Vision:</span>
+                                  <span className="text-green-400">Yes</span>
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              className="w-full"
+                              onClick={() => {
+                                handleModelChange(model)
+                                setOpen(false)
+                              }}
+                            >
+                              Select This Model
+                            </Button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </ModelErrorBoundary>
   )
 }

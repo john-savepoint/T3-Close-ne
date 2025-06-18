@@ -16,6 +16,7 @@ import { useModels } from "@/hooks/use-models"
 import { EnhancedFileUpload } from "@/components/enhanced-file-upload"
 import { Badge } from "@/components/ui/badge"
 import type { Attachment } from "@/types/attachment"
+import { DEFAULT_MODEL_ID } from "@/lib/default-models"
 
 interface ChatInputProps {
   onSendMessage?: (content: string, attachments?: Attachment[]) => void
