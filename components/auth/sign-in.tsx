@@ -109,8 +109,10 @@ export function SignIn() {
 
     try {
       console.log("🚀 CALLING signIn with verification code...")
-      await signIn("password", { email, password, code, flow: "email-verification" })
-      console.log("✅ VERIFICATION SUCCESSFUL")
+      console.log("📧 Verification params:", { email, code, flow: "email-verification" })
+      // According to docs, email verification only needs email, code, and flow
+      const result = await signIn("password", { email, code, flow: "email-verification" })
+      console.log("✅ VERIFICATION RESULT:", result)
       // Redirect will be handled by the useEffect hook once authentication state updates
     } catch (error) {
       console.error("❌ Verification failed:", error)
