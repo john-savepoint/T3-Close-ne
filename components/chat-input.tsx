@@ -15,6 +15,7 @@ import { ModelSwitcher } from "@/components/model-switcher"
 import { EnhancedFileUpload } from "@/components/enhanced-file-upload"
 import { Badge } from "@/components/ui/badge"
 import type { Attachment } from "@/types/attachment"
+import { formatFileSize } from "@/lib/file-utils"
 
 interface ChatInputProps {
   onSendMessage?: (content: string, attachments?: Attachment[]) => void
@@ -58,15 +59,7 @@ export function ChatInput({
   }
 
   const removeAttachment = (attachmentId: string) => {
-    setAttachedFiles((prev) => prev.filter((att) => att.id !== attachmentId))
-  }
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+    setAttachedFiles((prev) => prev.filter((att) => att._id !== attachmentId))
   }
 
   const handleSendMessage = async () => {
@@ -109,18 +102,16 @@ export function ChatInput({
           <div className="mb-2 flex flex-wrap gap-2 rounded-lg bg-mauve-dark/20 p-2">
             {attachedFiles.map((file) => (
               <Badge
-                key={file.id}
+                key={file._id}
                 variant="outline"
                 className="border-mauve-accent/50 bg-mauve-accent/20 pr-1 text-xs"
               >
                 <span className="max-w-32 truncate" title={file.filename}>
                   {file.filename}
                 </span>
-                <span className="ml-1 text-mauve-subtle/70">
-                  ({formatFileSize(file.sizeBytes || file.size)})
-                </span>
+                <span className="ml-1 text-mauve-subtle/70">({formatFileSize(file.size)})</span>
                 <button
-                  onClick={() => removeAttachment(file.id || file._id)}
+                  onClick={() => removeAttachment(file._id)}
                   className="ml-1 transition-colors hover:text-red-400"
                 >
                   ×
@@ -181,7 +172,7 @@ export function ChatInput({
             <Button
               size="icon"
               onClick={handleSendMessage}
-              disabled={!message.trim() || disabled}
+              disabled={(!message.trim() && attachedFiles.length === 0) || disabled}
               className="h-9 w-9 bg-mauve-accent/20 text-mauve-bright hover:bg-mauve-accent/30 disabled:opacity-50"
             >
               <Send className="h-4 w-4" />
