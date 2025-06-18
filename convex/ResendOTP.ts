@@ -5,10 +5,12 @@ import { alphabet, generateRandomString } from "oslo/crypto"
 export const ResendOTP = Resend({
   id: "resend-otp",
   apiKey: process.env.AUTH_RESEND_KEY,
+  maxAge: 15 * 60, // 15 minutes in seconds
   async generateVerificationToken() {
     return generateRandomString(8, alphabet("0-9"))
   },
   async sendVerificationRequest({ identifier: email, provider, token }) {
+    console.log("Sending verification email to:", email)
     const resend = new ResendAPI(provider.apiKey)
     const { error } = await resend.emails.send({
       from: "Z6Chat <chat@z6chat.savepoint.com.au>",
@@ -29,7 +31,9 @@ export const ResendOTP = Resend({
     })
 
     if (error) {
+      console.error("Failed to send verification email:", error)
       throw new Error("Could not send verification email")
     }
+    console.log("Verification email sent successfully")
   },
 })

@@ -45,11 +45,16 @@ export function SignUp() {
     setError(null)
 
     try {
+      console.log("Attempting email verification with:", {
+        email,
+        code: code.substring(0, 2) + "****" + code.substring(6),
+      })
       await signIn("password", {
         email,
         code,
         flow: "email-verification",
       })
+      console.log("Email verification successful")
     } catch (error) {
       console.error("Email verification failed:", error)
       if (error instanceof Error) {
