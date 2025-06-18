@@ -28,7 +28,7 @@ const formatTimestamp = (timestamp: number): string => {
   const minutes = Math.floor(diff / (1000 * 60))
   const hours = Math.floor(diff / (1000 * 60 * 60))
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  
+
   if (minutes < 60) return `${minutes}m ago`
   if (hours < 24) return `${hours}h ago`
   if (days === 1) return "Yesterday"
@@ -42,16 +42,16 @@ const groupChatsByTime = (chats: any[]) => {
   const today = new Date(now).setHours(0, 0, 0, 0)
   const yesterday = today - 24 * 60 * 60 * 1000
   const weekAgo = today - 7 * 24 * 60 * 60 * 1000
-  
+
   const pinnedThreads: any[] = []
   const todayThreads: any[] = []
   const yesterdayThreads: any[] = []
   const thisWeekThreads: any[] = []
   const olderThreads: any[] = []
-  
-  chats.forEach(chat => {
+
+  chats.forEach((chat) => {
     const chatTime = chat.lastActivity || chat.updatedAt
-    
+
     // Note: In a real app, pinned status would be stored in the database
     if (chatTime >= today) {
       todayThreads.push(chat)
@@ -63,7 +63,7 @@ const groupChatsByTime = (chats: any[]) => {
       olderThreads.push(chat)
     }
   })
-  
+
   return {
     pinnedThreads,
     todayThreads,
@@ -80,16 +80,22 @@ interface ThreadItemProps {
 }
 
 // Thread Item Component
-const ThreadItem = ({ chat, parent = false, isActive = false, onMoveToTrash, onMoveToArchive }: ThreadItemProps & {
+const ThreadItem = ({
+  chat,
+  parent = false,
+  isActive = false,
+  onMoveToTrash,
+  onMoveToArchive,
+}: ThreadItemProps & {
   onMoveToTrash: (chatId: string) => Promise<void>
   onMoveToArchive: (chatId: string) => Promise<void>
 }) => {
   const handleMoveToTrash = async () => {
-    await onMoveToTrash(chat._id)
+    await onMoveToTrash(String(chat._id))
   }
-  
+
   const handleMoveToArchive = async () => {
-    await onMoveToArchive(chat._id)
+    await onMoveToArchive(String(chat._id))
   }
 
   return (
@@ -128,51 +134,46 @@ export function Sidebar() {
   const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
   const { archivedChats, trashedChats } = useChatLifecycle()
   const { user } = useAuth()
-  
+
   // Get archived and trashed chat counts
   const { chats: archivedChatsData } = useChats({
     userId: user?._id,
-    status: "archived"
+    status: "archived",
   })
-  
+
   const { chats: trashedChatsData } = useChats({
     userId: user?._id,
-    status: "trashed"
+    status: "trashed",
   })
-  
+
   // Get real chat data from Convex
-  const { 
-    chats: activeChats, 
+  const {
+    chats: activeChats,
     isLoading: chatsLoading,
     createChat,
     moveToArchive,
-    moveToTrash 
-  } = useChats({ 
-    userId: user?._id, 
-    status: "active" 
+    moveToTrash,
+  } = useChats({
+    userId: user?._id,
+    status: "active",
   })
-  
+
   // Filter chats based on search query
-  const filteredChats = activeChats.filter(chat =>
+  const filteredChats = activeChats.filter((chat) =>
     chat.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
-  
+
   // Group chats by time periods
-  const {
-    pinnedThreads,
-    todayThreads,
-    yesterdayThreads,
-    thisWeekThreads,
-    olderThreads,
-  } = groupChatsByTime(filteredChats)
+  const { pinnedThreads, todayThreads, yesterdayThreads, thisWeekThreads, olderThreads } =
+    groupChatsByTime(filteredChats)
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
   }
-  
+
   const handleCreateNewChat = async () => {
     if (!user?._id) return
-    
+
     try {
       const chatId = await createChat(
         activeProject ? `New Chat in ${activeProject.name}` : "New Chat",
@@ -299,11 +300,11 @@ export function Sidebar() {
                       <>
                         <GroupLabel label="Pinned" />
                         {pinnedThreads.map((thread) => (
-                          <ThreadItem 
-                            key={thread._id} 
-                            chat={thread} 
-                            onMoveToTrash={moveToTrash}
-                            onMoveToArchive={moveToArchive}
+                          <ThreadItem
+                            key={thread._id}
+                            chat={thread}
+                            onMoveToTrash={(chatId) => moveToTrash(chatId as any)}
+                            onMoveToArchive={(chatId) => moveToArchive(chatId as any)}
                           />
                         ))}
                       </>
@@ -313,11 +314,11 @@ export function Sidebar() {
                       <>
                         <GroupLabel label="Today" />
                         {todayThreads.map((thread) => (
-                          <ThreadItem 
-                            key={thread._id} 
-                            chat={thread} 
-                            onMoveToTrash={moveToTrash}
-                            onMoveToArchive={moveToArchive}
+                          <ThreadItem
+                            key={thread._id}
+                            chat={thread}
+                            onMoveToTrash={(chatId) => moveToTrash(chatId as any)}
+                            onMoveToArchive={(chatId) => moveToArchive(chatId as any)}
                           />
                         ))}
                       </>
@@ -327,11 +328,11 @@ export function Sidebar() {
                       <>
                         <GroupLabel label="Yesterday" />
                         {yesterdayThreads.map((thread) => (
-                          <ThreadItem 
-                            key={thread._id} 
-                            chat={thread} 
-                            onMoveToTrash={moveToTrash}
-                            onMoveToArchive={moveToArchive}
+                          <ThreadItem
+                            key={thread._id}
+                            chat={thread}
+                            onMoveToTrash={(chatId) => moveToTrash(chatId as any)}
+                            onMoveToArchive={(chatId) => moveToArchive(chatId as any)}
                           />
                         ))}
                       </>
@@ -341,11 +342,11 @@ export function Sidebar() {
                       <>
                         <GroupLabel label="This Week" />
                         {thisWeekThreads.map((thread) => (
-                          <ThreadItem 
-                            key={thread._id} 
-                            chat={thread} 
-                            onMoveToTrash={moveToTrash}
-                            onMoveToArchive={moveToArchive}
+                          <ThreadItem
+                            key={thread._id}
+                            chat={thread}
+                            onMoveToTrash={(chatId) => moveToTrash(chatId as any)}
+                            onMoveToArchive={(chatId) => moveToArchive(chatId as any)}
                           />
                         ))}
                       </>
@@ -355,11 +356,11 @@ export function Sidebar() {
                       <>
                         <GroupLabel label="Older" />
                         {olderThreads.map((thread) => (
-                          <ThreadItem 
-                            key={thread._id} 
-                            chat={thread} 
-                            onMoveToTrash={moveToTrash}
-                            onMoveToArchive={moveToArchive}
+                          <ThreadItem
+                            key={thread._id}
+                            chat={thread}
+                            onMoveToTrash={(chatId) => moveToTrash(chatId as any)}
+                            onMoveToArchive={(chatId) => moveToArchive(chatId as any)}
                           />
                         ))}
                       </>

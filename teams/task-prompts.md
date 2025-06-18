@@ -605,47 +605,50 @@ DOCUMENTATION: Update teams/16-file-upload-integration/STATUS.md when complete
 IMPORTANT: use context7
 ```
 
-### **Task 17: GitHub Label Organization & Automation**
+### **Task 17: URGENT Clerk Authentication Implementation**
 
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
-TASK: Implement comprehensive GitHub label system for project organization, automation, and release management to improve workflow efficiency and competition tracking.
+TASK: URGENT - Implement Clerk authentication system ultra-quickly for competition deadline. We desperately need auth working ASAP and Clerk is the fastest solution.
 
-DEPENDENCIES: None (completely independent task)
+DEPENDENCIES: None (highest priority, independent task)
 
 DELIVERABLES:
-- Complete label system with priority, type, component, status, competition, release, and automation labels
-- Apply appropriate labels to all existing PRs (#3, #4, #5)
-- Create PR template with label checkboxes for consistent labeling
-- Document label usage guidelines and automation rules
-- Integrate labels with auto-merge workflow and release automation
+- Install and configure Clerk authentication
+- Replace existing auth infrastructure with Clerk
+- Add Clerk provider to app layout
+- Create sign-in/sign-up pages with Clerk components
+- Protect routes with Clerk middleware
+- Update UI to show Clerk user data
 
 FILES TO CREATE/MODIFY:
-- GitHub label creation (via gh CLI commands)
-- `.github/pull_request_template.md` - PR template with label checkboxes
-- `docs/labels.md` - Label reference guide and usage documentation
-- Update existing PRs with appropriate labels
-- Update team documentation with label workflow
+- Install @clerk/nextjs package
+- app/layout.tsx - Add ClerkProvider
+- middleware.ts - Add Clerk auth middleware
+- app/sign-in/[[...sign-in]]/page.tsx
+- app/sign-up/[[...sign-up]]/page.tsx
+- components/user-profile.tsx - Use Clerk user data
+- Update all auth-related components
 
 ACCEPTANCE CRITERIA:
-- All label categories created with appropriate colors and descriptions
-- Existing PRs properly labeled with type, component, priority, and competition impact
-- PR template includes comprehensive label checklist
-- Auto-merge workflow integrated with label system
-- Clear documentation for team label usage
-- Competition progress easily trackable through label filtering
+- Users can sign up/sign in via Clerk
+- Authentication works across the entire app
+- Protected routes redirect to sign-in
+- User profile displays real Clerk data
+- Sign out functionality works
+- Fast implementation for competition deadline
 
 DOCUMENTATION REQUIREMENTS:
-- MUST use GitHub CLI documentation for label creation commands
-- Reference existing auto-merge workflow configuration
-- Document label color scheme and naming conventions
-- Create usage guidelines for consistent team adoption
+- MUST use documentation in /scrape folder (convex-auth-clerk.md, etc.)
+- Reference Clerk's Next.js setup guide
+- Use existing scrape documentation for quick setup
+- Prioritize speed over perfection for competition
 
-BRANCH: feat/label-organization
-DOCUMENTATION: Update teams/17-label-organization/STATUS.md when complete
+BRANCH: feat/urgent-clerk-auth
+DOCUMENTATION: Update teams/17-urgent-clerk-auth/STATUS.md when complete
 
-IMPORTANT: use context7
+IMPORTANT: THIS IS ULTRA HIGH PRIORITY - use scrape folder docs
 ```
 
 ---
