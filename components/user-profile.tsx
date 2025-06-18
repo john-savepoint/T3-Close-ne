@@ -10,13 +10,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useUser, useClerk } from "@clerk/nextjs"
 import { LogOut, Settings, User } from "lucide-react"
 import Link from "next/link"
 
 export function UserProfile() {
-  const { user, isSignedIn } = useUser()
-  const { signOut } = useClerk()
+  // Temporary mock user for demo - no authentication
+  const mockUser = {
+    name: "Demo User",
+    email: "demo@z6chat.com",
+    imageUrl: null,
+    isSignedIn: true
+  }
+
+  const user = mockUser
+  const isSignedIn = mockUser.isSignedIn
 
   if (!isSignedIn || !user) {
     return (
@@ -39,8 +46,8 @@ export function UserProfile() {
     )
   }
 
-  const userName = user.fullName || user.firstName
-  const userEmail = user.primaryEmailAddress?.emailAddress
+  const userName = user.name
+  const userEmail = user.email
 
   const userInitials = userName
     ? userName
@@ -52,7 +59,8 @@ export function UserProfile() {
 
   const handleSignOut = async () => {
     try {
-      await signOut()
+      // Mock sign out - just reload the page
+      window.location.reload()
     } catch (error) {
       console.error("Sign out failed:", error)
     }
@@ -64,7 +72,7 @@ export function UserProfile() {
         <Button variant="ghost" className="h-auto w-full justify-start p-2">
           <div className="flex w-full items-center gap-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.imageUrl} alt={userName || "User"} />
+              <AvatarImage src={user.imageUrl || ""} alt={userName || "User"} />
               <AvatarFallback className="bg-mauve-accent text-mauve-bright">
                 {userInitials}
               </AvatarFallback>
