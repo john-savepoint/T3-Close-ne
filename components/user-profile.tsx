@@ -20,12 +20,21 @@ export function UserProfile() {
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="flex items-center gap-3 p-2">
-        <Skeleton className="h-8 w-8 rounded-full" />
-        <div className="flex flex-col gap-1">
-          <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-2 w-12" />
-        </div>
+      <div className="flex flex-col gap-2 p-2">
+        <Link href="/login">
+          <Button variant="default" className="w-full bg-mauve-accent hover:bg-mauve-accent/80">
+            <User className="mr-2 h-4 w-4" />
+            Sign In
+          </Button>
+        </Link>
+        <Link href="/login">
+          <Button
+            variant="outline"
+            className="w-full border-mauve-accent/50 text-mauve-accent hover:bg-mauve-accent/10"
+          >
+            Create Account
+          </Button>
+        </Link>
       </div>
     )
   }
