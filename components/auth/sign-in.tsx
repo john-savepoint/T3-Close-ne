@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Github, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useConvexAuth } from "convex/react"
 
 export function SignIn() {
   const { signIn } = useAuthActions()
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth()
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -20,6 +22,13 @@ export function SignIn() {
     email?: string
     password?: string
   }>({})
+
+  // Redirect to home when authentication is confirmed
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      router.push("/")
+    }
+  }, [isAuthenticated, authLoading, router])
 
   const validateForm = () => {
     const errors: { email?: string; password?: string } = {}
@@ -52,8 +61,7 @@ export function SignIn() {
 
     try {
       await signIn("password", { email, password, flow: "signIn" })
-      // Redirect to main app after successful sign in
-      router.push("/")
+      // Redirect will be handled by the useEffect hook once authentication state updates
     } catch (error) {
       console.error("Sign in failed:", error)
       if (error instanceof Error) {

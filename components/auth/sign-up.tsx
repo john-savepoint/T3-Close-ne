@@ -8,9 +8,11 @@ import { Separator } from "@/components/ui/separator"
 import { useState, useEffect } from "react"
 import { Github, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useConvexAuth } from "convex/react"
 
 export function SignUp() {
   const { signIn } = useAuthActions()
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth()
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -19,6 +21,13 @@ export function SignUp() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [step, setStep] = useState<"signUp" | "verify">("signUp")
+
+  // Redirect to home when authentication is confirmed
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      router.push("/")
+    }
+  }, [isAuthenticated, authLoading, router])
 
   const handlePasswordSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -58,8 +67,7 @@ export function SignUp() {
       })
       console.log("Email verification successful")
 
-      // Redirect to main app after successful verification
-      router.push("/")
+      // Redirect will be handled by the useEffect hook once authentication state updates
     } catch (error) {
       console.error("Email verification failed:", error)
       if (error instanceof Error) {

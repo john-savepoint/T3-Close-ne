@@ -1,5 +1,17 @@
 # z6chat
 
+## 0.3.1
+
+### Patch Changes
+
+- fix(auth): resolve authentication redirect issues preventing users from accessing main app
+
+  - Added AuthGuard components to all protected pages to ensure proper authentication checks
+  - Fixed race condition between authentication state updates and router redirects
+  - Updated middleware to include root path "/" as a protected route
+  - Modified sign-in/sign-up components to use useEffect for reliable redirect handling
+  - Ensured consistent authentication flow across all application routes
+
 ## 0.3.0
 
 ### Minor Changes

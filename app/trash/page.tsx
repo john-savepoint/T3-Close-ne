@@ -1,11 +1,16 @@
+"use client"
+
 import { TrashView } from "@/components/trash-view"
+import { AuthGuard } from "@/components/auth/auth-guard"
 
 export default function TrashPage() {
   return (
-    <div className="flex h-screen bg-background">
-      <div className="flex-1">
-        <TrashView />
+    <AuthGuard>
+      <div className="flex h-screen bg-background">
+        <div className="flex-1">
+          <TrashView />
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   )
 }
