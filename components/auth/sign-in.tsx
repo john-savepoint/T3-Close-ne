@@ -9,6 +9,8 @@ import { useState, useEffect } from "react"
 import { Github, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useConvexAuth } from "convex/react"
+import { useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
 
 export function SignIn() {
   const { signIn } = useAuthActions()
