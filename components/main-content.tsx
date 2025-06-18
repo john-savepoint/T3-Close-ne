@@ -11,17 +11,7 @@ import { TemporaryChatBanner } from "@/components/temporary-chat-banner"
 import { TemporaryChatStarter } from "@/components/temporary-chat-starter"
 import { ToolsGrid } from "@/components/tools-grid"
 import { useState } from "react"
-
-interface Message {
-  id: string
-  type: "user" | "assistant"
-  content: string
-  timestamp: Date
-  model?: string
-  toolUsed?: string
-  isEdited?: boolean
-  editedAt?: Date
-}
+import { useChat } from "@/hooks/use-chat"
 import { useMemory } from "@/hooks/use-memory"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { ShareChatModal } from "@/components/share-chat-modal"
@@ -33,12 +23,29 @@ import { useAuth } from "@/hooks/use-auth"
 
 export function MainContent() {
   const isMobile = useIsMobile()
-  const [messages, setMessages] = useState<Message[]>([])
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
-  const [selectedModel, setSelectedModel] = useState("gpt-4o")
   const { suggestions } = useMemory()
   const { temporaryChat, isTemporaryMode } = useTemporaryChat()
   const { user } = useAuth()
+
+  // Real chat functionality
+  const {
+    messages,
+    isLoading,
+    error,
+    selectedModel,
+    temperature,
+    sendMessage,
+    editMessage,
+    deleteMessage,
+    regenerateResponse,
+    clearMessages,
+    stopStreaming,
+    changeModel,
+    setTemperature,
+  } = useChat({
+    initialModel: "openai/gpt-4o-mini",
+  })
 
   // Keyboard navigation
   const { isModelSwitcherOpen, closeModelSwitcher, shortcuts } = useKeyboardNavigation()
@@ -52,7 +59,7 @@ export function MainContent() {
   // Show the first non-dismissed suggestion (only in non-temporary mode)
   const activeSuggestion = !isTemporaryMode ? suggestions[0] : null
 
-  // Use temporary chat messages if in temporary mode
+  // Use temporary chat messages if in temporary mode, otherwise use real chat
   const displayMessages = isTemporaryMode ? temporaryChat?.messages || [] : messages
 
   // Get user display name
@@ -63,13 +70,7 @@ export function MainContent() {
       // Handle temporary chat message editing
       console.log("Edit temporary message:", messageId, newContent)
     } else {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === messageId
-            ? { ...m, content: newContent, isEdited: true, editedAt: new Date() }
-            : m
-        )
-      )
+      editMessage(messageId, newContent)
     }
   }
 
@@ -78,7 +79,15 @@ export function MainContent() {
       // Handle temporary chat message deletion
       console.log("Delete temporary message:", messageId)
     } else {
-      setMessages((prev) => prev.filter((m) => m.id !== messageId))
+      deleteMessage(messageId)
+    }
+  }
+
+  const handleSendMessage = async (content: string, attachments?: any[]) => {
+    if (isTemporaryMode) {
+      console.log("Send temporary message:", content, attachments)
+    } else {
+      await sendMessage(content, attachments)
     }
   }
 
@@ -94,22 +103,12 @@ export function MainContent() {
     element?.scrollIntoView({ behavior: "smooth", block: "center" })
   }
 
-  const handleToolSelect = (toolId: string, result: any) => {
-    // When a tool generates content, add it as the first message in the chat
-    const newMessage = {
-      id: `msg-${Date.now()}`,
-      type: "assistant" as const,
-      content: result.content,
-      timestamp: new Date(),
-      model: selectedModel,
-      toolUsed: toolId,
-    }
-
+  const handleToolSelect = async (toolId: string, result: any) => {
+    // When a tool generates content, send it as a message
     if (isTemporaryMode) {
-      // Handle temporary chat
-      console.log("Add tool result to temporary chat:", newMessage)
+      console.log("Add tool result to temporary chat:", result)
     } else {
-      setMessages([newMessage])
+      await sendMessage(`Tool result from ${toolId}: ${result.content}`)
     }
   }
 
@@ -158,24 +157,32 @@ export function MainContent() {
                 <Button
                   variant="ghost"
                   className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
+                  onClick={() => handleSendMessage("How does AI work?")}
+                  disabled={isLoading}
                 >
                   How does AI work?
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
+                  onClick={() => handleSendMessage("Are black holes real?")}
+                  disabled={isLoading}
                 >
                   Are black holes real?
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
+                  onClick={() => handleSendMessage('How many Rs are in the word "strawberry"?')}
+                  disabled={isLoading}
                 >
                   How many Rs are in the word "strawberry"?
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
+                  onClick={() => handleSendMessage("What is the meaning of life?")}
+                  disabled={isLoading}
                 >
                   What is the meaning of life?
                 </Button>
@@ -185,37 +192,68 @@ export function MainContent() {
             // Chat messages
             <div className="flex-1 space-y-4 p-4">
               {activeSuggestion && <MemorySuggestionBanner suggestion={activeSuggestion} />}
+
+              {/* Error display */}
+              {error && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+                  <p className="font-medium">Error:</p>
+                  <p className="text-sm">{error.message || String(error)}</p>
+                </div>
+              )}
+
               {displayMessages.map((message) => (
                 <div key={message.id} id={`message-${message.id}`}>
                   <ChatMessage
                     {...message}
                     onEdit={handleEditMessage}
                     onDelete={handleDeleteMessage}
-                    onRegenerate={(id) => {
-                      // Implement regeneration logic
-                    }}
+                    onRegenerate={regenerateResponse}
                     onCopy={(content) => {
                       navigator.clipboard.writeText(content)
                     }}
                   />
                 </div>
               ))}
+
+              {/* Loading indicator */}
+              {isLoading && displayMessages.length > 0 && (
+                <div className="flex items-center space-x-2 text-mauve-subtle">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-mauve-accent border-t-transparent"></div>
+                  <span className="text-sm">AI is thinking...</span>
+                </div>
+              )}
             </div>
           )}
           <div className="flex-1" />
 
           {/* Chat Input */}
           <div className="sticky bottom-0 bg-gradient-to-t from-mauve-dark to-transparent px-4 pb-4 md:pb-8">
-            <ChatInput />
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+              onStopGeneration={stopStreaming}
+              selectedModel={selectedModel}
+              onModelChange={(model: string) => changeModel(model as any)}
+              temperature={temperature}
+              onTemperatureChange={setTemperature}
+              disabled={!!error}
+            />
           </div>
         </div>
 
         {/* Top right controls */}
         <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
-          <ExportChatModal messages={displayMessages} chatTitle="Current Chat Title" />
+          <ExportChatModal
+            messages={displayMessages}
+            chatTitle={
+              displayMessages.length > 0 ? `Chat ${new Date().toLocaleDateString()}` : "New Chat"
+            }
+          />
           <ShareChatModal
-            chatId="current-chat-id"
-            chatTitle="Current Chat Title"
+            chatId={`chat-${Date.now()}`}
+            chatTitle={
+              displayMessages.length > 0 ? `Chat ${new Date().toLocaleDateString()}` : "New Chat"
+            }
             messageCount={displayMessages.length}
           />
           <ThreadNavigator
@@ -233,7 +271,7 @@ export function MainContent() {
         isOpen={isModelSwitcherOpen}
         onClose={closeModelSwitcher}
         selectedModel={selectedModel}
-        onModelChange={setSelectedModel}
+        onModelChange={(model: string) => changeModel(model as any)}
       />
     </main>
   )
