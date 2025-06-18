@@ -20,7 +20,6 @@ import { CodeBlockEnhanced } from "@/components/code-block-enhanced"
 import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { Textarea } from "@/components/ui/textarea"
-import { MessageAttachments } from "@/components/chat/message-attachments"
 import type { Attachment } from "@/types/attachment"
 
 interface ChatMessageProps {
@@ -274,16 +273,6 @@ export function ChatMessage({
               </div>
             ))}
           </div>
-        )}
-
-        {/* Message Attachments */}
-        {attachments && attachments.length > 0 && !isEditMode && !showDeleteConfirm && (
-          <MessageAttachments
-            attachments={attachments}
-            onRemoveAttachment={onRemoveAttachment}
-            isOwnMessage={type === "user"}
-            compact={false}
-          />
         )}
 
         {/* Enhanced Action Buttons */}

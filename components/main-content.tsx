@@ -23,7 +23,6 @@ import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { useConversationTree } from "@/hooks/use-conversation-tree"
 import { useAuth } from "@/hooks/use-auth"
-import type { Attachment } from "@/types/attachment"
 
 export function MainContent() {
   const isMobile = useIsMobile()
@@ -195,11 +194,6 @@ export function MainContent() {
     }
   }
 
-  const handleRemoveAttachment = (attachmentId: string) => {
-    // TODO: Implement attachment removal with useChat hook
-    console.log("Remove attachment:", attachmentId)
-  }
-
   const handleBranchSelect = (branchId: string) => {
     // Switch to the selected branch by finding the leaf message ID
     const branches = conversationTree.branches
@@ -352,7 +346,6 @@ export function MainContent() {
                     onCopy={(content) => {
                       navigator.clipboard.writeText(content)
                     }}
-                    onRemoveAttachment={handleRemoveAttachment}
                   />
                 </div>
               ))}

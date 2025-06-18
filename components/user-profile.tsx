@@ -10,24 +10,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useAuth } from "@/hooks/use-auth"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { LogOut, Settings, User } from "lucide-react"
 import Link from "next/link"
 
 export function UserProfile() {
-  const { user, signOut, isAuthenticated } = useAuth()
+  const { user, isSignedIn } = useUser()
+  const { signOut } = useClerk()
 
-  if (!isAuthenticated || !user) {
+  if (!isSignedIn || !user) {
     return (
       <div className="flex flex-col gap-2 p-2">
-        <Link href="/login">
+        <Link href="/sign-in">
           <Button variant="default" className="w-full bg-mauve-accent hover:bg-mauve-accent/80">
             <User className="mr-2 h-4 w-4" />
             Sign In
           </Button>
         </Link>
-        <Link href="/signup">
+        <Link href="/sign-up">
           <Button
             variant="outline"
             className="w-full border-mauve-accent/50 text-mauve-accent hover:bg-mauve-accent/10"
@@ -39,8 +39,8 @@ export function UserProfile() {
     )
   }
 
-  const userName = typeof user.name === "string" ? user.name : undefined
-  const userEmail = typeof user.email === "string" ? user.email : undefined
+  const userName = user.fullName || user.firstName
+  const userEmail = user.primaryEmailAddress?.emailAddress
 
   const userInitials = userName
     ? userName
@@ -64,10 +64,7 @@ export function UserProfile() {
         <Button variant="ghost" className="h-auto w-full justify-start p-2">
           <div className="flex w-full items-center gap-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage
-                src={typeof user.image === "string" ? user.image : undefined}
-                alt={userName || "User"}
-              />
+              <AvatarImage src={user.imageUrl} alt={userName || "User"} />
               <AvatarFallback className="bg-mauve-accent text-mauve-bright">
                 {userInitials}
               </AvatarFallback>
