@@ -4,6 +4,8 @@ import { useChatStreaming } from "./use-chat-streaming"
 import { SupportedModel } from "@/types/models"
 import { useCallback, useState } from "react"
 import type { Attachment } from "@/types/attachment"
+import { useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
 
 interface UseChatOptions {
   initialModel?: SupportedModel
@@ -29,6 +31,10 @@ export function useChat(options: UseChatOptions = {}) {
   )
   const [apiKey, setApiKey] = useState<string | undefined>(options.apiKey)
   const [temperature, setTemperature] = useState<number>(0.7)
+  
+  // Convex mutations
+  const editMessageMutation = useMutation(api.messages.edit)
+  const deleteMessageMutation = useMutation(api.messages.deleteMessage)
 
   const {
     messages: aiMessages,
@@ -111,38 +117,50 @@ export function useChat(options: UseChatOptions = {}) {
 
   // Edit message functionality
   const editMessage = useCallback(
-    (messageId: string, newContent: string) => {
-      // Update the message in the local state
-      const messageIndex = aiMessages.findIndex((msg) => msg.id === messageId)
-      if (messageIndex !== -1) {
-        const updatedMessages = [...aiMessages]
-        updatedMessages[messageIndex] = {
-          ...updatedMessages[messageIndex],
-          content: newContent,
+    async (messageId: string, newContent: string) => {
+      try {
+        // Optimistic update for immediate UI feedback
+        const messageIndex = aiMessages.findIndex((msg) => msg.id === messageId)
+        if (messageIndex !== -1) {
+          // Call Convex mutation to persist changes
+          const result = await editMessageMutation({
+            messageId: messageId as any, // TODO: Fix type conversion for Convex ID
+            content: newContent.trim(),
+          })
+          
+          if (result.success) {
+            console.log("Message edited successfully:", result.messageId)
+            // The message will be updated via Convex live queries
+          }
         }
-        // Note: We would need to update the streaming hook to support this
-        // For now, we'll need to implement this in the messages management
-        console.log("Edit message:", messageId, newContent)
-        // TODO: Persist to database
+      } catch (error) {
+        console.error("Failed to edit message:", error)
+        // TODO: Show user-facing error notification
+        // Could revert optimistic update here
       }
     },
-    [aiMessages]
+    [aiMessages, editMessageMutation]
   )
 
   // Delete message functionality
   const deleteMessage = useCallback(
-    (messageId: string) => {
-      // Remove the message and all subsequent messages in the conversation
-      const messageIndex = aiMessages.findIndex((msg) => msg.id === messageId)
-      if (messageIndex !== -1) {
-        const filteredMessages = aiMessages.slice(0, messageIndex)
-        // Note: We would need to update the streaming hook to support this
-        console.log("Delete message:", messageId)
-        // TODO: Update the conversation context
-        // TODO: Persist to database
+    async (messageId: string) => {
+      try {
+        // Call Convex mutation to delete message and children
+        const result = await deleteMessageMutation({
+          messageId: messageId as any, // TODO: Fix type conversion for Convex ID
+        })
+        
+        if (result.success) {
+          console.log(`Successfully deleted ${result.deletedCount} message(s)`)
+          // The messages will be removed via Convex live queries
+        }
+      } catch (error) {
+        console.error("Failed to delete message:", error)
+        // TODO: Show user-facing error notification
       }
     },
-    [aiMessages]
+    [deleteMessageMutation]
   )
 
   // Regenerate response

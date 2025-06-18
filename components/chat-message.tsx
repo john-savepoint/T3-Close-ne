@@ -30,7 +30,7 @@ interface ChatMessageProps {
   timestamp: Date
   model?: string
   attachments?: Attachment[]
-  isEditing?: boolean
+  isEditingProp?: boolean
   isEdited?: boolean
   editedAt?: Date
   onEdit?: (id: string, content: string) => void
@@ -47,7 +47,7 @@ export function ChatMessage({
   timestamp,
   model,
   attachments,
-  isEditing = false,
+  isEditingProp = false,
   isEdited = false,
   editedAt,
   onEdit,
@@ -60,6 +60,8 @@ export function ChatMessage({
   const [isHovered, setIsHovered] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -76,9 +78,17 @@ export function ChatMessage({
     setEditContent(content)
   }
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editContent.trim() !== content) {
-      onEdit?.(id, editContent.trim())
+      setIsEditing(true)
+      try {
+        await onEdit?.(id, editContent.trim())
+      } catch (error) {
+        console.error("Failed to save edit:", error)
+        // Could show error toast here
+      } finally {
+        setIsEditing(false)
+      }
     }
     setIsEditMode(false)
   }
@@ -92,9 +102,17 @@ export function ChatMessage({
     setShowDeleteConfirm(true)
   }
 
-  const confirmDelete = () => {
-    onDelete?.(id)
-    setShowDeleteConfirm(false)
+  const confirmDelete = async () => {
+    setIsDeleting(true)
+    try {
+      await onDelete?.(id)
+      setShowDeleteConfirm(false)
+    } catch (error) {
+      console.error("Failed to delete message:", error)
+      // Could show error toast here
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const cancelDelete = () => {
@@ -198,10 +216,17 @@ export function ChatMessage({
               }}
             />
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleSaveEdit}>
-                Save Changes
+              <Button size="sm" onClick={handleSaveEdit} disabled={isEditing}>
+                {isEditing ? (
+                  <>
+                    <div className="mr-2 h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
-              <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+              <Button size="sm" variant="outline" onClick={handleCancelEdit} disabled={isEditing}>
                 Cancel
               </Button>
             </div>
@@ -216,10 +241,17 @@ export function ChatMessage({
               remove the message from the conversation history.
             </p>
             <div className="flex gap-2">
-              <Button size="sm" variant="destructive" onClick={confirmDelete}>
-                Delete Message
+              <Button size="sm" variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+                {isDeleting ? (
+                  <>
+                    <div className="mr-2 h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete Message"
+                )}
               </Button>
-              <Button size="sm" variant="outline" onClick={cancelDelete}>
+              <Button size="sm" variant="outline" onClick={cancelDelete} disabled={isDeleting}>
                 Cancel
               </Button>
             </div>

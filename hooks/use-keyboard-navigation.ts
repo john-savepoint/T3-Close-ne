@@ -36,13 +36,26 @@ export function useKeyboardNavigation() {
   const navigateToMessage = useCallback((index: number) => {
     setCurrentMessageIndex(index)
     const messages = document.querySelectorAll('[id^="message-"]')
+    
     if (messages[index]) {
-      messages[index].scrollIntoView({ behavior: "smooth", block: "center" })
-      // Add focus/highlight effect
-      messages[index].classList.add("ring-2", "ring-mauve-accent")
+      // Smooth scroll to message with improved centering
+      messages[index].scrollIntoView({ 
+        behavior: "smooth", 
+        block: "center",
+        inline: "nearest"
+      })
+      
+      // Add focus/highlight effect with animation
+      const element = messages[index] as HTMLElement
+      element.classList.add("ring-2", "ring-mauve-accent", "transition-all", "duration-300")
+      
+      // Remove highlight after animation
       setTimeout(() => {
-        messages[index].classList.remove("ring-2", "ring-mauve-accent")
+        element.classList.remove("ring-2", "ring-mauve-accent", "transition-all", "duration-300")
       }, 1500)
+      
+      // Focus the element for accessibility
+      element.focus({ preventScroll: true })
     }
   }, [])
 
