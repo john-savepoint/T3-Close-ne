@@ -72,15 +72,23 @@
   .main-background::after {
     content: "";
     @apply absolute inset-0 opacity-20 mix-blend-overlay;
-    background-image: url("/noise.png");
-    background-repeat: repeat;
-    background-size: 96px 96px;
+    background-image:
+      radial-gradient(circle at 25% 25%, transparent 2px, rgba(255, 255, 255, 0.02) 2px),
+      radial-gradient(circle at 75% 75%, transparent 2px, rgba(255, 255, 255, 0.02) 2px);
+    background-size: 4px 4px;
+    background-position:
+      0 0,
+      2px 2px;
   }
 
   /* Additional styles for noise background */
   .noise-bg {
-    background-image: url("/noise.png");
-    background-repeat: repeat;
-    background-size: 96px 96px;
+    background-image:
+      radial-gradient(circle at 25% 25%, transparent 2px, rgba(255, 255, 255, 0.02) 2px),
+      radial-gradient(circle at 75% 75%, transparent 2px, rgba(255, 255, 255, 0.02) 2px);
+    background-size: 4px 4px;
+    background-position:
+      0 0,
+      2px 2px;
   }
 }
