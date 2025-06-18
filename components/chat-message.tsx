@@ -16,8 +16,7 @@ import {
   Code,
   Share2,
 } from "lucide-react"
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
+import { CodeBlockEnhanced } from "@/components/code-block-enhanced"
 import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { Textarea } from "@/components/ui/textarea"
@@ -128,34 +127,6 @@ export function ChatMessage({
     return blocks.length > 0 ? blocks : [{ type: "text", content: text }]
   }
 
-  const downloadCode = (code: string, language: string) => {
-    const extensions: { [key: string]: string } = {
-      javascript: "js",
-      typescript: "ts",
-      python: "py",
-      java: "java",
-      cpp: "cpp",
-      c: "c",
-      html: "html",
-      css: "css",
-      json: "json",
-      xml: "xml",
-      sql: "sql",
-      bash: "sh",
-      shell: "sh",
-    }
-
-    const extension = extensions[language.toLowerCase()] || "txt"
-    const blob = new Blob([code], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `code.${extension}`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
 
   const blocks = extractCodeBlocks(content)
 
@@ -247,44 +218,13 @@ export function ChatMessage({
                 {block.type === "text" ? (
                   <div className="whitespace-pre-wrap text-sm text-foreground">{block.content}</div>
                 ) : (
-                  <div className="group/code relative">
-                    <div className="flex items-center justify-between rounded-t-lg border-b border-mauve-dark bg-mauve-dark/50 px-4 py-2">
-                      <Badge variant="outline" className="text-xs">
-                        <Code className="mr-1 h-3 w-3" />
-                        {block.language}
-                      </Badge>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => onCopy?.(block.content)}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => downloadCode(block.content, block.language || "txt")}
-                        >
-                          <Download className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <SyntaxHighlighter
-                      language={block.language}
-                      style={oneDark}
-                      customStyle={{
-                        margin: 0,
-                        borderTopLeftRadius: 0,
-                        borderTopRightRadius: 0,
-                        backgroundColor: "hsl(288, 15%, 12%)",
-                      }}
-                    >
-                      {block.content}
-                    </SyntaxHighlighter>
-                  </div>
+                  <CodeBlockEnhanced
+                    code={block.content}
+                    language={block.language}
+                    showLineNumbers={true}
+                    showActions={true}
+                    maxHeight="500px"
+                  />
                 )}
               </div>
             ))}
