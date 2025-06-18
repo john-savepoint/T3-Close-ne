@@ -104,11 +104,17 @@ export function MainContent() {
   }
 
   const handleToolSelect = async (toolId: string, result: any) => {
-    // When a tool generates content, send it as a message
+    // When a tool generates content, send it as a message with proper context
+    const toolName = toolId.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ')
+    
+    const formattedMessage = `## ${toolName} Result\n\n${result.content}`
+    
     if (isTemporaryMode) {
-      console.log("Add tool result to temporary chat:", result)
+      console.log("Add tool result to temporary chat:", formattedMessage)
     } else {
-      await sendMessage(`Tool result from ${toolId}: ${result.content}`)
+      await sendMessage(formattedMessage)
     }
   }
 

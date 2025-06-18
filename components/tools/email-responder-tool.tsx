@@ -3,7 +3,9 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2 } from "lucide-react"
+import { Loader2, AlertCircle } from "lucide-react"
+import { generateEmailResponse } from "@/lib/tools-api"
+import { useToast } from "@/hooks/use-toast"
 
 interface EmailResponderToolProps {
   onComplete: (result: { content: string }) => void
@@ -12,36 +14,47 @@ interface EmailResponderToolProps {
 export function EmailResponderTool({ onComplete }: EmailResponderToolProps) {
   const [emailHistory, setEmailHistory] = useState("")
   const [instructions, setInstructions] = useState("")
-  const [tone, setTone] = useState<string>("professional")
+  const [tone, setTone] = useState<"formal" | "professional" | "casual" | "friendly">("professional")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const handleGenerate = async () => {
     if (!emailHistory || !instructions) return
 
     setIsLoading(true)
+    setError(null)
 
     try {
-      // In a real application, this would make an API call
-      // For this example, we'll simulate a response after a delay
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const result = await generateEmailResponse({
+        emailHistory,
+        instructions,
+        tone,
+      })
 
-      // Mock response content
-      const responseContent = `
-Dear Team,
-
-Thank you for the detailed overview of the project timeline. After reviewing the schedule, I can confirm that we'll be able to meet the proposed deadline of October 15th. Our development team has already begun preliminary work on the most critical components.
-
-Regarding your question about additional resources, we don't anticipate needing any at this stage. However, we would appreciate the opportunity to review the design specifications once more before finalizing our approach.
-
-I've scheduled a follow-up meeting for next Tuesday at 2 PM to discuss any outstanding questions. Please let me know if this works for your team.
-
-Best regards,
-[Your Name]
-      `.trim()
-
-      onComplete({ content: responseContent })
+      if (result.success && result.content) {
+        onComplete({ content: result.content })
+        toast({
+          title: "Email generated successfully",
+          description: "Your email response is ready to use",
+        })
+      } else {
+        setError(result.error || "Failed to generate email")
+        toast({
+          title: "Generation failed",
+          description: result.error || "Unable to generate email response",
+          variant: "destructive",
+        })
+      }
     } catch (error) {
       console.error("Error generating email:", error)
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
+      setError(errorMessage)
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -84,7 +97,7 @@ Best regards,
                   key={option.value}
                   variant={tone === option.value ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setTone(option.value)}
+                  onClick={() => setTone(option.value as typeof tone)}
                 >
                   {option.label}
                 </Button>
@@ -93,6 +106,13 @@ Best regards,
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
       <div className="flex justify-end">
         <Button onClick={handleGenerate} disabled={!emailHistory || !instructions || isLoading}>

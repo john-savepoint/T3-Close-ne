@@ -114,17 +114,22 @@ function ToolCard({ tool, onClick, getToolIcon }: ToolCardProps) {
 
   return (
     <Card
-      className="cursor-pointer border border-mauve-subtle/20 transition-all hover:border-mauve-subtle/40 hover:shadow-md"
+      className="group cursor-pointer border border-mauve-subtle/20 transition-all duration-300 hover:border-mauve-accent/40 hover:shadow-lg hover:shadow-mauve-accent/10 hover:-translate-y-1"
       onClick={() => onClick(tool.id)}
     >
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
-          <div className="rounded-lg bg-mauve-subtle/10 p-3">
-            {React.createElement(Icon as any, { className: "h-6 w-6 text-mauve-subtle", size: 24 })}
+          <div className="rounded-lg bg-mauve-subtle/10 p-3 transition-colors duration-300 group-hover:bg-mauve-accent/20">
+            {React.createElement(Icon as any, { 
+              className: "h-6 w-6 text-mauve-subtle transition-colors duration-300 group-hover:text-mauve-accent", 
+              size: 24 
+            })}
           </div>
           <div className="flex-1">
             <div className="mb-1 flex items-center gap-2">
-              <h3 className="font-medium">{tool.name}</h3>
+              <h3 className="font-medium transition-colors duration-300 group-hover:text-mauve-accent">
+                {tool.name}
+              </h3>
               {tool.isNew && (
                 <Badge className="bg-green-500/20 text-green-500 hover:bg-green-500/30">New</Badge>
               )}
@@ -134,7 +139,9 @@ function ToolCard({ tool, onClick, getToolIcon }: ToolCardProps) {
                 </Badge>
               )}
             </div>
-            <p className="text-sm text-mauve-subtle/70">{tool.description}</p>
+            <p className="text-sm text-mauve-subtle/70 transition-colors duration-300 group-hover:text-mauve-subtle/90">
+              {tool.description}
+            </p>
           </div>
         </div>
       </CardContent>
