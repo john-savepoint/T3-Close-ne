@@ -49,19 +49,33 @@ export async function POST(req: NextRequest) {
     // Inject memory context if provided
     const enhancedMessages = [...messages]
     if (memoryContext && memoryContext.length > 0) {
-      const systemPrompt =
-        "--- User Context & Preferences ---\n" + memoryContext + "\n--- End User Context ---\n\n"
+      try {
+        // Validate context length (OpenAI has token limits)
+        let contextToUse = memoryContext
+        if (contextToUse.length > 8000) {
+          console.warn("Memory context exceeds recommended length, truncating...")
+          contextToUse = contextToUse.substring(0, 8000) + "\n[... additional memories truncated ...]"
+        }
 
-      // Check if first message is already a system message
-      if (enhancedMessages[0]?.role === "system") {
-        // Prepend memories to existing system message
-        enhancedMessages[0].content = systemPrompt + enhancedMessages[0].content
-      } else {
-        // Add new system message with memories
-        enhancedMessages.unshift({
-          role: "system",
-          content: systemPrompt,
-        })
+        const memoryPrompt = `--- User Context & Preferences ---\n${contextToUse}\n--- End User Context ---\n\n`
+
+        // Find or create system message
+        const systemMessageIndex = enhancedMessages.findIndex(msg => msg.role === "system")
+
+        if (systemMessageIndex >= 0) {
+          // Properly format existing system message
+          const existingContent = enhancedMessages[systemMessageIndex].content
+          enhancedMessages[systemMessageIndex].content = memoryPrompt + existingContent
+        } else {
+          // Add new system message at the beginning
+          enhancedMessages.unshift({
+            role: "system",
+            content: memoryPrompt
+          })
+        }
+      } catch (error) {
+        console.error("Failed to inject memory context:", error)
+        // Continue without memory context if injection fails
       }
     }
 

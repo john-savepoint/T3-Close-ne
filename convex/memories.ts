@@ -2,8 +2,31 @@ import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import { Doc, Id } from "./_generated/dataModel"
 
-// Temporary user ID for demo purposes (since auth is disabled)
+// Temporary user ID for demo purposes (since auth is disabled for competition)
 const DEMO_USER_ID = "demo-user" as Id<"users">
+
+// Helper function to get user ID with auth fallback
+async function getUserId(ctx: any): Promise<Id<"users">> {
+  try {
+    const identity = await ctx.auth.getUserIdentity()
+    if (identity) {
+      // Get user by tokenIdentifier
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q: any) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+        .unique()
+      
+      if (user) {
+        return user._id
+      }
+    }
+  } catch (error) {
+    // Auth is disabled or failed, fall back to demo user
+    console.log("Auth not available, using demo user")
+  }
+  
+  return DEMO_USER_ID
+}
 
 // Create a new memory
 export const createMemory = mutation({
@@ -17,8 +40,7 @@ export const createMemory = mutation({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
-    // Since auth is disabled, use demo user
-    const userId = DEMO_USER_ID
+    const userId = await getUserId(ctx)
 
     const now = Date.now()
     const memory = await ctx.db.insert("memories", {
@@ -64,6 +86,13 @@ export const updateMemory = mutation({
       throw new Error("Memory not found")
     }
 
+    const currentUserId = await getUserId(ctx)
+    
+    // Verify ownership
+    if (memory.userId !== currentUserId) {
+      throw new Error("Unauthorized")
+    }
+
     const updates: Partial<Doc<"memories">> = {
       updatedAt: Date.now(),
     }
@@ -91,6 +120,13 @@ export const deleteMemory = mutation({
       throw new Error("Memory not found")
     }
 
+    const currentUserId = await getUserId(ctx)
+    
+    // Verify ownership
+    if (memory.userId !== currentUserId) {
+      throw new Error("Unauthorized")
+    }
+
     // Delete any project associations
     const projectMemories = await ctx.db
       .query("projectMemories")
@@ -113,8 +149,7 @@ export const getMemoriesForUser = query({
     onlyActive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    // Since auth is disabled, use demo user
-    const userId = DEMO_USER_ID
+    const userId = await getUserId(ctx)
 
     let memoriesQuery = ctx.db.query("memories").withIndex("by_user", (q) => q.eq("userId", userId))
 
@@ -150,8 +185,7 @@ export const searchMemories = query({
     projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
-    // Since auth is disabled, use demo user
-    const userId = DEMO_USER_ID
+    const userId = await getUserId(ctx)
 
     // Use the search index
     const searchResults = await ctx.db
@@ -208,8 +242,7 @@ export const createMemorySuggestion = mutation({
     messageId: v.id("messages"),
   },
   handler: async (ctx, args) => {
-    // Since auth is disabled, use demo user
-    const userId = DEMO_USER_ID
+    const userId = await getUserId(ctx)
 
     // Create a suggestion (stored as an inactive memory)
     const suggestion = await ctx.db.insert("memories", {
@@ -241,6 +274,13 @@ export const processSuggestion = mutation({
       throw new Error("Suggestion not found")
     }
 
+    const currentUserId = await getUserId(ctx)
+    
+    // Verify ownership
+    if (suggestion.userId !== currentUserId) {
+      throw new Error("Unauthorized")
+    }
+
     if (args.accept) {
       // Activate the suggestion
       await ctx.db.patch(args.suggestionId, {
@@ -269,8 +309,7 @@ export const processSuggestion = mutation({
 // Get memory analytics for the current user
 export const getMemoryAnalytics = query({
   handler: async (ctx) => {
-    // Since auth is disabled, use demo user
-    const userId = DEMO_USER_ID
+    const userId = await getUserId(ctx)
 
     const memories = await ctx.db
       .query("memories")

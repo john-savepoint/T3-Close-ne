@@ -14,6 +14,7 @@ interface UseChatWithMemoryOptions {
   onResponse?: (response: Response) => void
   onFinish?: (message: any) => void
   onError?: (error: Error) => void
+  onMemoryError?: (error: Error, operation: string) => void
 }
 
 export function useChatWithMemory(options: UseChatWithMemoryOptions = {}) {
@@ -21,35 +22,54 @@ export function useChatWithMemory(options: UseChatWithMemoryOptions = {}) {
   const { memories, trackMemoryUsage } = useMemory()
   const { activeProject } = useProjects()
 
+  // Memory error handler
+  const handleMemoryError = useCallback((error: Error, operation: string) => {
+    console.error(`Memory ${operation} failed:`, error)
+    options.onMemoryError?.(error, operation)
+    // Could show user-friendly notification in the future
+    // Could fall back to non-memory mode in the future
+  }, [options])
+
   // Build memory context string from active memories
   const memoryContext = useMemo(() => {
     if (!options.includeMemories || memories.length === 0) {
       return ""
     }
 
-    // Group memories by category
-    const memoryGroups: Record<string, typeof memories> = {}
-    memories.forEach((memory) => {
-      const category = memory.category || "general"
-      if (!memoryGroups[category]) {
-        memoryGroups[category] = []
-      }
-      memoryGroups[category].push(memory)
-    })
+    try {
+      // Group memories by category
+      const memoryGroups: Record<string, typeof memories> = {}
+      memories.forEach((memory) => {
+        const category = memory.category || "general"
+        if (!memoryGroups[category]) {
+          memoryGroups[category] = []
+        }
+        memoryGroups[category].push(memory)
+      })
 
-    // Format memories into context string
-    let context = ""
-    Object.entries(memoryGroups).forEach(([category, categoryMemories]) => {
-      if (categoryMemories.length > 0) {
-        context += `\n${category.charAt(0).toUpperCase() + category.slice(1)}:\n`
-        categoryMemories.forEach((memory) => {
-          context += `- ${memory.content}\n`
-        })
-      }
-    })
+      // Format memories into context string
+      let context = ""
+      Object.entries(memoryGroups).forEach(([category, categoryMemories]) => {
+        if (categoryMemories.length > 0) {
+          context += `\n${category.charAt(0).toUpperCase() + category.slice(1)}:\n`
+          categoryMemories.forEach((memory) => {
+            context += `- ${memory.content}\n`
+          })
+        }
+      })
 
-    return context
-  }, [memories, options.includeMemories])
+      // Validate context length (OpenAI has token limits)
+      if (context.length > 8000) {
+        console.warn("Memory context exceeds recommended length, truncating...")
+        return context.substring(0, 8000) + "\n[... additional memories truncated ...]"
+      }
+
+      return context
+    } catch (error) {
+      handleMemoryError(error as Error, "context building")
+      return ""
+    }
+  }, [memories, options.includeMemories, handleMemoryError])
 
   const {
     messages,
@@ -84,13 +104,30 @@ export function useChatWithMemory(options: UseChatWithMemoryOptions = {}) {
       // Track memory usage after successful response
       if (memoryContext && memories.length > 0) {
         // Track usage for all active memories used in this conversation
-        const trackingPromises = memories.map((memory) => trackMemoryUsage(memory.id))
+        const trackingPromises = memories.map(async (memory) => {
+          try {
+            await trackMemoryUsage(memory.id)
+            return { success: true, memoryId: memory.id }
+          } catch (error) {
+            handleMemoryError(error as Error, `usage tracking for memory ${memory.id}`)
+            return { success: false, memoryId: memory.id, error }
+          }
+        })
 
         try {
-          await Promise.all(trackingPromises)
-          console.log("Memory usage tracked successfully")
+          const results = await Promise.allSettled(trackingPromises)
+          const failed = results
+            .filter((result) => result.status === "rejected" || (result.status === "fulfilled" && !result.value.success))
+            .length
+          
+          if (failed > 0) {
+            console.warn(`Memory usage tracking partially failed: ${failed}/${memories.length} memories`)
+          } else {
+            console.log("Memory usage tracked successfully for all memories")
+          }
         } catch (error) {
-          console.error("Failed to track memory usage:", error)
+          console.error("Unexpected error in memory tracking:", error)
+          // Memory tracking failure doesn't affect the main chat flow
         }
       }
     },
