@@ -16,6 +16,7 @@ const schema = defineSchema({
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
+    tokenIdentifier: v.optional(v.string()),
     // Storage tracking from PR #3
     storageUsed: v.optional(v.number()), // bytes
     storageLimit: v.optional(v.number()), // bytes
