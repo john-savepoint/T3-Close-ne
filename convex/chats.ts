@@ -342,17 +342,19 @@ export const createFromTemporary = mutation({
     title: v.string(),
     userId: v.id("users"),
     projectId: v.optional(v.id("projects")),
-    messages: v.array(v.object({
-      content: v.string(),
-      type: v.union(v.literal("user"), v.literal("assistant")),
-      model: v.optional(v.string()),
-      timestamp: v.string(), // ISO string
-    })),
+    messages: v.array(
+      v.object({
+        content: v.string(),
+        type: v.union(v.literal("user"), v.literal("assistant")),
+        model: v.optional(v.string()),
+        timestamp: v.string(), // ISO string
+      })
+    ),
     model: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now()
-    
+
     // Create the chat
     const chatId = await ctx.db.insert("chats", {
       title: args.title,
@@ -368,9 +370,9 @@ export const createFromTemporary = mutation({
 
     // Insert all messages
     let lastMessageId: string | undefined = undefined
-    
+
     for (const message of args.messages) {
-      const messageId = await ctx.db.insert("messages", {
+      const messageId: string = await ctx.db.insert("messages", {
         chatId,
         content: message.content,
         type: message.type,
@@ -380,7 +382,7 @@ export const createFromTemporary = mutation({
         timestamp: new Date(message.timestamp).getTime(),
         isEdited: false,
       })
-      
+
       lastMessageId = messageId
     }
 
@@ -388,7 +390,6 @@ export const createFromTemporary = mutation({
     if (lastMessageId) {
       await ctx.db.patch(chatId, {
         activeLeafMessageId: lastMessageId,
-        lastActivity: now,
       })
     }
 
