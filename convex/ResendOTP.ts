@@ -11,7 +11,7 @@ export const ResendOTP = Resend({
   async sendVerificationRequest({ identifier: email, provider, token }) {
     const resend = new ResendAPI(provider.apiKey)
     const { error } = await resend.emails.send({
-      from: "Z6Chat <onboarding@resend.dev>",
+      from: "Z6Chat <chat@z6chat.savepoint.com.au>",
       to: [email],
       subject: `Sign in to Z6Chat`,
       text: "Your verification code is " + token,
