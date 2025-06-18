@@ -114,7 +114,6 @@ export function ToolsGrid({ onToolSelect }: ToolsGridProps) {
               {tools.slice(0, 3).map((tool) => (
                 <Card
                   key={tool.id}
-<<<<<<< HEAD
                   className="group cursor-pointer border-mauve-dark/40 bg-mauve-surface/20 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-mauve-accent/40 hover:bg-mauve-surface/30 hover:shadow-lg hover:shadow-mauve-accent/10"
                   onClick={() => setActiveTool(tool.id)}
                 >
@@ -128,17 +127,6 @@ export function ToolsGrid({ onToolSelect }: ToolsGridProps) {
                       <h3 className="text-left font-medium transition-colors duration-300 group-hover:text-mauve-accent">
                         {tool.name}
                       </h3>
-=======
-                  className="group cursor-pointer border-mauve-dark/40 bg-mauve-surface/20 p-4 transition-all duration-300 hover:bg-mauve-surface/30 hover:border-mauve-accent/40 hover:shadow-md hover:-translate-y-0.5"
-                  onClick={() => setActiveTool(tool.id)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-md bg-mauve-surface/30 p-2 transition-colors duration-300 group-hover:bg-mauve-accent/20">
-                      {tool.icon}
-                    </div>
-                    <div>
-                      <h3 className="text-left font-medium transition-colors duration-300 group-hover:text-mauve-accent">{tool.name}</h3>
->>>>>>> temp-mission-control
                       <p className="text-left text-sm text-mauve-subtle/80">{tool.description}</p>
                     </div>
                   </div>
