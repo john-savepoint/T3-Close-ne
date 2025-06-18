@@ -407,7 +407,205 @@ DOCUMENTATION: Update teams/10-web-search/STATUS.md when complete
 IMPORTANT: use context7
 ```
 
-### **Task 16: GitHub Label Organization & Automation**
+### **Task 12: Connect Authentication UI**
+
+```
+You are working on Z6Chat, our T3Chat competition clone.
+
+TASK: Connect the authentication state to the UI components - replace dummy auth behavior with real Convex Auth integration
+
+DEPENDENCIES: None (auth backend is complete)
+
+DELIVERABLES:
+- Update Sidebar to show real authenticated user info
+- Show/hide features based on authentication status
+- Replace dummy user avatar/name with real user data
+- Add working sign out functionality
+- Connect AuthGuard to protected routes properly
+
+FILES TO CREATE/MODIFY:
+- components/sidebar.tsx
+- components/user-profile.tsx (if exists)
+- app/layout.tsx (auth state management)
+
+ACCEPTANCE CRITERIA:
+- Authenticated users see their real GitHub/Google profile info
+- Unauthenticated users see sign in prompts
+- Sign out button actually signs users out
+- UI updates reactively when auth state changes
+
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest Convex Auth documentation
+- Use Brave Search MCP for authentication UI patterns
+- Reference CLAUDE.md for project standards
+
+BRANCH: feat/connect-auth-ui
+DOCUMENTATION: Update teams/12-connect-auth-ui/STATUS.md when complete
+
+IMPORTANT: use context7
+```
+
+### **Task 13: Real Chat Interface**
+
+```
+You are working on Z6Chat, our T3Chat competition clone.
+
+TASK: Connect the main chat interface to our OpenRouter API for real message streaming and replace dummy chat data
+
+DEPENDENCIES: Task 12 (authentication)
+
+DELIVERABLES:
+- Connect chat input to OpenRouter API
+- Replace dummy messages with real streaming responses
+- Implement proper loading states during API calls
+- Add error handling for failed API requests
+- Connect to our existing /api/chat endpoint
+
+FILES TO CREATE/MODIFY:
+- components/main-content.tsx
+- components/chat/message-input.tsx
+- components/chat/message-list.tsx
+- hooks/use-chat.ts
+
+ACCEPTANCE CRITERIA:
+- Users can send messages and get real AI responses
+- Messages stream in real-time (not just appear instantly)
+- Error states show helpful messages
+- Loading indicators during API calls
+- Model switching works with real models
+
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest OpenRouter API documentation
+- Use Context7 for Vercel AI SDK streaming documentation
+- Reference our existing OpenRouter integration code
+
+BRANCH: feat/real-chat-interface
+DOCUMENTATION: Update teams/13-real-chat-interface/STATUS.md when complete
+
+IMPORTANT: use context7
+```
+
+### **Task 14: Chat Persistence**
+
+```
+You are working on Z6Chat, our T3Chat competition clone.
+
+TASK: Implement real chat creation and message persistence using our Convex database schema
+
+DEPENDENCIES: Task 13 (real chat interface)
+
+DELIVERABLES:
+- Save chats and messages to Convex database
+- Load chat history from database
+- Update sidebar with real chat list from database
+- Implement chat creation, editing, deletion
+- Connect to existing Convex schema
+
+FILES TO CREATE/MODIFY:
+- convex/chats.ts (query/mutation functions)
+- convex/messages.ts (query/mutation functions)
+- components/sidebar.tsx (real chat list)
+- hooks/use-chats.ts
+
+ACCEPTANCE CRITERIA:
+- New chats are saved to database with proper metadata
+- Messages persist between sessions
+- Chat list updates in real-time
+- Chat titles are generated or user-editable
+- Delete/archive functionality works
+
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest Convex documentation
+- Review our existing database schema in convex/schema.ts
+- Use Convex live queries for real-time updates
+
+BRANCH: feat/chat-persistence
+DOCUMENTATION: Update teams/14-chat-persistence/STATUS.md when complete
+
+IMPORTANT: use context7
+```
+
+### **Task 15: Model Management UI**
+
+```
+You are working on Z6Chat, our T3Chat competition clone.
+
+TASK: Connect the model switcher to real OpenRouter models with cost calculation and real-time switching
+
+DEPENDENCIES: Task 13 (real chat interface)
+
+DELIVERABLES:
+- Load real model list from OpenRouter API
+- Show actual costs per model
+- Enable mid-conversation model switching
+- Display model information (context length, pricing)
+- Connect to our existing OpenRouter integration
+
+FILES TO CREATE/MODIFY:
+- components/model-switcher.tsx
+- lib/openrouter.ts (extend existing)
+- hooks/use-models.ts
+- types/models.ts
+
+ACCEPTANCE CRITERIA:
+- Model list loads from real OpenRouter API
+- Cost calculation shows real pricing
+- Users can switch models mid-conversation
+- Model metadata (speed, quality) is displayed
+- Model switching updates the active chat context
+
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest OpenRouter documentation
+- Reference our existing OpenRouter integration
+- Use Brave Search MCP for model comparison UX patterns
+
+BRANCH: feat/model-management-ui
+DOCUMENTATION: Update teams/15-model-management-ui/STATUS.md when complete
+
+IMPORTANT: use context7
+```
+
+### **Task 16: File Upload Integration**
+
+```
+You are working on Z6Chat, our T3Chat competition clone.
+
+TASK: Integrate our existing file upload functionality into the chat interface for real file attachments
+
+DEPENDENCIES: Task 14 (chat persistence)
+
+DELIVERABLES:
+- Add file upload button to chat input
+- Connect to existing Convex file storage
+- Display uploaded files in chat messages
+- Support image preview and document handling
+- Connect to our existing upload infrastructure
+
+FILES TO CREATE/MODIFY:
+- components/chat/file-upload.tsx
+- components/chat/message-attachments.tsx
+- hooks/use-file-upload.ts
+- Update message schema for attachments
+
+ACCEPTANCE CRITERIA:
+- Users can upload files during chat
+- Files are stored in Convex and linked to messages
+- File attachments display properly in chat history
+- Image files show previews
+- File size and type validation works
+
+DOCUMENTATION REQUIREMENTS:
+- MUST use Context7 MCP server for latest Convex file storage documentation
+- Reference our existing file upload implementation
+- Use React Dropzone documentation for UX patterns
+
+BRANCH: feat/file-upload-integration
+DOCUMENTATION: Update teams/16-file-upload-integration/STATUS.md when complete
+
+IMPORTANT: use context7
+```
+
+### **Task 17: GitHub Label Organization & Automation**
 
 ```
 You are working on Z6Chat, our T3Chat competition clone.
@@ -445,7 +643,7 @@ DOCUMENTATION REQUIREMENTS:
 - Create usage guidelines for consistent team adoption
 
 BRANCH: feat/label-organization
-DOCUMENTATION: Update teams/16-label-organization/STATUS.md when complete
+DOCUMENTATION: Update teams/17-label-organization/STATUS.md when complete
 
 IMPORTANT: use context7
 ```
