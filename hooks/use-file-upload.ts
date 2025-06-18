@@ -1,11 +1,9 @@
 "use client"
 
 import { useState, useCallback } from "react"
-// TODO: Add convex dependency and uncomment
-// import { useMutation } from "convex/react";
-// TODO: Uncomment when Convex is properly set up
-// import { api } from "@/convex/_generated/api";
-// import { Id } from "@/convex/_generated/dataModel";
+import { useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { Id } from "@/convex/_generated/dataModel"
 import {
   validateFiles,
   validateFile,
@@ -39,20 +37,9 @@ export function useFileUpload(options: UseFileUploadOptions = {}) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
 
-  // TODO: Uncomment when Convex is properly set up
-  // const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-  // const saveFile = useMutation(api.files.saveFile);
-
-  // Mock functions for development
-  const generateUploadUrl = async () => {
-    // Simulate upload URL generation
-    return "https://mock-upload-url.com"
-  }
-
-  const saveFile = async (args: any) => {
-    // Simulate file saving
-    return `file-${Date.now()}`
-  }
+  // Real Convex functions
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl)
+  const saveFile = useMutation(api.files.saveFile)
 
   const updateProgress = useCallback(
     (id: string, updates: Partial<FileUploadProgress>) => {
@@ -118,20 +105,28 @@ export function useFileUpload(options: UseFileUploadOptions = {}) {
             updateProgress(progressId, { progress: 10 })
             const uploadUrl = await generateUploadUrl()
 
-            // Step 2: Mock upload for development (replace with real Convex upload)
+            // Step 2: Upload file to Convex storage
             updateProgress(progressId, { progress: 30 })
-
-            // Simulate upload delay
-            await new Promise((resolve) => setTimeout(resolve, 500))
-
-            // Mock storage ID for development
-            const storageId = `storage-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            
+            const formData = new FormData()
+            formData.append("file", file)
+            
+            const uploadResponse = await fetch(uploadUrl, {
+              method: "POST",
+              body: formData,
+            })
+            
+            if (!uploadResponse.ok) {
+              throw new Error(`Upload failed: ${uploadResponse.statusText}`)
+            }
+            
+            const { storageId } = await uploadResponse.json()
             updateProgress(progressId, { progress: 70 })
 
             // Step 3: Save file metadata
             const sanitizedFilename = sanitizeFilename(file.name)
             const fileRecord = await saveFile({
-              storageId,
+              storageId: storageId as Id<"_storage">,
               filename: sanitizedFilename,
               originalFilename: file.name,
               contentType: file.type,
@@ -144,7 +139,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}) {
             // Create result object
             const uploadedFile: UploadedFile = {
               id: fileRecord,
-              storageId,
+              storageId: storageId as string,
               filename: sanitizedFilename,
               originalFilename: file.name,
               contentType: file.type,

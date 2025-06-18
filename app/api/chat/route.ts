@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
     // Add project context if projectId is provided
     if (projectId) {
       try {
-        // Get project data using fetchQuery for Edge runtime compatibility
+        // Get project data using Convex's Edge-compatible method
         const project = await fetchQuery(api.projects.get, {
           projectId: projectId as Id<"projects">,
         })
@@ -160,18 +160,33 @@ export async function POST(req: NextRequest) {
             }
           }
 
+          // Validate total context size (rough token estimation: 1 token ≈ 4 characters)
+          const totalContextContent = projectContext.map(ctx => ctx.content).join("\n")
+          const estimatedTokens = Math.ceil(totalContextContent.length / 4)
+          
+          if (estimatedTokens > 8000) { // Conservative limit for most models
+            console.warn(`Project context is large (${estimatedTokens} estimated tokens). Consider reducing file content.`)
+            
+            // Add warning to user
+            projectContext.unshift({
+              role: "system",
+              content: "Note: Project context is quite large and may affect response quality. Consider reducing file attachments if you experience issues."
+            })
+          }
+
           // Prepend project context to messages
           contextualMessages = [...projectContext, ...contextualMessages]
         }
       } catch (error) {
         console.error("Failed to fetch project context:", error)
-        // Add user-facing feedback when project context fails to load
+        
+        // Add a system message to inform user of context loading failure
         contextualMessages = [
           {
             role: "system",
-            content: "⚠️ Unable to load project context. Continuing without project files and prompts.",
+            content: "Note: Project context could not be loaded for this conversation. Continuing without project-specific context."
           },
-          ...contextualMessages,
+          ...messages
         ]
       }
     }
