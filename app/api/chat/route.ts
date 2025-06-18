@@ -2,12 +2,15 @@ import { streamText } from "ai"
 import { createOpenAI } from "@ai-sdk/openai"
 import { NextRequest } from "next/server"
 import { SupportedModel } from "@/types/models"
+import { api } from "@/convex/_generated/api"
+import { fetchQuery } from "convex/nextjs"
+import { Id } from "@/convex/_generated/dataModel"
 
 export const runtime = "edge"
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, model, apiKey, includeMemory = true, ...options } = await req.json()
+    const { messages, model, apiKey, includeMemory = true, projectId, ...options } = await req.json()
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 })
@@ -52,13 +55,78 @@ export async function POST(req: NextRequest) {
       apiKey: openRouterApiKey,
     })
 
+    // Prepare messages with project context and memory
+    let contextualMessages = messages
+
+    // Add project context if projectId is provided
+    if (projectId) {
+      try {
+        // Get project data using fetchQuery for Edge runtime compatibility
+        const project = await fetchQuery(api.projects.get, {
+          projectId: projectId as Id<"projects">,
+        })
+
+        if (project) {
+          const projectContext = []
+
+          // Add project system prompt if available
+          if (project.systemPrompt) {
+            projectContext.push({
+              role: "system",
+              content: project.systemPrompt,
+            })
+          }
+
+          // Add project attachments if available
+          if (project.attachments && project.attachments.length > 0) {
+            const attachmentContext = project.attachments
+              .filter((att) => att.content)
+              .map((att) => `--- FILE: ${att.name} ---\n${att.content || ""}\n--- END FILE ---`)
+              .join("\n\n")
+
+            if (attachmentContext) {
+              // Basic context size validation - warn if very large
+              const estimatedTokens = attachmentContext.length / 4 // rough estimation
+              if (estimatedTokens > 50000) {
+                contextualMessages = [
+                  {
+                    role: "system",
+                    content: "⚠️ Project context is very large and may affect response quality. Consider reducing file sizes.",
+                  },
+                  ...contextualMessages,
+                ]
+              }
+
+              projectContext.push({
+                role: "system",
+                content: `Project files:\n\n${attachmentContext}`,
+              })
+            }
+          }
+
+          // Prepend project context to messages
+          contextualMessages = [...projectContext, ...contextualMessages]
+        }
+      } catch (error) {
+        console.error("Failed to fetch project context:", error)
+        // Add user-facing feedback when project context fails to load
+        contextualMessages = [
+          {
+            role: "system",
+            content: "⚠️ Unable to load project context. Continuing without project files and prompts.",
+          },
+          ...contextualMessages,
+        ]
+      }
+    }
+
     // TODO: If includeMemory is true and memory/context system is implemented,
     // inject user's memory context here before the messages array
     // For now, we just pass through the messages as-is
 
     const result = streamText({
       model: openrouter(selectedModel),
-      messages: messages.map((msg: any) => ({
+      messages: contextualMessages.map((msg: any) => ({
         role: msg.role,
         content: msg.content,
       })),

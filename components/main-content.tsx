@@ -20,6 +20,7 @@ import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { useConversationTree } from "@/hooks/use-conversation-tree"
 import { useAuth } from "@/hooks/use-auth"
+import { useProjects } from "@/hooks/use-projects"
 
 export function MainContent() {
   const isMobile = useIsMobile()
@@ -37,6 +38,7 @@ export function MainContent() {
     setIsStreaming
   } = useTemporaryChat()
   const { user } = useAuth()
+  const { activeProject } = useProjects()
   
   // Cleanup on unmount
   useEffect(() => {
@@ -65,6 +67,7 @@ export function MainContent() {
     setTemperature,
   } = useChat({
     initialModel: "openai/gpt-4o-mini",
+    projectId: activeProject?.id,
   })
 
   // Keyboard navigation
