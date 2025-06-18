@@ -7,7 +7,7 @@ export const runtime = "edge"
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, model, apiKey, ...options } = await req.json()
+    const { messages, model, apiKey, memoryContext, ...options } = await req.json()
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 })
@@ -46,6 +46,25 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Inject memory context if provided
+    const enhancedMessages = [...messages]
+    if (memoryContext && memoryContext.length > 0) {
+      const systemPrompt =
+        "--- User Context & Preferences ---\n" + memoryContext + "\n--- End User Context ---\n\n"
+
+      // Check if first message is already a system message
+      if (enhancedMessages[0]?.role === "system") {
+        // Prepend memories to existing system message
+        enhancedMessages[0].content = systemPrompt + enhancedMessages[0].content
+      } else {
+        // Add new system message with memories
+        enhancedMessages.unshift({
+          role: "system",
+          content: systemPrompt,
+        })
+      }
+    }
+
     // Create OpenAI client configured for OpenRouter
     const openrouter = createOpenAI({
       baseURL: "https://openrouter.ai/api/v1",
@@ -54,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     const result = streamText({
       model: openrouter(selectedModel),
-      messages: messages.map((msg: any) => ({
+      messages: enhancedMessages.map((msg: any) => ({
         role: msg.role,
         content: msg.content,
       })),

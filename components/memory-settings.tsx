@@ -306,7 +306,7 @@ export function MemorySettings() {
                         <span className="text-sm capitalize">{category}</span>
                       </div>
                       <Badge variant="outline" className="text-xs">
-                        {count}
+                        {count as number}
                       </Badge>
                     </div>
                   )
