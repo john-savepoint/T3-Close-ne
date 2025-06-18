@@ -194,7 +194,8 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
                           <div className="min-w-0 flex-1">
                             <div className="truncate text-sm">{chat.title}</div>
                             <div className="text-xs text-mauve-subtle/70">
-                              {chat.messageCount} messages • {chat.updatedAt.toLocaleDateString()}
+                              {chat.messageCount} messages •{" "}
+                              {new Date(chat.updatedAt).toLocaleDateString()}
                             </div>
                           </div>
                         </div>

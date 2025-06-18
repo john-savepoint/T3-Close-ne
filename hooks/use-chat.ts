@@ -11,6 +11,7 @@ interface UseChatOptions {
   initialModel?: SupportedModel
   apiKey?: string
   chatId?: string
+  projectId?: string
 }
 
 export interface ChatMessage {
@@ -53,6 +54,7 @@ export function useChat(options: UseChatOptions = {}) {
     initialModel: selectedModel,
     apiKey,
     chatId: options.chatId,
+    projectId: options.projectId,
     onResponse: (response) => {
       console.log("Chat response:", response.status)
     },

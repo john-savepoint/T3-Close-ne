@@ -9,7 +9,12 @@
  */
 
 import type { ApiFromModules, FilterApi, FunctionReference } from "convex/server"
+import type * as ResendOTP from "../ResendOTP.js"
+import type * as auth from "../auth.js"
 import type * as chats from "../chats.js"
+import type * as cleanupAuth from "../cleanupAuth.js"
+import type * as cleanupDatabase from "../cleanupDatabase.js"
+import type * as cleanupStaleAuth from "../cleanupStaleAuth.js"
 import type * as clerk from "../clerk.js"
 import type * as crons from "../crons.js"
 import type * as files from "../files.js"
@@ -17,6 +22,7 @@ import type * as gifts from "../gifts.js"
 import type * as http from "../http.js"
 import type * as memories from "../memories.js"
 import type * as messages from "../messages.js"
+import type * as projects from "../projects.js"
 import type * as teams from "../teams.js"
 import type * as users from "../users.js"
 
@@ -29,7 +35,12 @@ import type * as users from "../users.js"
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  ResendOTP: typeof ResendOTP
+  auth: typeof auth
   chats: typeof chats
+  cleanupAuth: typeof cleanupAuth
+  cleanupDatabase: typeof cleanupDatabase
+  cleanupStaleAuth: typeof cleanupStaleAuth
   clerk: typeof clerk
   crons: typeof crons
   files: typeof files
@@ -37,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http
   memories: typeof memories
   messages: typeof messages
+  projects: typeof projects
   teams: typeof teams
   users: typeof users
 }>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useProjects } from "@/hooks/use-projects"
+import { useFileUpload } from "@/hooks/use-file-upload"
+import { useDropzone } from "react-dropzone"
 import {
   Loader2,
   Save,
@@ -23,6 +25,7 @@ import {
   FileText,
   ImageIcon,
   Code,
+  Upload,
 } from "lucide-react"
 
 interface ProjectSettingsModalProps {
@@ -41,6 +44,19 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
     loading,
   } = useProjects()
   const project = projects.find((p) => p.id === projectId)
+
+  // File upload hook
+  const { uploadFiles, isUploading, uploadProgress } = useFileUpload({
+    onUploadComplete: async (files) => {
+      // Add uploaded files to project
+      for (const file of files) {
+        await addAttachmentToProject(projectId, file.id)
+      }
+    },
+    onUploadError: (error) => {
+      console.error("Upload error:", error)
+    },
+  })
 
   const [formData, setFormData] = useState({
     name: "",
@@ -110,6 +126,27 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
   }
+
+  // Dropzone configuration
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length > 0) {
+        await uploadFiles(acceptedFiles)
+      }
+    },
+    [uploadFiles]
+  )
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "text/*": [".txt", ".md", ".json", ".js", ".ts", ".jsx", ".tsx", ".py", ".java", ".cpp"],
+      "application/pdf": [".pdf"],
+      "application/vnd.openxmlformats-officedocument.*": [".docx", ".xlsx"],
+      "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp"],
+    },
+    maxFiles: 10,
+  })
 
   if (!project) return null
 
@@ -183,17 +220,40 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
             </TabsContent>
 
             <TabsContent value="attachments" className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium">Project Files</h3>
                   <p className="text-xs text-mauve-subtle/70">
                     Files attached to this project are automatically included in all chats.
                   </p>
                 </div>
-                <Button size="sm" className="bg-mauve-accent/20 hover:bg-mauve-accent/30">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Files
-                </Button>
+
+                {/* File upload dropzone */}
+                <div
+                  {...getRootProps()}
+                  className={`rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+                    isDragActive
+                      ? "border-mauve-accent bg-mauve-accent/10"
+                      : "border-mauve-dark hover:border-mauve-accent/50"
+                  }`}
+                >
+                  <input {...getInputProps()} />
+                  <Upload className="mx-auto h-8 w-8 text-mauve-subtle/50" />
+                  <p className="mt-2 text-sm text-mauve-subtle/70">
+                    {isDragActive
+                      ? "Drop files here..."
+                      : "Drag & drop files here, or click to select"}
+                  </p>
+                  <p className="mt-1 text-xs text-mauve-subtle/50">
+                    Supports text, PDF, images, and code files (max 10 files)
+                  </p>
+                  {isUploading && (
+                    <div className="mt-4">
+                      <Loader2 className="mx-auto h-6 w-6 animate-spin text-mauve-accent" />
+                      <p className="mt-2 text-xs text-mauve-subtle/70">Uploading files...</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <ScrollArea className="h-64">
