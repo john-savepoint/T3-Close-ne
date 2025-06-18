@@ -19,10 +19,8 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
   }
 
   if (!isAuthenticated) {
-    // Not authenticated
-    return (
-      <div className="flex min-h-screen items-center justify-center">{fallback || <SignIn />}</div>
-    )
+    // Not authenticated - middleware will handle redirect to /login
+    return <AuthLoading />
   }
 
   // Authenticated
