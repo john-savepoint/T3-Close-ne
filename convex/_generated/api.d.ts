@@ -21,6 +21,7 @@ import type * as cleanupDatabase from "../cleanupDatabase.js";
 import type * as cleanupStaleAuth from "../cleanupStaleAuth.js";
 import type * as files from "../files.js";
 import type * as http from "../http.js";
+import type * as memories from "../memories.js";
 import type * as messages from "../messages.js";
 import type * as users from "../users.js";
 
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   cleanupStaleAuth: typeof cleanupStaleAuth;
   files: typeof files;
   http: typeof http;
+  memories: typeof memories;
   messages: typeof messages;
   users: typeof users;
 }>;

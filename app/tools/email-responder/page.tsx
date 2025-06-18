@@ -2,15 +2,16 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useTools } from "@/hooks/use-tools"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { Mail, Send, Loader2 } from "lucide-react"
+import { Mail, Send, Loader2, AlertCircle } from "lucide-react"
+import { generateEmailResponse } from "@/lib/tools-api"
+import { useToast } from "@/hooks/use-toast"
+import { createChatUrl } from "@/lib/tool-chat-integration"
 
 export default function EmailResponderPage() {
   const router = useRouter()
-  const { generatePrompt } = useTools()
   const [emailHistory, setEmailHistory] = useState("")
   const [instructions, setInstructions] = useState("")
   const [tone, setTone] = useState<"formal" | "professional" | "casual" | "friendly">(
@@ -18,57 +19,63 @@ export default function EmailResponderPage() {
   )
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedEmail, setGeneratedEmail] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const handleGenerate = async () => {
     if (!emailHistory || !instructions) return
 
     setIsGenerating(true)
+    setError(null)
 
     try {
-      // In a real implementation, this would call your AI service
-      // For now, we'll simulate a response after a delay
-      const prompt = generatePrompt("email-responder", {
+      const result = await generateEmailResponse({
         emailHistory,
         instructions,
         tone,
       })
 
-      console.log("Generated prompt:", prompt)
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // Sample response
-      setGeneratedEmail(`Dear Team,
-
-Thank you for your email regarding the project timeline extension request. 
-
-After careful consideration, I regret to inform you that we are unable to extend the deadline beyond the originally agreed date of October 15th. The company policy requires all Q4 projects to be completed by this date to ensure proper financial reporting and year-end processing.
-
-The policy will take effect as scheduled on September 1st, and all departments are expected to adhere to this timeline. Our team is available to provide any support needed to help you meet this deadline.
-
-Please let me know if you have any questions or if there's anything else I can assist with.
-
-Best regards,`)
-
-      // In a real implementation, you would start a new chat with this context
-      // router.push(`/chat/new?with-context=${encodeURIComponent(JSON.stringify({
-      //   tool: "email-responder",
-      //   emailHistory,
-      //   instructions,
-      //   tone,
-      //   response: generatedEmail
-      // }))}`);
+      if (result.success && result.content) {
+        setGeneratedEmail(result.content)
+        toast({
+          title: "Email generated successfully",
+          description: "Your email response is ready",
+        })
+      } else {
+        setError(result.error || "Failed to generate email")
+        toast({
+          title: "Generation failed",
+          description: result.error || "Unable to generate email response",
+          variant: "destructive",
+        })
+      }
     } catch (error) {
       console.error("Error generating email:", error)
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
+      setError(errorMessage)
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setIsGenerating(false)
     }
   }
 
   const handleContinueInChat = () => {
-    // In a real implementation, this would create a new chat with the context
-    router.push(`/chat/new`)
+    const context = {
+      toolId: "email-responder",
+      toolName: "Email Responder",
+      input: {
+        emailHistory,
+        instructions,
+        tone,
+      },
+      result: generatedEmail,
+    }
+    
+    router.push(createChatUrl(context))
   }
 
   return (
@@ -162,6 +169,15 @@ Best regards,`)
               </div>
             </CardContent>
           </Card>
+
+          {error && (
+            <Card className="border-red-500/20 bg-red-500/10">
+              <CardContent className="flex items-center gap-2 p-4">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-400" />
+                <span className="text-sm text-red-400">{error}</span>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div>

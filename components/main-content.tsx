@@ -4,9 +4,6 @@ import { ChatInput } from "@/components/chat-input"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ChatMessage } from "@/components/chat-message"
 import { ThreadNavigator } from "@/components/thread-navigator"
-import { ConversationTreeView } from "@/components/conversation-tree-view"
-import { ConversationBreadcrumb } from "@/components/conversation-breadcrumb"
-import { BranchIndicator } from "@/components/branch-indicator"
 import { ProjectContextIndicator } from "@/components/project-context-indicator"
 import { MemoryContextIndicator } from "@/components/memory-context-indicator"
 import { MemorySuggestionBanner } from "@/components/memory-suggestion-banner"
@@ -240,24 +237,6 @@ export function MainContent() {
         {isTemporaryMode ? <TemporaryChatBanner /> : <ProjectContextIndicator />}
         {!isTemporaryMode && <MemoryContextIndicator />}
 
-        {/* Navigation Toolbar */}
-        {displayMessages.length > 0 && (
-          <div className="relative z-10 flex items-center justify-between border-b border-mauve-dark/50 bg-mauve-surface/50 px-4 py-2">
-            <ConversationBreadcrumb
-              messages={displayMessages}
-              currentMessageId={currentMessageId}
-              onMessageSelect={handleMessageSelect}
-            />
-            <div className="flex items-center gap-2">
-              <ConversationTreeView
-                messages={displayMessages}
-                currentMessageId={currentMessageId}
-                onMessageSelect={handleMessageSelect}
-                onBranchSwitch={handleBranchSelect}
-              />
-            </div>
-          </div>
-        )}
 
         {/* Content wrapper */}
         <div className="relative flex flex-1 flex-col overflow-y-auto">

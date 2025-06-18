@@ -138,11 +138,16 @@ function ToolCard({ tool, onClick, getToolIcon }: ToolCardProps) {
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
           <div className="rounded-lg bg-mauve-subtle/10 p-3 transition-all duration-300 group-hover:bg-mauve-accent/20 group-hover:scale-110">
-            {React.createElement(Icon as any, { className: "h-6 w-6 text-mauve-subtle transition-colors duration-300 group-hover:text-mauve-accent", size: 24 })}
+            {React.createElement(Icon as any, { 
+              className: "h-6 w-6 text-mauve-subtle transition-colors duration-300 group-hover:text-mauve-accent", 
+              size: 24 
+            })}
           </div>
           <div className="flex-1">
             <div className="mb-1 flex items-center gap-2">
-              <h3 className="font-medium transition-colors duration-300 group-hover:text-mauve-accent">{tool.name}</h3>
+              <h3 className="font-medium transition-colors duration-300 group-hover:text-mauve-accent">
+                {tool.name}
+              </h3>
               {tool.isNew && (
                 <Badge className="bg-green-500/20 text-green-500 hover:bg-green-500/30">New</Badge>
               )}
@@ -152,7 +157,9 @@ function ToolCard({ tool, onClick, getToolIcon }: ToolCardProps) {
                 </Badge>
               )}
             </div>
-            <p className="text-sm text-mauve-subtle/70">{tool.description}</p>
+            <p className="text-sm text-mauve-subtle/70 transition-colors duration-300 group-hover:text-mauve-subtle/90">
+              {tool.description}
+            </p>
           </div>
         </div>
       </CardContent>

@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useTools } from "@/hooks/use-tools"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -16,12 +15,13 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Instagram, Twitter, Linkedin, Facebook, Send, Loader2 } from "lucide-react"
+import { Instagram, Twitter, Linkedin, Facebook, Send, Loader2, AlertCircle } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { generateSocialMediaPost } from "@/lib/tools-api"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SocialMediaGeneratorPage() {
   const router = useRouter()
-  const { generatePrompt } = useTools()
   const [platform, setPlatform] = useState<
     "twitter" | "instagram" | "linkedin" | "facebook" | "tiktok"
   >("instagram")
@@ -31,69 +31,55 @@ export default function SocialMediaGeneratorPage() {
   const [includeHashtags, setIncludeHashtags] = useState(true)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPosts, setGeneratedPosts] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const handleGenerate = async () => {
     if (!audience || !topic) return
 
     setIsGenerating(true)
+    setError(null)
+    setGeneratedPosts([])
 
     try {
-      // In a real implementation, this would call your AI service
-      const prompt = generatePrompt("social-media-generator", {
+      const result = await generateSocialMediaPost({
         platform,
-        audience,
         topic,
-        callToAction,
+        audience,
+        callToAction: callToAction || undefined,
         includeHashtags,
+        count: 3,
       })
 
-      console.log("Generated prompt:", prompt)
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // Sample responses
-      const samplePosts = {
-        instagram: [
-          `✨ Introducing our revolutionary Smart Headphones! 🎧\n\nDesigned for tech-savvy individuals who demand both style AND performance. These wireless wonders deliver crystal-clear sound while automatically adjusting to your environment.\n\nTap to learn more about how these headphones can transform your audio experience!\n\n#SmartAudio #TechLaunch #SoundRevolution #NextGenHeadphones`,
-
-          `Sound that adapts to YOU. 🎧✨\n\nOur new smart headphones just dropped and they're changing the game! With adaptive noise cancellation and 24-hour battery life, they're perfect for your on-the-go lifestyle.\n\nDouble tap to experience sound like never before.\n\n#SoundEvolution #TechDrop #SmartHeadphones`,
-
-          `The wait is OVER! 🙌\n\nAfter months of anticipation, our smart headphones have officially launched! Immersive sound, voice assistant integration, and a design that turns heads.\n\nWhich color will you choose? Black, Silver, or the limited edition Cosmic Blue?\n\n#NewLaunch #AudioTech #SmartSound #HeadphoneRevolution`,
-        ],
-        twitter: [
-          `Just launched: Our Smart Headphones deliver studio-quality sound that adapts to your environment in real-time. The future of audio is here. #TechLaunch #SmartAudio`,
-
-          `Noise cancellation that knows when you need to hear the world around you. Battery that lasts all day. Sound that moves you. Our new Smart Headphones are available now! #AudioTech`,
-
-          `"These are the most intelligent headphones I've ever tested" - @TechReviewer\n\nExperience our new Smart Headphones today: [link] #SmartSound #NewLaunch`,
-        ],
-        linkedin: [
-          `Excited to announce the launch of our new Smart Headphones, representing a significant breakthrough in audio technology.\n\nThese headphones feature our proprietary adaptive sound algorithm that analyzes your environment 4,000 times per second to deliver the optimal audio experience in any situation.\n\nFor professionals who move between quiet offices, busy commutes, and everything in between, these headphones automatically adjust to provide the perfect sound profile.\n\nLearn more about how we're revolutionizing the audio experience for professionals worldwide: [Link]\n\n#ProductLaunch #AudioTechnology #Innovation #SmartHeadphones`,
-
-          `Proud to introduce our latest innovation: Smart Headphones designed for the modern professional.\n\nAfter 3 years of R&D and collaboration with audio engineers from across the industry, we've created headphones that don't just play sound—they understand it.\n\nKey features:\n• Adaptive noise cancellation that responds to your environment\n• 24-hour battery life for all-day productivity\n• AI-powered sound optimization\n• Seamless integration with productivity tools\n\nInterested in learning how these can enhance your work experience? Let's connect.\n\n#ProductInnovation #ProfessionalAudio #TechLaunch`,
-
-          `Today marks a milestone for our company as we launch our Smart Headphones, bringing enterprise-grade audio technology to professionals everywhere.\n\nIn today's hybrid work environment, clear communication is more important than ever. Our Smart Headphones use a 6-microphone array and AI noise suppression to ensure you're heard perfectly on every call, whether you're in a quiet home office or a busy café.\n\nI'd like to thank our incredible engineering team who turned this vision into reality, and our beta testers who provided invaluable feedback throughout the development process.\n\nAvailable now for enterprise orders. #ProductLaunch #WorkTechnology #AudioInnovation`,
-        ],
-        facebook: [
-          `🎧 NEW PRODUCT ALERT! 🎧\n\nWe're thrilled to introduce our Smart Headphones - the perfect blend of style, comfort, and cutting-edge technology!\n\nWhat makes them special?\n✅ Adaptive sound that adjusts to your environment\n✅ 24-hour battery life\n✅ Touch controls for easy navigation\n✅ Voice assistant compatible\n\nPerfect for music lovers, gamers, and anyone who appreciates premium audio quality!\n\nTag someone who needs to upgrade their headphone game! 👇\n\n#NewProduct #SmartHeadphones #MusicLovers`,
-
-          `We've got some EXCITING NEWS! 🎉\n\nOur Smart Headphones are finally here, and they're going to change how you experience sound forever!\n\nImagine headphones that know when you're on a call, listening to music, or watching a movie - and automatically adjust to give you the perfect sound.\n\nEarly reviews are calling them "revolutionary" and "a game-changer" - and we can't wait for you to try them!\n\nNow available in our online store and select retailers. Link in comments!\n\n#ProductLaunch #SmartTech #AudioLovers`,
-
-          `SOUND THAT ADAPTS TO YOU 🎧✨\n\nExcited to announce our Smart Headphones are now available!\n\nThese aren't just ordinary headphones. They learn your preferences, adjust to your environment, and deliver personalized sound that's perfect for YOU.\n\nSpecial launch offer: Get 15% off when you order this week + free shipping!\n\nWho's ready to experience the future of sound? Comment below!\n\n#NewLaunch #SmartHeadphones #AudioTechnology`,
-        ],
-        tiktok: [
-          `POV: You just put on our new Smart Headphones for the first time 🤯🎧 #SmartAudio #TechTok #HeadphoneReview`,
-
-          `The moment you realize your old headphones were living in 2010 💀 #SmartHeadphones #TechUpgrade #FYP`,
-
-          `Testing our new Smart Headphones in 3 IMPOSSIBLE environments! You won't believe what happened in test #3 🔊 #ProductTest #AudioTech #HeadphoneChallenge`,
-        ],
+      if (result.success && result.content) {
+        // Parse the response to extract individual posts
+        const postMatches = result.content.match(/\d+\.\s*(.+?)(?=\n\d+\.|\n*$)/gs)
+        const extractedPosts = postMatches 
+          ? postMatches.map(match => match.replace(/^\d+\.\s*/, '').trim())
+          : [result.content]
+        
+        setGeneratedPosts(extractedPosts)
+        toast({
+          title: "Posts generated successfully",
+          description: `Created ${extractedPosts.length} ${platform} posts`,
+        })
+      } else {
+        setError(result.error || "Failed to generate posts")
+        toast({
+          title: "Generation failed",
+          description: result.error || "Unable to generate social media posts",
+          variant: "destructive",
+        })
       }
-
-      setGeneratedPosts(samplePosts[platform])
     } catch (error) {
       console.error("Error generating posts:", error)
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
+      setError(errorMessage)
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -211,6 +197,15 @@ export default function SocialMediaGeneratorPage() {
               </div>
             </CardContent>
           </Card>
+
+          {error && (
+            <Card className="border-red-500/20 bg-red-500/10">
+              <CardContent className="flex items-center gap-2 p-4">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-400" />
+                <span className="text-sm text-red-400">{error}</span>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div>

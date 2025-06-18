@@ -2,59 +2,62 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useTools } from "@/hooks/use-tools"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { FileText, Send, Loader2 } from "lucide-react"
+import { FileText, Send, Loader2, AlertCircle } from "lucide-react"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { generateSummary } from "@/lib/tools-api"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SummarizerPage() {
   const router = useRouter()
-  const { generatePrompt } = useTools()
   const [content, setContent] = useState("")
   const [length, setLength] = useState<"short" | "medium" | "detailed">("medium")
   const [format, setFormat] = useState<"paragraph" | "bullet-points">("paragraph")
   const [isGenerating, setIsGenerating] = useState(false)
   const [summary, setSummary] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const handleGenerate = async () => {
     if (!content) return
 
     setIsGenerating(true)
+    setError(null)
+    setSummary("")
 
     try {
-      // In a real implementation, this would call your AI service
-      const prompt = generatePrompt("summarizer", {
+      const result = await generateSummary({
         content,
         length,
         format,
       })
 
-      console.log("Generated prompt:", prompt)
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // Sample response based on format
-      if (format === "paragraph") {
-        setSummary(
-          `The text discusses the importance of artificial intelligence in modern business operations. It highlights how AI technologies are transforming various sectors by automating routine tasks, providing data-driven insights, and enabling personalized customer experiences. The author emphasizes that companies implementing AI solutions are seeing significant improvements in efficiency, cost reduction, and competitive advantage. However, challenges remain, including data privacy concerns, the need for specialized talent, and potential workforce disruption. The conclusion suggests that businesses should develop strategic AI implementation plans that balance innovation with ethical considerations and proper staff training to maximize benefits while minimizing risks.`
-        )
+      if (result.success && result.content) {
+        setSummary(result.content)
+        toast({
+          title: "Summary generated successfully",
+          description: `Created a ${length} ${format} summary`,
+        })
       } else {
-        setSummary(`• AI is transforming modern businesses across multiple sectors
-• Key benefits include automation of routine tasks, data-driven insights, and personalized customer experiences
-• Companies implementing AI solutions report improved efficiency, reduced costs, and competitive advantages
-• Major challenges include:
-  - Data privacy and security concerns
-  - Shortage of specialized AI talent
-  - Potential workforce disruption
-• Recommendation: Develop strategic AI implementation plans that balance innovation with ethics
-• Proper staff training is essential to maximize benefits while minimizing risks`)
+        setError(result.error || "Failed to generate summary")
+        toast({
+          title: "Generation failed",
+          description: result.error || "Unable to generate summary",
+          variant: "destructive",
+        })
       }
     } catch (error) {
       console.error("Error generating summary:", error)
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
+      setError(errorMessage)
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -146,6 +149,15 @@ export default function SummarizerPage() {
               </div>
             </CardContent>
           </Card>
+
+          {error && (
+            <Card className="border-red-500/20 bg-red-500/10">
+              <CardContent className="flex items-center gap-2 p-4">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-400" />
+                <span className="text-sm text-red-400">{error}</span>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div>

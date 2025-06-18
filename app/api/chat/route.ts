@@ -7,7 +7,7 @@ export const runtime = "edge"
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, model, apiKey, includeMemory = true, ...options } = await req.json()
+    const { messages, model, apiKey, memoryContext, ...options } = await req.json()
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 })
