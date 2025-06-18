@@ -605,50 +605,44 @@ DOCUMENTATION: Update teams/16-file-upload-integration/STATUS.md when complete
 IMPORTANT: use context7
 ```
 
-### **Task 17: URGENT Clerk Authentication Implementation**
+### **Task 17: GitHub Label Organization & Automation**
 
 ```
 You are working on Z6Chat, our T3Chat competition clone.
 
-TASK: URGENT - Implement Clerk authentication system ultra-quickly for competition deadline. We desperately need auth working ASAP and Clerk is the fastest solution.
+TASK: Set up automated GitHub issue labeling and project organization for better ClaudeSquad coordination
 
-DEPENDENCIES: None (highest priority, independent task)
+DEPENDENCIES: None (independent organizational task)
 
 DELIVERABLES:
-- Install and configure Clerk authentication
-- Replace existing auth infrastructure with Clerk
-- Add Clerk provider to app layout
-- Create sign-in/sign-up pages with Clerk components
-- Protect routes with Clerk middleware
-- Update UI to show Clerk user data
+- Create comprehensive label system for issues and PRs
+- Set up GitHub Actions for automatic labeling
+- Create issue templates for different task types
+- Configure project boards for ClaudeSquad coordination
+- Add automation rules for status tracking
 
 FILES TO CREATE/MODIFY:
-- Install @clerk/nextjs package
-- app/layout.tsx - Add ClerkProvider
-- middleware.ts - Add Clerk auth middleware
-- app/sign-in/[[...sign-in]]/page.tsx
-- app/sign-up/[[...sign-up]]/page.tsx
-- components/user-profile.tsx - Use Clerk user data
-- Update all auth-related components
+- .github/labels.yml
+- .github/workflows/label-automation.yml
+- .github/ISSUE_TEMPLATE/
+- .github/pull_request_template.md
 
 ACCEPTANCE CRITERIA:
-- Users can sign up/sign in via Clerk
-- Authentication works across the entire app
-- Protected routes redirect to sign-in
-- User profile displays real Clerk data
-- Sign out functionality works
-- Fast implementation for competition deadline
+- Issues automatically get appropriate labels
+- Project boards track ClaudeSquad progress
+- Issue templates guide proper bug/feature reporting
+- PR automation improves code review workflow
+- Clear organization for competition tracking
 
 DOCUMENTATION REQUIREMENTS:
-- MUST use documentation in /scrape folder (convex-auth-clerk.md, etc.)
-- Reference Clerk's Next.js setup guide
-- Use existing scrape documentation for quick setup
-- Prioritize speed over perfection for competition
+- MUST use Context7 MCP server for latest GitHub Actions documentation
+- Use Brave Search MCP for GitHub automation patterns
+- Reference existing ClaudeSquad coordination needs
 
-BRANCH: feat/urgent-clerk-auth
-DOCUMENTATION: Update teams/17-urgent-clerk-auth/STATUS.md when complete
+BRANCH: feat/label-organization
+DOCUMENTATION: Update teams/17-label-organization/STATUS.md when complete
 
-IMPORTANT: THIS IS ULTRA HIGH PRIORITY - use scrape folder docs
+IMPORTANT: use context7
 ```
 
 ---

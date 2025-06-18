@@ -84,11 +84,30 @@ export class OpenRouterClient {
 
   async listModels() {
     try {
-      const response = await this.client.models.list()
-      return response.data.map((model) => ({
+      const response = await fetch("https://openrouter.ai/api/v1/models", {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+          "X-Title": "Z6Chat",
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data.data.map((model: any) => ({
         id: model.id,
-        name: model.id.split("/").pop() || model.id,
+        name: model.name,
         provider: model.id.split("/")[0] || "unknown",
+        maxTokens: model.context_length,
+        costPer1kTokens: {
+          input: parseFloat(model.pricing.prompt) * 1000,
+          output: parseFloat(model.pricing.completion) * 1000,
+        },
+        description: model.description,
+        architecture: model.architecture,
       }))
     } catch (error) {
       console.error("Error fetching models:", error)

@@ -11,7 +11,8 @@ import {
 import { Send, Palette, Globe, StopCircle } from "lucide-react"
 import { useRef, useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { ModelSwitcher } from "@/components/model-switcher"
+import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
+import { useModels } from "@/hooks/use-models"
 import { EnhancedFileUpload } from "@/components/enhanced-file-upload"
 import { Badge } from "@/components/ui/badge"
 import type { Attachment } from "@/types/attachment"
@@ -25,21 +26,27 @@ interface ChatInputProps {
   disabled?: boolean
   temperature?: number
   onTemperatureChange?: (temperature: number) => void
+  onMessageSent?: (message: string, model: string, attachments: Attachment[]) => void
 }
 
 export function ChatInput({
   onSendMessage,
   isLoading = false,
   onStopGeneration,
-  selectedModel = "openai/gpt-4o-mini",
+  selectedModel,
   onModelChange,
   disabled = false,
   temperature = 0.7,
   onTemperatureChange,
+  onMessageSent,
 }: ChatInputProps) {
   const [message, setMessage] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isMobile = useIsMobile()
+  const { selectedModel: modelsSelectedModel, setSelectedModel } = useModels()
+  
+  // Use prop selectedModel if provided, otherwise fall back to models hook
+  const currentSelectedModel = selectedModel || modelsSelectedModel?.id || "openai/gpt-4o-mini"
   const [attachedFiles, setAttachedFiles] = useState<Attachment[]>([])
 
   // Auto-resize textarea as user types
@@ -70,7 +77,7 @@ export function ChatInput({
   }
 
   const handleSendMessage = async () => {
-    if (!message.trim() || isLoading || disabled) return
+    if ((!message.trim() && attachedFiles.length === 0) || isLoading || disabled) return
 
     const messageContent = message.trim()
     const attachments = attachedFiles.length > 0 ? attachedFiles : undefined
@@ -79,8 +86,12 @@ export function ChatInput({
     setMessage("")
     setAttachedFiles([])
 
-    // Send message
-    onSendMessage?.(messageContent, attachments)
+    // Send message using either callback
+    if (onSendMessage) {
+      onSendMessage(messageContent, attachments)
+    } else if (onMessageSent) {
+      onMessageSent(messageContent, currentSelectedModel, attachedFiles)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -96,7 +107,7 @@ export function ChatInput({
         <Textarea
           ref={textareaRef}
           placeholder={isLoading ? "AI is thinking..." : "Type your message here..."}
-          className="max-h-[200px] min-h-[40px] resize-none overflow-y-auto border-none bg-transparent p-2 text-base text-foreground placeholder:text-mauve-subtle/70 focus-visible:ring-0"
+          className="max-h-[200px] min-h-[40px] resize-none overflow-y-auto border-none bg-transparent p-2 text-base text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-0"
           rows={1}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -116,7 +127,7 @@ export function ChatInput({
                 <span className="max-w-32 truncate" title={file.filename}>
                   {file.filename}
                 </span>
-                <span className="ml-1 text-mauve-subtle/70">
+                <span className="ml-1 text-muted-foreground/70">
                   ({formatFileSize(file.sizeBytes || file.size)})
                 </span>
                 <button
@@ -132,13 +143,18 @@ export function ChatInput({
 
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1 md:gap-2">
-            <ModelSwitcher
-              selectedModel={selectedModel}
-              onModelChange={onModelChange || (() => {})}
+            <EnhancedModelSwitcher
+              selectedModel={modelsSelectedModel}
+              onModelChange={(model) => {
+                setSelectedModel(model)
+                onModelChange?.(typeof model === 'string' ? model : model.id)
+              }}
+              showCost={true}
+              estimatedTokens={message.length > 0 ? Math.max(100, message.length * 2) : undefined}
             />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-xs text-mauve-subtle">
+                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
                   <Palette className="mr-1 h-4 w-4 md:mr-2" />
                   {temperature <= 0.3 ? "Low" : temperature <= 0.7 ? "Medium" : "High"}
                   <span className="sr-only">Creativity</span>
@@ -160,7 +176,7 @@ export function ChatInput({
               <Button
                 variant="ghost"
                 size="sm"
-                className="cursor-not-allowed text-xs text-mauve-subtle opacity-50"
+                className="cursor-not-allowed text-xs text-muted-foreground opacity-50"
                 disabled
                 title="Web search not yet implemented"
               >
@@ -181,7 +197,7 @@ export function ChatInput({
             <Button
               size="icon"
               onClick={handleSendMessage}
-              disabled={!message.trim() || disabled}
+              disabled={(!message.trim() && attachedFiles.length === 0) || disabled}
               className="h-9 w-9 bg-mauve-accent/20 text-mauve-bright hover:bg-mauve-accent/30 disabled:opacity-50"
             >
               <Send className="h-4 w-4" />

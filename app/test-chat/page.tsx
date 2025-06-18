@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useOpenRouterChat } from "@/hooks/use-openrouter-chat"
-import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
+import { ModelSwitcher } from "@/components/model-switcher"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -158,12 +158,7 @@ export default function TestChatPage() {
         </CardContent>
       </Card>
 
-      <EnhancedModelSwitcher
-        isOpen={showModelSwitcher}
-        onClose={() => setShowModelSwitcher(false)}
-        selectedModel={selectedModel}
-        onModelChange={handleModelChange}
-      />
+      <ModelSwitcher selectedModel={selectedModel} onModelChange={handleModelChange} />
     </div>
   )
 }

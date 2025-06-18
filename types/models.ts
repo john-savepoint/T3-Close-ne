@@ -1,19 +1,33 @@
 export interface OpenRouterModel {
   id: string
   name: string
+  created: number
+  description: string
   context_length: number
+  architecture: {
+    input_modalities: string[]
+    output_modalities: string[]
+    tokenizer: string
+  }
   pricing: {
     prompt: string
     completion: string
+    image?: string
+    request?: string
+    cache_creation?: string
+    cache_read?: string
+    web_search?: string
   }
   top_provider: {
     max_completion_tokens?: number
     is_moderated: boolean
   }
   per_request_limits?: {
-    prompt_tokens: string
-    completion_tokens: string
+    prompt_tokens?: number
+    completion_tokens?: number
   }
+  supported_parameters: string[]
+  hugging_face_id?: string
 }
 
 export interface ModelProvider {
@@ -32,6 +46,20 @@ export interface ChatModel {
   costPer1kTokens: {
     input: number
     output: number
+  }
+  description?: string
+  architecture?: {
+    input_modalities: string[]
+    output_modalities: string[]
+    tokenizer: string
+  }
+  topProvider?: {
+    max_completion_tokens?: number
+    is_moderated: boolean
+  }
+  perRequestLimits?: {
+    prompt_tokens?: number
+    completion_tokens?: number
   }
 }
 

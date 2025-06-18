@@ -17,6 +17,10 @@ import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
+import { useModels } from "@/hooks/use-models"
+import { ChatModel } from "@/types/models"
+import { createOpenRouterClient } from "@/lib/openrouter"
+import type { Attachment } from "@/types/attachment"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { useConversationTree } from "@/hooks/use-conversation-tree"
 import { useAuth } from "@/hooks/use-auth"
@@ -25,6 +29,8 @@ export function MainContent() {
   const isMobile = useIsMobile()
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const { selectedModel: modelsSelectedModel, setSelectedModel } = useModels()
+  const [estimatedTokens, setEstimatedTokens] = useState(1000)
   const { suggestions } = useMemory()
   const {
     temporaryChat,
@@ -126,7 +132,7 @@ export function MainContent() {
               })),
               { role: "user", content },
             ],
-            model: selectedModel,
+            model: modelsSelectedModel?.id || "openai/gpt-4o-mini",
             temperature,
             // Don't include memory/context if setting is disabled
             includeMemory: settings.includeMemoryInTempChats,
@@ -145,7 +151,7 @@ export function MainContent() {
         const decoder = new TextDecoder()
 
         // Add empty assistant message that we'll update as chunks come in
-        const assistantMessageId = addMessageToTemporaryChat("", "assistant", selectedModel)
+        const assistantMessageId = addMessageToTemporaryChat("", "assistant", modelsSelectedModel?.id || "openai/gpt-4o-mini")
         if (!assistantMessageId) throw new Error("Failed to create assistant message")
 
         while (!abortController.signal.aborted) {
@@ -222,6 +228,74 @@ export function MainContent() {
       await handleSendMessage(`Tool result from ${toolId}: ${result.content}`)
     } else {
       await sendMessage(`Tool result from ${toolId}: ${result.content}`)
+    }
+  }
+
+  const handleMessageSent = async (message: string, modelId: string, attachments: Attachment[]) => {
+    // Add user message
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      type: "user",
+      content: message,
+      timestamp: new Date(),
+      model: modelId,
+    }
+
+    // Add assistant message placeholder
+    const assistantMessageId = `assistant-${Date.now()}`
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      type: "assistant",
+      content: "",
+      timestamp: new Date(),
+      model: modelId,
+    }
+
+    const newMessages = [...messages, userMessage, assistantMessage]
+    setMessages(newMessages)
+    setCurrentMessageId(assistantMessageId)
+
+    try {
+      // Create OpenRouter client and stream response
+      const client = createOpenRouterClient()
+      const conversationHistory = newMessages
+        .filter((m) => m.type !== "assistant" || m.id !== assistantMessageId)
+        .map((m) => ({
+          role: m.type === "user" ? ("user" as const) : ("assistant" as const),
+          content: m.content,
+        }))
+
+      let fullResponse = ""
+
+      for await (const chunk of client.streamChat(conversationHistory, modelId as any, {
+        temperature: 0.7,
+      })) {
+        fullResponse += chunk
+
+        // Update the assistant message in real-time
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId ? { ...msg, content: fullResponse } : msg
+          )
+        )
+      }
+
+      // Update estimated tokens based on response length
+      setEstimatedTokens(Math.max(fullResponse.length, message.length) * 1.5)
+    } catch (error) {
+      console.error("Error sending message:", error)
+
+      // Update assistant message with error
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId
+            ? {
+                ...msg,
+                content: "Sorry, I encountered an error processing your request. Please try again.",
+              }
+            : msg
+        )
+      )
     }
   }
 
@@ -345,6 +419,7 @@ export function MainContent() {
           <div className="sticky bottom-0 bg-gradient-to-t from-mauve-dark to-transparent px-4 pb-4 md:pb-8">
             <ChatInput
               onSendMessage={handleSendMessage}
+              onMessageSent={handleMessageSent}
               isLoading={isTemporaryMode ? isStreaming : isLoading}
               onStopGeneration={stopStreaming}
               selectedModel={selectedModel}
@@ -379,14 +454,6 @@ export function MainContent() {
             onBranchRename={renameBranch}
           />
         </div>
-
-        {/* Enhanced Model Switcher Dialog */}
-        <EnhancedModelSwitcher
-          isOpen={isModelSwitcherOpen}
-          onClose={closeModelSwitcher}
-          onModelChange={(model: string) => changeModel(model as any)}
-          selectedModel={selectedModel}
-        />
       </div>
     </main>
   )
