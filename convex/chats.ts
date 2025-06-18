@@ -333,3 +333,63 @@ export const bulkUpdateStatus = mutation({
     return args.chatIds.length
   },
 })
+
+// Mutation to create a chat from temporary chat data
+export const createFromTemporary = mutation({
+  args: {
+    title: v.string(),
+    userId: v.id("users"),
+    projectId: v.optional(v.id("projects")),
+    messages: v.array(v.object({
+      content: v.string(),
+      type: v.union(v.literal("user"), v.literal("assistant")),
+      model: v.optional(v.string()),
+      timestamp: v.string(), // ISO string
+    })),
+    model: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now()
+    
+    // Create the chat
+    const chatId = await ctx.db.insert("chats", {
+      title: args.title,
+      userId: args.userId,
+      projectId: args.projectId,
+      activeLeafMessageId: undefined,
+      status: "active",
+      statusChangedAt: now,
+      model: args.model,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    // Insert all messages
+    let lastMessageId: string | undefined = undefined
+    
+    for (const message of args.messages) {
+      const messageId = await ctx.db.insert("messages", {
+        chatId,
+        content: message.content,
+        type: message.type,
+        userId: message.type === "user" ? args.userId : undefined,
+        model: message.model,
+        parentMessageId: lastMessageId,
+        timestamp: new Date(message.timestamp).getTime(),
+        isEdited: false,
+      })
+      
+      lastMessageId = messageId
+    }
+
+    // Update chat with the last message as active leaf
+    if (lastMessageId) {
+      await ctx.db.patch(chatId, {
+        activeLeafMessageId: lastMessageId,
+        lastActivity: now,
+      })
+    }
+
+    return chatId
+  },
+})

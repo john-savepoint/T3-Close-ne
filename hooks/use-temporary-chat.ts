@@ -21,7 +21,7 @@ export function useTemporaryChat() {
   const [temporaryChat, setTemporaryChat] = useState<TemporaryChat | null>(null)
   const [settings, setSettings] = useState<TemporaryChatSettings>(defaultSettings)
   const [isTemporaryMode, setIsTemporaryMode] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
 
   // Load temporary chat from sessionStorage on mount
   useEffect(() => {
@@ -124,30 +124,8 @@ export function useTemporaryChat() {
     [temporaryChat]
   )
 
-  const saveTemporaryChatToHistory = async (data: SaveTempChatData): Promise<void> => {
-    if (!temporaryChat) return
-
-    setLoading(true)
-
-    try {
-      // Simulate API call to save chat
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      console.log("Saving temporary chat to history:", {
-        title: data.title,
-        projectId: data.projectId,
-        messages: temporaryChat.messages,
-      })
-
-      // Clear temporary chat after successful save
-      clearTemporaryChat()
-    } catch (error) {
-      console.error("Failed to save temporary chat:", error)
-      throw error
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Note: The actual save functionality is implemented in SaveTemporaryChatModal
+  // This is kept for backward compatibility but the modal handles the Convex mutation directly
 
   const clearTemporaryChat = useCallback(() => {
     setTemporaryChat(null)
@@ -175,12 +153,12 @@ export function useTemporaryChat() {
     temporaryChat,
     isTemporaryMode,
     settings,
-    loading,
+    isStreaming,
+    setIsStreaming,
     startTemporaryChat,
     addMessageToTemporaryChat,
     updateTemporaryChatMessage,
     deleteTemporaryChatMessage,
-    saveTemporaryChatToHistory,
     clearTemporaryChat,
     exitTemporaryMode,
     updateSettings,

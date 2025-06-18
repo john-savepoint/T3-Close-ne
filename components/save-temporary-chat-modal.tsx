@@ -3,6 +3,9 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,6 +27,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Save, Loader2, AlertTriangle } from "lucide-react"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { useProjects } from "@/hooks/use-projects"
+import { useAuth } from "@/hooks/use-auth"
 
 interface SaveTemporaryChatModalProps {
   open: boolean
@@ -31,29 +35,60 @@ interface SaveTemporaryChatModalProps {
 }
 
 export function SaveTemporaryChatModal({ open, onOpenChange }: SaveTemporaryChatModalProps) {
-  const { temporaryChat, saveTemporaryChatToHistory, loading } = useTemporaryChat()
+  const router = useRouter()
+  const { temporaryChat, clearTemporaryChat } = useTemporaryChat()
   const { projects } = useProjects()
+  const { user } = useAuth()
+  const createFromTemporary = useMutation(api.chats.createFromTemporary)
+  
   const [formData, setFormData] = useState({
     title: "",
     projectId: "standalone", // Updated default value to be a non-empty string
   })
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.title.trim() || !temporaryChat) return
+    if (!formData.title.trim() || !temporaryChat || !user?._id) return
 
+    setLoading(true)
     try {
-      await saveTemporaryChatToHistory({
+      // Convert temporary chat messages to the format expected by Convex
+      const messages = temporaryChat.messages.map(msg => ({
+        content: msg.content,
+        type: msg.type,
+        model: msg.model,
+        timestamp: msg.timestamp.toISOString(),
+      }))
+
+      // Get the model from the last assistant message
+      const lastAssistantMessage = temporaryChat.messages
+        .filter(m => m.type === "assistant" && m.model)
+        .pop()
+      
+      // Create the chat in Convex
+      const chatId = await createFromTemporary({
         title: formData.title.trim(),
-        projectId: formData.projectId === "standalone" ? undefined : formData.projectId, // Handle standalone case
+        userId: user._id,
+        projectId: formData.projectId === "standalone" ? undefined : formData.projectId as any,
+        messages,
+        model: lastAssistantMessage?.model,
       })
 
+      // Clear temporary chat
+      clearTemporaryChat()
+
       // Reset form and close modal
-      setFormData({ title: "", projectId: "standalone" }) // Reset to default non-empty string
+      setFormData({ title: "", projectId: "standalone" })
       onOpenChange(false)
+
+      // Navigate to the new chat
+      router.push(`/chat/${chatId}`)
     } catch (error) {
       console.error("Failed to save temporary chat:", error)
+    } finally {
+      setLoading(false)
     }
   }
 

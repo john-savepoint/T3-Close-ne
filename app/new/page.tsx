@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState } from "react"
-import { useRouter } from "next/navigation"
+import React, { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useTools } from "@/hooks/use-tools"
+import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,8 +12,18 @@ import { Input } from "@/components/ui/input"
 
 export default function NewChatPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { tools, getToolIcon } = useTools()
+  const { startTemporaryChat } = useTemporaryChat()
   const [searchQuery, setSearchQuery] = useState("")
+
+  // Check for temp=true parameter on mount
+  useEffect(() => {
+    if (searchParams.get("temp") === "true") {
+      startTemporaryChat()
+      router.push("/")
+    }
+  }, [searchParams, startTemporaryChat, router])
 
   const filteredTools = tools.filter(
     (tool) =>
