@@ -16,6 +16,7 @@ export function useKeyboardNavigation() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isModelSwitcherOpen, setIsModelSwitcherOpen] = useState(false)
   const [currentMessageIndex, setCurrentMessageIndex] = useState<number>(-1)
+  const [commandPaletteIndex, setCommandPaletteIndex] = useState<number>(0)
 
   const openCommandPalette = useCallback(() => {
     setIsCommandPaletteOpen(true)
@@ -23,6 +24,7 @@ export function useKeyboardNavigation() {
 
   const closeCommandPalette = useCallback(() => {
     setIsCommandPaletteOpen(false)
+    setCommandPaletteIndex(0)
   }, [])
 
   const openModelSwitcher = useCallback(() => {
@@ -69,6 +71,14 @@ export function useKeyboardNavigation() {
     const nextIndex = Math.max(currentMessageIndex - 1, 0)
     navigateToMessage(nextIndex)
   }, [currentMessageIndex, navigateToMessage])
+
+  const navigateCommandPaletteDown = useCallback(() => {
+    setCommandPaletteIndex((prev) => prev + 1)
+  }, [])
+
+  const navigateCommandPaletteUp = useCallback(() => {
+    setCommandPaletteIndex((prev) => Math.max(0, prev - 1))
+  }, [])
 
   const shortcuts: KeyboardShortcut[] = [
     {
@@ -125,6 +135,29 @@ export function useKeyboardNavigation() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Handle command palette navigation when open
+      if (isCommandPaletteOpen) {
+        if (event.key === "j" && !event.metaKey && !event.ctrlKey) {
+          event.preventDefault()
+          navigateCommandPaletteDown()
+          return
+        }
+        if (event.key === "k" && !event.metaKey && !event.ctrlKey) {
+          event.preventDefault()
+          navigateCommandPaletteUp()
+          return
+        }
+        if (event.key === "Escape") {
+          event.preventDefault()
+          closeCommandPalette()
+          return
+        }
+        if (event.key === "Enter") {
+          // This will be handled by the command palette component
+          return
+        }
+      }
+
       // Don't trigger shortcuts when typing in inputs
       if (
         event.target instanceof HTMLInputElement ||
@@ -177,7 +210,16 @@ export function useKeyboardNavigation() {
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [openModelSwitcher, openCommandPalette, navigateNext, navigatePrevious])
+  }, [
+    openModelSwitcher, 
+    openCommandPalette, 
+    closeCommandPalette,
+    navigateNext, 
+    navigatePrevious, 
+    navigateCommandPaletteDown,
+    navigateCommandPaletteUp,
+    isCommandPaletteOpen
+  ])
 
   return {
     isCommandPaletteOpen,
@@ -190,6 +232,9 @@ export function useKeyboardNavigation() {
     navigateToMessage,
     navigateNext,
     navigatePrevious,
+    commandPaletteIndex,
+    navigateCommandPaletteDown,
+    navigateCommandPaletteUp,
     shortcuts,
   }
 }
