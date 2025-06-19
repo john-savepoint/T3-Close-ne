@@ -4,16 +4,29 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Search, Trash2, AlertTriangle, AlertCircle } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Search,
+  Trash2,
+  AlertTriangle,
+  AlertCircle,
+  RotateCcw,
+  CheckSquare,
+  Square,
+} from "lucide-react"
 import { useState } from "react"
 import { useChatLifecycle } from "@/hooks/use-chat-lifecycle"
 import { EnhancedChatItem } from "@/components/enhanced-chat-item"
 import { ConfirmationModal } from "@/components/confirmation-modal"
 import { ChatErrorBoundary } from "@/components/error-boundary"
+import { useToast } from "@/hooks/use-toast"
+import { ToastContainer } from "@/components/ui/toast"
 
 export function TrashView() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showEmptyTrashModal, setShowEmptyTrashModal] = useState(false)
+  const [selectedChats, setSelectedChats] = useState<Set<string>>(new Set())
+  const [isBulkMode, setIsBulkMode] = useState(false)
   const {
     trashedChats,
     loading,
@@ -21,7 +34,10 @@ export function TrashView() {
     deletePermanently,
     emptyTrash,
     getDaysUntilAutoPurge,
+    bulkRestore,
   } = useChatLifecycle()
+
+  const { toasts, success, error: showError, removeToast } = useToast()
 
   const filteredChats = trashedChats.filter((chat) =>
     chat.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -30,20 +46,20 @@ export function TrashView() {
   const handleRestore = async (chatId: string) => {
     try {
       await restoreFromTrash(chatId)
-      // TODO: Show success toast notification
-    } catch (error) {
-      // TODO: Show error toast notification
-      console.error("Failed to restore chat:", error)
+      success("Chat restored successfully")
+    } catch (err) {
+      showError("Failed to restore chat")
+      console.error("Failed to restore chat:", err)
     }
   }
 
   const handleDeletePermanently = async (chatId: string) => {
     try {
       await deletePermanently(chatId)
-      // TODO: Show success toast notification
-    } catch (error) {
-      // TODO: Show error toast notification
-      console.error("Failed to permanently delete chat:", error)
+      success("Chat permanently deleted")
+    } catch (err) {
+      showError("Failed to delete chat permanently")
+      console.error("Failed to permanently delete chat:", err)
     }
   }
 
@@ -51,11 +67,46 @@ export function TrashView() {
     try {
       await emptyTrash()
       setShowEmptyTrashModal(false)
-      // TODO: Show success toast notification
-    } catch (error) {
-      // TODO: Show error toast notification
-      console.error("Failed to empty trash:", error)
+      success("Trash emptied successfully")
+    } catch (err) {
+      showError("Failed to empty trash")
+      console.error("Failed to empty trash:", err)
     }
+  }
+
+  const handleChatSelect = (chatId: string, selected: boolean) => {
+    const newSelected = new Set(selectedChats)
+    if (selected) {
+      newSelected.add(chatId)
+    } else {
+      newSelected.delete(chatId)
+    }
+    setSelectedChats(newSelected)
+  }
+
+  const handleSelectAll = () => {
+    if (selectedChats.size === filteredChats.length) {
+      setSelectedChats(new Set())
+    } else {
+      setSelectedChats(new Set(filteredChats.map((chat) => chat.id)))
+    }
+  }
+
+  const handleBulkRestore = async () => {
+    try {
+      await bulkRestore(Array.from(selectedChats))
+      setSelectedChats(new Set())
+      setIsBulkMode(false)
+      success(`${selectedChats.size} chats restored successfully`)
+    } catch (err) {
+      showError("Failed to restore selected chats")
+      console.error("Failed to bulk restore chats:", err)
+    }
+  }
+
+  const toggleBulkMode = () => {
+    setIsBulkMode(!isBulkMode)
+    setSelectedChats(new Set())
   }
 
   if (loading) {
@@ -80,16 +131,46 @@ export function TrashView() {
               </Badge>
             </div>
 
-            {trashedChats.length > 0 && (
-              <Button
-                variant="destructive"
-                onClick={() => setShowEmptyTrashModal(true)}
-                className="border-red-500/50 bg-red-500/20 text-red-400 hover:bg-red-500/30"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Empty Trash
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {isBulkMode && selectedChats.size > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBulkRestore}
+                  className="border-green-500/50 bg-green-500/10 text-green-400 hover:bg-green-500/20"
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Restore ({selectedChats.size})
+                </Button>
+              )}
+
+              {trashedChats.length > 0 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleBulkMode}
+                    className={isBulkMode ? "bg-mauve-accent/20" : ""}
+                  >
+                    {isBulkMode ? (
+                      <Square className="mr-2 h-4 w-4" />
+                    ) : (
+                      <CheckSquare className="mr-2 h-4 w-4" />
+                    )}
+                    {isBulkMode ? "Cancel" : "Select"}
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowEmptyTrashModal(true)}
+                    className="border-red-500/50 bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Empty Trash
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="mb-4 rounded-lg border border-orange-500/20 bg-orange-500/10 p-4">
@@ -106,14 +187,29 @@ export function TrashView() {
             </div>
           </div>
 
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mauve-subtle" />
-            <Input
-              placeholder="Search trash..."
-              className="border-mauve-dark bg-black/20 pl-9 focus-visible:ring-mauve-accent"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mauve-subtle" />
+              <Input
+                placeholder="Search trash..."
+                className="border-mauve-dark bg-black/20 pl-9 focus-visible:ring-mauve-accent"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {isBulkMode && filteredChats.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedChats.size === filteredChats.length && filteredChats.length > 0}
+                  onCheckedChange={handleSelectAll}
+                  className="border-mauve-dark data-[state=checked]:border-mauve-accent data-[state=checked]:bg-mauve-accent"
+                />
+                <span className="text-sm text-mauve-subtle">
+                  Select all ({filteredChats.length} chats)
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -140,13 +236,23 @@ export function TrashView() {
             <ScrollArea className="h-full">
               <div className="space-y-2 p-4">
                 {filteredChats.map((chat) => (
-                  <EnhancedChatItem
-                    key={chat.id}
-                    chat={chat}
-                    onRestore={() => handleRestore(chat.id)}
-                    onDeletePermanently={() => handleDeletePermanently(chat.id)}
-                    className="border border-red-500/20 bg-red-500/5 hover:bg-red-500/10"
-                  />
+                  <div key={chat.id} className="flex items-center gap-3">
+                    {isBulkMode && (
+                      <Checkbox
+                        checked={selectedChats.has(chat.id)}
+                        onCheckedChange={(checked) => handleChatSelect(chat.id, checked as boolean)}
+                        className="border-mauve-dark data-[state=checked]:border-mauve-accent data-[state=checked]:bg-mauve-accent"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <EnhancedChatItem
+                        chat={chat}
+                        onRestore={() => handleRestore(chat.id)}
+                        onDeletePermanently={() => handleDeletePermanently(chat.id)}
+                        className="border border-red-500/20 bg-red-500/5 hover:bg-red-500/10"
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
             </ScrollArea>
@@ -165,6 +271,7 @@ export function TrashView() {
           icon={<AlertTriangle className="h-6 w-6 text-red-400" />}
         />
       </div>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </ChatErrorBoundary>
   )
 }

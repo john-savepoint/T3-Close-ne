@@ -1,6 +1,6 @@
 "use client"
 
-import { X, CheckCircle, AlertCircle } from "lucide-react"
+import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { Toast } from "@/hooks/use-toast"
@@ -12,20 +12,32 @@ interface ToastProps {
 
 export function Toast({ toast, onRemove }: ToastProps) {
   const getIcon = () => {
-    switch (toast.variant) {
-      case "destructive":
-        return <AlertCircle className="h-4 w-4 text-red-400" />
-      default:
+    switch (toast.type) {
+      case "success":
         return <CheckCircle className="h-4 w-4 text-green-400" />
+      case "error":
+        return <AlertCircle className="h-4 w-4 text-red-400" />
+      case "warning":
+        return <AlertTriangle className="h-4 w-4 text-yellow-400" />
+      case "info":
+        return <Info className="h-4 w-4 text-blue-400" />
+      default:
+        return null
     }
   }
 
   const getBackgroundColor = () => {
-    switch (toast.variant) {
-      case "destructive":
-        return "border-red-500/50 bg-red-500/10"
-      default:
+    switch (toast.type) {
+      case "success":
         return "border-green-500/50 bg-green-500/10"
+      case "error":
+        return "border-red-500/50 bg-red-500/10"
+      case "warning":
+        return "border-yellow-500/50 bg-yellow-500/10"
+      case "info":
+        return "border-blue-500/50 bg-blue-500/10"
+      default:
+        return "border-mauve-dark bg-mauve-surface"
     }
   }
 
@@ -37,10 +49,7 @@ export function Toast({ toast, onRemove }: ToastProps) {
       )}
     >
       {getIcon()}
-      <div className="flex-1">
-        <p className="text-sm font-medium text-foreground">{toast.title}</p>
-        {toast.description && <p className="text-xs text-muted-foreground">{toast.description}</p>}
-      </div>
+      <p className="flex-1 text-sm text-foreground">{toast.message}</p>
       <Button
         variant="ghost"
         size="icon"
