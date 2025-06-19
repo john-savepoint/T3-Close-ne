@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Slider } from "@/components/ui/slider"
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,8 @@ interface EnhancedModelSwitcherProps {
   onModelChange: (model: ChatModel | string) => void // Support both formats
   showCost?: boolean
   estimatedTokens?: number
+  temperature?: number
+  onTemperatureChange?: (temperature: number) => void
 }
 
 export function EnhancedModelSwitcher({
@@ -56,6 +59,8 @@ export function EnhancedModelSwitcher({
   onModelChange,
   showCost = true,
   estimatedTokens,
+  temperature = 0.7,
+  onTemperatureChange,
 }: EnhancedModelSwitcherProps) {
   const {
     models,
@@ -305,6 +310,31 @@ export function EnhancedModelSwitcher({
                       Show only models that can process images and text
                     </p>
                   </div>
+
+                  {onTemperatureChange && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="temperature-slider">Temperature</Label>
+                        <span className="text-sm text-muted-foreground">
+                          {temperature.toFixed(2)}
+                        </span>
+                      </div>
+                      <Slider
+                        id="temperature-slider"
+                        value={[temperature]}
+                        onValueChange={(value) => onTemperatureChange(value[0])}
+                        min={0}
+                        max={2}
+                        step={0.01}
+                        className="w-full"
+                        aria-label="Temperature control for AI creativity"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Lower values make output more focused and deterministic, higher values make
+                        it more creative and diverse.
+                      </p>
+                    </div>
+                  )}
 
                   <CostEstimation
                     currentModel={currentModel}
