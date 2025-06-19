@@ -113,7 +113,6 @@ Z6Chat features a sophisticated dark theme with mauve/purple accents, creating a
 
 ## 🚧 Known Limitations
 
-- **No Authentication**: For easy testing, authentication has been disabled
 - **Vercel Free Tier**: Some advanced features may hit rate limits
 - **BYOK**: Judges need to provide their own OpenRouter API key
 
