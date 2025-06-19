@@ -39,7 +39,8 @@ export default function TestChatPage() {
     setInputMessage("")
   }
 
-  const handleModelChange = (modelId: string) => {
+  const handleModelChange = (model: string | import("@/types/models").ChatModel) => {
+    const modelId = typeof model === 'string' ? model : model.id
     setModel(modelId as any)
   }
 
@@ -158,12 +159,7 @@ export default function TestChatPage() {
         </CardContent>
       </Card>
 
-      <EnhancedModelSwitcher
-        isOpen={showModelSwitcher}
-        onClose={() => setShowModelSwitcher(false)}
-        selectedModel={selectedModel}
-        onModelChange={handleModelChange}
-      />
+      <EnhancedModelSwitcher selectedModel={selectedModel} onModelChange={handleModelChange} />
     </div>
   )
 }
