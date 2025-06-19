@@ -20,6 +20,7 @@ import type * as files from "../files.js"
 import type * as http from "../http.js"
 import type * as memories from "../memories.js"
 import type * as messages from "../messages.js"
+import type * as research from "../research.js"
 import type * as users from "../users.js"
 
 /**
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http
   memories: typeof memories
   messages: typeof messages
+  research: typeof research
   users: typeof users
 }>
 export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>
