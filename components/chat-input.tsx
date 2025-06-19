@@ -20,7 +20,7 @@ import { DEFAULT_MODEL_ID } from "@/lib/default-models"
 import { estimateTokens } from "@/lib/token-utils"
 
 interface ChatInputProps {
-  onSendMessage?: (content: string, attachments?: Attachment[]) => void
+  onSendMessage?: (content: string, attachments?: Attachment[], useWebSearch?: boolean) => void
   isLoading?: boolean
   onStopGeneration?: () => void
   selectedModel?: string
@@ -28,7 +28,14 @@ interface ChatInputProps {
   disabled?: boolean
   temperature?: number
   onTemperatureChange?: (temperature: number) => void
-  onMessageSent?: (message: string, model: string, attachments: Attachment[]) => void
+  onMessageSent?: (
+    message: string,
+    model: string,
+    attachments: Attachment[],
+    useWebSearch?: boolean
+  ) => void
+  webSearchEnabled?: boolean
+  onWebSearchChange?: (enabled: boolean) => void
 }
 
 export function ChatInput({
@@ -41,6 +48,8 @@ export function ChatInput({
   temperature = 0.7,
   onTemperatureChange,
   onMessageSent,
+  webSearchEnabled = false,
+  onWebSearchChange,
 }: ChatInputProps) {
   const [message, setMessage] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -104,9 +113,9 @@ export function ChatInput({
 
     // Send message using either callback
     if (onSendMessage) {
-      onSendMessage(messageContent, attachments)
+      onSendMessage(messageContent, attachments, webSearchEnabled)
     } else if (onMessageSent) {
-      onMessageSent(messageContent, currentSelectedModel, attachedFiles)
+      onMessageSent(messageContent, currentSelectedModel, attachedFiles, webSearchEnabled)
     }
   }
 
@@ -189,11 +198,15 @@ export function ChatInput({
             </DropdownMenu>
             {!isMobile && (
               <Button
-                variant="ghost"
+                variant={webSearchEnabled ? "default" : "ghost"}
                 size="sm"
-                className="cursor-not-allowed text-xs text-muted-foreground opacity-50"
-                disabled
-                title="Web search not yet implemented"
+                className={`text-xs ${
+                  webSearchEnabled
+                    ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500/30"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                onClick={() => onWebSearchChange?.(!webSearchEnabled)}
+                title={webSearchEnabled ? "Disable web search" : "Enable web search"}
               >
                 <Globe className="mr-2 h-4 w-4" /> Search
               </Button>

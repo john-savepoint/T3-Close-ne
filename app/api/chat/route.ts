@@ -2,12 +2,13 @@ import { streamText } from "ai"
 import { createOpenAI } from "@ai-sdk/openai"
 import { NextRequest } from "next/server"
 import { SupportedModel } from "@/types/models"
+import { WebSearchService, supportsNativeWebSearch } from "@/lib/tavily"
 
 export const runtime = "edge"
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, model, apiKey, memoryContext, ...options } = await req.json()
+    const { messages, model, apiKey, memoryContext, useWebSearch, ...options } = await req.json()
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 })
@@ -52,8 +53,38 @@ export async function POST(req: NextRequest) {
       apiKey: openRouterApiKey,
     })
 
-    // Inject memory context if provided
+    // Inject memory context and web search results if provided
     const enhancedMessages = [...messages]
+    let webSearchContext = null
+
+    // Step 1: Perform web search if requested and model doesn't support native web search
+    if (useWebSearch && !supportsNativeWebSearch(selectedModel)) {
+      try {
+        const userMessage = messages[messages.length - 1]?.content
+        if (userMessage && typeof userMessage === "string") {
+          const webSearchService = new WebSearchService()
+          webSearchContext = await webSearchService.search(userMessage)
+
+          // Inject web search results into the user's message
+          const lastMessageIndex = enhancedMessages.length - 1
+          if (lastMessageIndex >= 0) {
+            const augmentedPrompt = webSearchService.createAugmentedPrompt(
+              userMessage,
+              webSearchContext
+            )
+            enhancedMessages[lastMessageIndex] = {
+              ...enhancedMessages[lastMessageIndex],
+              content: augmentedPrompt,
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Web search failed:", error)
+        // Continue without web search if it fails
+      }
+    }
+
+    // Step 2: Inject memory context if provided
     if (memoryContext && memoryContext.length > 0) {
       try {
         // Validate context length (OpenAI has token limits)
@@ -98,8 +129,17 @@ export async function POST(req: NextRequest) {
       abortSignal: req.signal, // Forward abort signal for proper cleanup
     })
 
-    // Return AI SDK's optimized data stream response
-    return result.toDataStreamResponse()
+    // Add web search metadata to the response headers if web search was used
+    const responseInit: ResponseInit = {}
+    if (webSearchContext) {
+      responseInit.headers = {
+        "X-Web-Search-Used": "true",
+        "X-Web-Search-Sources": JSON.stringify(webSearchContext.sources),
+      }
+    }
+
+    // Return AI SDK's optimized data stream response with metadata
+    return result.toDataStreamResponse(responseInit)
   } catch (error) {
     console.error("Chat API error:", error)
 
