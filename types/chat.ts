@@ -10,6 +10,11 @@ export interface ChatMessage {
   parentId?: string | null
   isEdited?: boolean
   editedAt?: Date
+  webSearchUsed?: boolean
+  webSearchSources?: Array<{
+    title: string
+    url: string
+  }>
 }
 
 export type ChatStatus = "active" | "archived" | "trashed"

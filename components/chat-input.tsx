@@ -23,7 +23,7 @@ import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { useUIPreferences } from "@/hooks/use-ui-preferences"
 
 interface ChatInputProps {
-  onSendMessage?: (content: string, attachments?: Attachment[]) => void
+  onSendMessage?: (content: string, attachments?: Attachment[], useWebSearch?: boolean) => void
   isLoading?: boolean
   onStopGeneration?: () => void
   selectedModel?: string
@@ -31,9 +31,16 @@ interface ChatInputProps {
   disabled?: boolean
   temperature?: number
   onTemperatureChange?: (temperature: number) => void
-  onMessageSent?: (message: string, model: string, attachments: Attachment[]) => void
+  onMessageSent?: (
+    message: string,
+    model: string,
+    attachments: Attachment[],
+    useWebSearch?: boolean
+  ) => void
   isTemporaryMode?: boolean
   onToggleTemporaryMode?: () => void
+  webSearchEnabled?: boolean
+  onWebSearchChange?: (enabled: boolean) => void
 }
 
 export function ChatInput({
@@ -48,6 +55,8 @@ export function ChatInput({
   onMessageSent,
   isTemporaryMode = false,
   onToggleTemporaryMode,
+  webSearchEnabled = false,
+  onWebSearchChange,
 }: ChatInputProps) {
   const [message, setMessage] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -125,9 +134,9 @@ export function ChatInput({
 
     // Send message using either callback
     if (onSendMessage) {
-      onSendMessage(messageContent, attachments)
+      onSendMessage(messageContent, attachments, webSearchEnabled)
     } else if (onMessageSent) {
-      onMessageSent(messageContent, currentSelectedModel, attachedFiles)
+      onMessageSent(messageContent, currentSelectedModel, attachedFiles, webSearchEnabled)
     }
   }
 
@@ -295,23 +304,20 @@ export function ChatInput({
               </DropdownMenuContent>
             </DropdownMenu>
             
-            {/* Web Search Button - icon only on mobile/tablet */}
+            {/* Web Search Button - toggle on desktop, enabled for all screen sizes */}
             <Button
-              variant="ghost"
+              variant={webSearchEnabled ? "default" : "ghost"}
               size={isMobile || isTablet ? "icon" : "sm"}
-              className={`${isMobile || isTablet ? "h-9 w-9" : "text-xs"} ${isSearching ? "opacity-50" : ""}`}
-              onClick={handleWebSearch}
-              disabled={!message.trim() || isSearching || isLoading}
-              title={
-                !message.trim() 
-                  ? "Enter a search query first" 
-                  : isSearching 
-                  ? "Searching..." 
-                  : "Search the web"
-              }
+              className={`${isMobile || isTablet ? "h-9 w-9" : "text-xs"} ${
+                webSearchEnabled
+                  ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500/30"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => onWebSearchChange?.(!webSearchEnabled)}
+              title={webSearchEnabled ? "Disable web search" : "Enable web search"}
             >
-              <Globe className={isMobile || isTablet ? "h-4 w-4" : "mr-2 h-4 w-4"} /> 
-              {!isMobile && !isTablet && (isSearching ? "Searching..." : "Search")}
+              <Globe className={isMobile || isTablet ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+              {!isMobile && !isTablet && "Search"}
             </Button>
             
             <EnhancedFileUpload onFilesAttached={handleFilesAttached} maxFiles={10} />
