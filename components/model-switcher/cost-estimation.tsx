@@ -3,6 +3,8 @@
 import { Separator } from "@/components/ui/separator"
 import { ChatModel } from "@/types/models"
 import { formatPrice } from "@/lib/model-utils"
+import { getTokenEstimationInfo } from "@/lib/token-utils"
+import { Info } from "lucide-react"
 
 interface CostEstimationProps {
   currentModel?: ChatModel | null
@@ -18,6 +20,8 @@ export function CostEstimation({
   showCost,
 }: CostEstimationProps) {
   if (!showCost) return null
+
+  const tokenInfo = currentModel ? getTokenEstimationInfo(currentModel.id) : null
 
   return (
     <div className="rounded-lg border bg-muted/20 p-4">
@@ -44,6 +48,14 @@ export function CostEstimation({
                 : "0.0000"}
             </span>
           </div>
+          {tokenInfo && (
+            <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+              <Info className="h-3 w-3" />
+              <span>
+                Using {tokenInfo.tokenizer} tokenizer (~{tokenInfo.charsPerToken} chars/token)
+              </span>
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-2">

@@ -163,7 +163,7 @@ export function ChatInput({
               selectedModel={modelsSelectedModel}
               onModelChange={handleModelChange}
               showCost={true}
-              estimatedTokens={message.length > 0 ? estimateTokens(message) : undefined}
+              estimatedTokens={message.length > 0 ? estimateTokens(message, currentSelectedModel) : undefined}
             />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
