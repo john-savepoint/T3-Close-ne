@@ -12,6 +12,18 @@ This file provides comprehensive guidance to AI agents working on Z6Chat, a prod
 - **Stage**: Production-ready with ongoing feature development
 - **Focus**: Professional standards, production environments, CI/CD enforcement
 
+### **Project History & Milestones**
+
+- **Origin**: T3Chat Cloneathon competition entry (June 2025)
+- **Foundation**: Complete Git, CI/CD, Documentation, ClaudeSquad setup
+- **Major Achievements**:
+  - Multi-model chat with 50+ LLMs via OpenRouter
+  - Real-time persistence with Convex database
+  - Professional UI with complete dark theme
+  - Comprehensive file attachment system
+  - Production-ready error handling
+  - Type-safe architecture with strict TypeScript
+
 ## 🛠️ **TECHNOLOGY STACK**
 
 ### **Core Stack**
@@ -44,23 +56,75 @@ This file provides comprehensive guidance to AI agents working on Z6Chat, a prod
 - **Testing**: Playwright (visual regression)
 - **Versioning**: Changesets for automated releases
 
-## 🏗️ **ARCHITECTURE**
+## 🏗️ **ARCHITECTURE & DIRECTORY STRUCTURE**
 
-### **Directory Structure**
+### **Complete Directory Structure**
 
 ```
-/app/                 # Next.js App Router
-  /api/              # API endpoints (chat, upload, tools, streams)
-  /[pages]/          # Application pages
-/components/          # React components
-  /ui/               # Base UI primitives (DO NOT MODIFY)
-  /tools/            # Tool-specific components
-  /[feature]/        # Feature components
-/hooks/              # Custom React hooks (40+)
-/lib/                # Utilities and configurations
-/types/              # TypeScript definitions
-/convex/             # Backend functions & schema
-/docs/               # Documentation
+T3-Close-ne/
+├── app/                          # Next.js App Router
+│   ├── api/                      # API endpoints
+│   │   ├── chat/route.ts         # OpenRouter streaming chat
+│   │   ├── upload/route.ts       # File upload handling
+│   │   ├── tools/                # Tool-specific endpoints
+│   │   └── streams/              # Resumable stream management
+│   ├── (pages)/                  # Application pages
+│   │   ├── page.tsx              # Main chat interface
+│   │   ├── new/page.tsx          # New chat/tool selection
+│   │   ├── archive/page.tsx      # Archived chats
+│   │   ├── trash/page.tsx        # Deleted chats
+│   │   ├── settings/             # User preferences
+│   │   └── tools/                # Tool-specific pages
+│   ├── (auth)/                   # Authentication pages
+│   │   ├── login/page.tsx        # Sign in
+│   │   └── signup/page.tsx       # Registration
+│   └── s/[token]/page.tsx        # Public chat sharing
+├── components/                   # React components
+│   ├── ui/                       # Base UI primitives (DO NOT MODIFY)
+│   │   ├── button.tsx           # Button variants
+│   │   ├── dialog.tsx           # Modal dialogs
+│   │   ├── dropdown-menu.tsx   # Dropdown menus
+│   │   └── [30+ components]     # Complete UI kit
+│   ├── tools/                    # Tool components
+│   │   ├── email-responder.tsx
+│   │   ├── social-media-generator.tsx
+│   │   ├── summarizer.tsx
+│   │   └── diagrammer.tsx
+│   ├── auth/                     # Authentication components
+│   ├── chat/                     # Chat components
+│   ├── file-upload/             # File handling
+│   └── [feature]/               # Feature-specific components
+├── hooks/                        # Custom React hooks (40+)
+│   ├── use-chat.ts              # Chat management
+│   ├── use-files.ts             # File operations
+│   ├── use-streaming.ts         # Stream handling
+│   └── [feature hooks]          # Specialized hooks
+├── lib/                          # Utilities and configurations
+│   ├── openrouter.ts            # AI integration
+│   ├── convex.ts                # Database client
+│   ├── utils.ts                 # Helper functions
+│   └── streaming/               # Stream utilities
+├── types/                        # TypeScript definitions
+│   ├── database.types.ts        # DB schema types
+│   ├── api.types.ts             # API interfaces
+│   └── ui.types.ts              # Component types
+├── convex/                       # Backend functions & schema
+│   ├── schema.ts                 # Complete database schema
+│   ├── auth.ts                   # Authentication config
+│   ├── chats.ts                  # Chat operations
+│   ├── files.ts                  # File management
+│   └── [functions]/              # Queries, mutations, actions
+├── docs/                         # Documentation
+│   ├── AUTHENTICATION.md         # Auth setup guide
+│   ├── COMPLETED_FEATURES.md     # Feature documentation
+│   └── CLAUDE_ARCHIVE.md         # Historical reference
+├── teams/                        # ClaudeSquad management
+│   ├── task-prompts.md          # Task templates
+│   ├── README.md                # Team guide
+│   └── [task-folders]/          # Individual tasks
+├── public/                       # Static assets
+├── styles/                       # Global styles
+└── [config files]               # Build, lint, deploy configs
 ```
 
 ### **Key Features Implemented**
@@ -81,6 +145,7 @@ This file provides comprehensive guidance to AI agents working on Z6Chat, a prod
 
 - All components use `"use client"` directive
 - Props interfaces defined inline or same file
+- Use `forwardRef` for ref forwarding
 - Compose from UI primitives, don't modify `/components/ui/`
 - Follow existing mauve/purple design system
 
@@ -90,6 +155,66 @@ This file provides comprehensive guidance to AI agents working on Z6Chat, a prod
 - Export interfaces from `/types/` directory
 - Use Zod for runtime validation
 - Maintain type safety across API boundaries
+
+### **State Management**
+
+- Convex live queries for server state
+- React hooks for local state
+- Optimistic updates with rollback
+- Error states properly handled
+
+### **Styling Conventions**
+
+- Tailwind CSS utility classes only
+- Use `cn()` utility for conditional classes
+- Follow dark theme color palette (slate, mauve, purple)
+- Maintain consistent spacing (Tailwind scale)
+- Mobile-first responsive design
+
+## 🎨 **DESIGN SYSTEM**
+
+### **Color Palette**
+
+- **Primary**: Mauve/Purple tones
+- **Background**: Deep slate with subtle gradients
+- **Text**: High contrast whites and grays
+- **Accents**: Purple highlights and borders
+- **States**: Success (green), Warning (yellow), Error (red)
+
+### **Typography**
+
+- **Headings**: Inter font family
+- **Body**: System font stack
+- **Code**: JetBrains Mono
+- **Consistent scale**: text-sm, text-base, text-lg, etc.
+
+### **Component Variants**
+
+- **Buttons**: Default, ghost, outline, destructive
+- **Cards**: Elevated with subtle borders
+- **Inputs**: Consistent styling across forms
+- **Animations**: Subtle transitions and micro-interactions
+
+## ⚙️ **DEVELOPMENT COMMANDS**
+
+### **Primary Commands**
+
+```bash
+# Development
+pnpm dev              # Start Next.js dev server
+pnpm dev:convex       # Start Convex backend (separate terminal)
+
+# Code Quality
+pnpm type-check       # TypeScript validation
+pnpm lint             # ESLint checking
+pnpm lint:fix         # Auto-fix linting issues
+pnpm format           # Prettier formatting
+pnpm quality:check    # Run all quality checks
+
+# Build & Deploy
+pnpm build           # Production build
+pnpm start           # Start production server
+```
 
 ### **Git Workflow**
 
@@ -113,14 +238,71 @@ chore:    Maintenance tasks
 
 ### **Changesets (MANDATORY)**
 
-Before committing any changes, create a changeset:
+**🚨 CRITICAL FOR AI AGENTS: Manual changeset creation required due to interactive prompts**
+
+Since AI agents cannot answer interactive command-line prompts, you must manually create changeset files:
+
+#### **Manual Changeset Creation Process**
+
+1. **Create changeset file**:
 
 ```bash
-pnpm changeset
-# Select package, change type, and provide description
+# Create a new file in .changeset directory
+# Use format: .changeset/[adjective]-[noun]-[verb].md
+# Example: .changeset/brave-pandas-dance.md
+```
+
+2. **Changeset file content**:
+
+```markdown
+---
+"z6chat": patch
+---
+
+feat: your feature description here
+
+- Detailed change point 1
+- Detailed change point 2
+- Any breaking changes noted
+```
+
+3. **Version types**:
+
+- `patch`: Bug fixes, minor updates (0.0.x)
+- `minor`: New features, non-breaking (0.x.0)
+- `major`: Breaking changes (x.0.0)
+
+4. **Commit both code and changeset**:
+
+```bash
+git add .
 git add .changeset/*.md
 git commit -m "feat: your feature"
 ```
+
+#### **Example Manual Changeset**
+
+`.changeset/purple-tigers-jump.md`:
+
+```markdown
+---
+"z6chat": minor
+---
+
+feat: add resumable streaming with Redis persistence
+
+- Implement stream state persistence using Upstash Redis
+- Add stream recovery on connection loss
+- Create new hooks for stream management
+- Update chat interface to support resume functionality
+```
+
+#### **Common Mistakes to Avoid**
+
+- ❌ Running `pnpm changeset` (requires interactive input)
+- ❌ Forgetting to commit the changeset file
+- ❌ Using wrong version type
+- ✅ Always create changeset manually as shown above
 
 ## 🔌 **ENVIRONMENT CONFIGURATION**
 
@@ -144,50 +326,42 @@ TAVILY_API_KEY=tvly-...           # Web search
 RESEND_API_KEY=re_...
 ```
 
-## ⚙️ **ESSENTIAL COMMANDS**
-
-```bash
-# Development
-pnpm dev              # Start Next.js
-pnpm dev:convex       # Start Convex (separate terminal)
-
-# Quality & Build
-pnpm type-check       # TypeScript validation
-pnpm lint            # ESLint check
-pnpm build           # Production build
-pnpm quality:check   # All checks
-
-# Changesets
-pnpm changeset       # Create changeset
-pnpm changeset:status # Check pending changes
-```
-
-## 📚 **DOCUMENTATION LINKS**
-
-### **Supporting Documents**
-
-- **Authentication**: [`/docs/AUTHENTICATION.md`](./docs/AUTHENTICATION.md) - Setup and restoration guide
-- **Features**: [`/docs/COMPLETED_FEATURES.md`](./docs/COMPLETED_FEATURES.md) - Detailed feature documentation
-- **Task Templates**: [`/teams/task-prompts.md`](./teams/task-prompts.md) - Task creation templates
-- **Archive**: [`/docs/CLAUDE_ARCHIVE.md`](./docs/CLAUDE_ARCHIVE.md) - Historical documentation
-
-### **External Resources**
-
-- **Repository**: https://github.com/john-savepoint/T3-Close-ne
-- **Convex Docs**: https://docs.convex.dev/
-- **OpenRouter**: https://openrouter.ai/docs
-- **Vercel AI SDK**: https://sdk.vercel.ai/docs
-
 ## 🚨 **CRITICAL GUIDELINES**
 
-### **MCP Requirements**
+### **MCP Requirements (MANDATORY)**
 
-When implementing third-party integrations, ALWAYS use Context7 MCP:
+**🚨 BEFORE implementing ANY third-party service, you MUST use Context7 MCP:**
 
-1. Run `mcp__context7__resolve-library-id` with service name
-2. Use `mcp__context7__get-library-docs` with specific topic
-3. Follow documentation exactly - no assumptions
-4. Update if patterns differ from existing code
+1. **Resolve Library ID**:
+
+```bash
+mcp__context7__resolve-library-id
+# Input: service name (e.g., "convex", "openrouter", "resend")
+```
+
+2. **Get Documentation**:
+
+```bash
+mcp__context7__get-library-docs
+# Input: library ID from step 1
+# Topic: specific feature (e.g., "streaming", "file upload")
+# Tokens: 8000-10000 for comprehensive docs
+```
+
+3. **Implementation**:
+
+- Follow Context7 documentation EXACTLY
+- No assumptions or memory-based coding
+- Update existing code if Context7 shows different patterns
+
+4. **Common Context7 Usage**:
+
+- Convex database operations
+- OpenRouter API patterns
+- Authentication flows
+- File upload handling
+- Streaming implementations
+- Any third-party SDK usage
 
 ### **Quality Standards**
 
@@ -204,6 +378,71 @@ When implementing third-party integrations, ALWAYS use Context7 MCP:
 - Skip error handling or loading states
 - Commit without running quality checks
 - Implement third-party services without Context7 docs
+
+## 🆕 **ADDING NEW CLAUDESQUAD TASKS**
+
+### **Task Creation Workflow**
+
+#### **1. Create Task Directory**
+
+```bash
+teams/[XX-task-name]/
+├── README.md          # Task specification
+├── STATUS.md          # Progress tracking
+└── NOTES.md          # Additional context
+```
+
+#### **2. Task Prompt Template**
+
+Add to `teams/task-prompts.md`:
+
+```markdown
+### **Task XX: [Feature Name]**
+
+You are working on Z6Chat, our production AI chat interface.
+
+TASK: [Clear, specific task description]
+
+DEPENDENCIES: [Required tasks or "None"]
+
+DELIVERABLES:
+
+- [Specific deliverable 1]
+- [Specific deliverable 2]
+
+FILES TO CREATE/MODIFY:
+
+- [specific file path 1]
+- [specific file path 2]
+
+ACCEPTANCE CRITERIA:
+
+- [Testable criterion 1]
+- [Testable criterion 2]
+
+DOCUMENTATION REQUIREMENTS:
+
+- MUST use Context7 MCP server for latest documentation
+- Use Brave Search MCP for troubleshooting if needed
+- Reference CLAUDE.md for project standards
+
+BRANCH: feat/[task-name]
+DOCUMENTATION: Update teams/[XX-task-name]/STATUS.md
+
+IMPORTANT: use context7
+```
+
+#### **3. Update Team Documentation**
+
+- Add to `teams/README.md` priority section
+- Update `teams/PROGRESS.md` dashboard
+- Note dependencies in `teams/SHARED.md`
+
+#### **4. Task Naming Convention**
+
+- Format: `XX-feature-name`
+- Sequential numbering
+- Kebab-case, descriptive
 
 ## 🎯 **CURRENT PRIORITIES**
 
@@ -228,8 +467,24 @@ When implementing third-party integrations, ALWAYS use Context7 MCP:
 3. Rate limiting
 4. Cost optimization
 
+## 📚 **DOCUMENTATION LINKS**
+
+### **Supporting Documents**
+
+- **Authentication**: [`/docs/AUTHENTICATION.md`](./docs/AUTHENTICATION.md) - Setup and restoration guide
+- **Features**: [`/docs/COMPLETED_FEATURES.md`](./docs/COMPLETED_FEATURES.md) - Detailed feature documentation
+- **Task Templates**: [`/teams/task-prompts.md`](./teams/task-prompts.md) - Task creation templates
+- **Archive**: [`/docs/CLAUDE_ARCHIVE.md`](./docs/CLAUDE_ARCHIVE.md) - Historical documentation
+
+### **External Resources**
+
+- **Repository**: https://github.com/john-savepoint/T3-Close-ne
+- **Convex Docs**: https://docs.convex.dev/
+- **OpenRouter**: https://openrouter.ai/docs
+- **Vercel AI SDK**: https://sdk.vercel.ai/docs
+
 ---
 
 **Last Updated**: December 2024  
 **Maintained By**: Z6Chat Development Team  
-**AI Guidance Version**: 2.0
+**AI Guidance Version**: 3.0
