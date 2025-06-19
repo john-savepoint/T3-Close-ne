@@ -13,7 +13,7 @@ import { useGifting } from "@/hooks/use-gifting"
 import Link from "next/link"
 
 export default function RedeemGiftPage() {
-  const { redeemGift, getGiftCodeByCode, loading } = useGifting()
+  const { redeemGift, loading } = useGifting()
   const [redemptionCode, setRedemptionCode] = useState("")
   const [redemptionComplete, setRedemptionComplete] = useState(false)
   const [error, setError] = useState("")
@@ -34,7 +34,7 @@ export default function RedeemGiftPage() {
     try {
       const gift = await redeemGift({
         redemptionCode: redemptionCode.trim().toUpperCase(),
-        userId: "user-123", // Would come from auth context
+        userId: "demo-user", // Auth disabled for competition
       })
       setRedeemedGift(gift)
       setRedemptionComplete(true)

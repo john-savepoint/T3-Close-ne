@@ -41,7 +41,7 @@ export function TeamManagementDashboard() {
 
   // For demo, we'll use the first team
   const userTeam = teams[0]
-  const teamMembers = userTeam ? getTeamMembers(userTeam.id) : []
+  const teamMembers = userTeam ? getTeamMembers() : []
 
   const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault()

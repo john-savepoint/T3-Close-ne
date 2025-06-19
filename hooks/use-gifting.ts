@@ -1,6 +1,10 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useMutation, useQuery, useAction } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { Id } from "@/convex/_generated/dataModel"
+import { useToast } from "@/hooks/use-toast"
 import type {
   GiftCode,
   GiftPurchaseData,
@@ -8,12 +12,12 @@ import type {
   SubscriptionPlan,
 } from "@/types/gifting"
 
-// Mock subscription plans
-const mockPlans: SubscriptionPlan[] = [
+// Available subscription plans
+const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: "pro_monthly",
     name: "Pro Monthly",
-    description: "Full access to T3Chat Pro features",
+    description: "Full access to Z6Chat Pro features",
     monthlyPrice: 20,
     yearlyPrice: 200,
     features: ["Unlimited chats", "Advanced AI models", "Priority support", "Export features"],
@@ -22,7 +26,7 @@ const mockPlans: SubscriptionPlan[] = [
   {
     id: "pro_yearly",
     name: "Pro Yearly",
-    description: "Full access to T3Chat Pro features (12 months)",
+    description: "Full access to Z6Chat Pro features (12 months)",
     monthlyPrice: 20,
     yearlyPrice: 200,
     features: [
@@ -36,142 +40,178 @@ const mockPlans: SubscriptionPlan[] = [
   },
 ]
 
-// Mock gift codes for demonstration
-const mockGiftCodes: GiftCode[] = [
-  {
-    id: "gift-1",
-    redemptionCode: "GIFT-ABCD-1234-EFGH",
-    planId: "pro_yearly",
-    planName: "Pro Yearly",
-    durationMonths: 12,
-    status: "active",
-    purchaserEmail: "john@example.com",
-    recipientEmail: "alex@example.com",
-    personalMessage: "Hope this helps with your coding projects!",
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-    createdAt: new Date("2024-01-15"),
-    value: 200,
-  },
-]
-
 export function useGifting() {
-  const [giftCodes, setGiftCodes] = useState<GiftCode[]>(mockGiftCodes)
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
 
-  const generateRedemptionCode = (): string => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    const segments = []
-    for (let i = 0; i < 4; i++) {
-      let segment = ""
-      for (let j = 0; j < 4; j++) {
-        segment += chars.charAt(Math.floor(Math.random() * chars.length))
+  // Convex mutations and queries
+  const purchaseGiftMutation = useMutation(api.gifts.purchaseGift)
+  const redeemGiftMutation = useMutation(api.gifts.redeemGift)
+  const userGiftHistory = useQuery(api.gifts.getUserGiftHistory) || []
+  const userReceivedGifts = useQuery(api.gifts.getUserReceivedGifts) || []
+  const sendGiftEmailAction = useAction(api.gifts.sendGiftEmail)
+
+  const purchaseGift = useCallback(
+    async (data: GiftPurchaseData): Promise<GiftCode> => {
+      setLoading(true)
+
+      try {
+        const plan = subscriptionPlans.find((p) => p.id === data.planId)
+        if (!plan) throw new Error("Invalid plan selected")
+
+        // In production, this would process payment via Stripe first
+        // For now, we'll proceed with the gift creation
+
+        const durationMonths = data.planId.includes("yearly") ? 12 : 1
+        const value = data.planId.includes("yearly") ? plan.yearlyPrice : plan.monthlyPrice
+
+        // Create gift in database
+        const result = await purchaseGiftMutation({
+          giftType: durationMonths === 12 ? "pro_year" : "pro_month",
+          recipientEmail: data.recipientEmail,
+          personalMessage: data.personalMessage,
+          // stripePaymentIntentId would come from Stripe integration
+        })
+
+        // Send gift email
+        try {
+          await sendGiftEmailAction({ giftId: result.giftId as Id<"gifts"> })
+        } catch (emailError) {
+          console.error("Failed to send gift email:", emailError)
+          // Don't fail the purchase if email fails
+        }
+
+        toast({
+          title: "Gift purchased successfully!",
+          description: `Gift code: ${result.claimToken}`,
+        })
+
+        // Return a GiftCode object matching the type interface
+        return {
+          id: result.giftId,
+          redemptionCode: result.claimToken,
+          planId: data.planId,
+          planName: plan.name,
+          durationMonths,
+          status: "active",
+          purchaserEmail: data.purchaserEmail,
+          recipientEmail: data.recipientEmail,
+          personalMessage: data.personalMessage,
+          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+          createdAt: new Date(),
+          value,
+        }
+      } catch (error) {
+        console.error("Failed to purchase gift:", error)
+        toast({
+          title: "Purchase failed",
+          description: error instanceof Error ? error.message : "Please try again",
+          variant: "destructive",
+        })
+        throw error
+      } finally {
+        setLoading(false)
       }
-      segments.push(segment)
-    }
-    return `GIFT-${segments.join("-")}`
-  }
-
-  const purchaseGift = useCallback(async (data: GiftPurchaseData): Promise<GiftCode> => {
-    setLoading(true)
-
-    try {
-      // Simulate payment processing
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      const plan = mockPlans.find((p) => p.id === data.planId)
-      if (!plan) throw new Error("Invalid plan selected")
-
-      const newGiftCode: GiftCode = {
-        id: `gift-${Date.now()}`,
-        redemptionCode: generateRedemptionCode(),
-        planId: data.planId,
-        planName: plan.name,
-        durationMonths: data.planId.includes("yearly") ? 12 : 1,
-        status: "active",
-        purchaserEmail: data.purchaserEmail,
-        recipientEmail: data.recipientEmail,
-        personalMessage: data.personalMessage,
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days to redeem
-        createdAt: new Date(),
-        value: data.planId.includes("yearly") ? plan.yearlyPrice : plan.monthlyPrice,
-      }
-
-      setGiftCodes((prev) => [...prev, newGiftCode])
-
-      // In real implementation, this would:
-      // 1. Process payment via Stripe
-      // 2. Send gift email to recipient
-      // 3. Send confirmation email to purchaser
-
-      return newGiftCode
-    } catch (error) {
-      console.error("Failed to purchase gift:", error)
-      throw error
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    },
+    [purchaseGiftMutation, sendGiftEmailAction, toast]
+  )
 
   const redeemGift = useCallback(
     async (data: GiftRedemptionData): Promise<GiftCode> => {
       setLoading(true)
 
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const result = await redeemGiftMutation({
+          claimToken: data.redemptionCode,
+        })
 
-        const giftCode = giftCodes.find(
-          (code) => code.redemptionCode === data.redemptionCode && code.status === "active"
-        )
+        toast({
+          title: "Gift redeemed successfully!",
+          description: `Your Pro plan is now active!`,
+        })
 
-        if (!giftCode) {
-          throw new Error("Invalid or already redeemed gift code")
-        }
-
-        if (new Date() > giftCode.expiresAt) {
-          throw new Error("Gift code has expired")
-        }
-
-        // Update gift code status
-        const updatedGiftCode = {
-          ...giftCode,
-          status: "redeemed" as const,
-          redeemedByUserId: data.userId || "anonymous",
+        // Return a simplified GiftCode object
+        return {
+          id: "redeemed",
+          redemptionCode: data.redemptionCode,
+          planId: "pro",
+          planName: "Pro",
+          durationMonths: result.durationMonths,
+          status: "redeemed",
+          purchaserEmail: "",
+          recipientEmail: "",
+          personalMessage: "",
+          expiresAt: new Date(),
+          createdAt: new Date(),
+          value: 0,
           redeemedAt: new Date(),
+          redeemedByUserId: data.userId,
         }
-
-        setGiftCodes((prev) =>
-          prev.map((code) => (code.id === giftCode.id ? updatedGiftCode : code))
-        )
-
-        return updatedGiftCode
       } catch (error) {
         console.error("Failed to redeem gift:", error)
+        toast({
+          title: "Redemption failed",
+          description:
+            error instanceof Error ? error.message : "Please check your code and try again",
+          variant: "destructive",
+        })
         throw error
       } finally {
         setLoading(false)
       }
     },
-    [giftCodes]
+    [redeemGiftMutation, toast]
   )
 
-  const getGiftCodeByCode = useCallback(
-    (redemptionCode: string): GiftCode | null => {
-      return giftCodes.find((code) => code.redemptionCode === redemptionCode) || null
+  const validateGiftCode = useCallback(
+    async (
+      redemptionCode: string
+    ): Promise<{ valid: boolean; error?: string; gift?: Partial<GiftCode> }> => {
+      // For now, we'll do basic validation on the format
+      // In production, this would be a separate API call
+      if (!redemptionCode || redemptionCode.length !== 15) {
+        return { valid: false, error: "Invalid code format" }
+      }
+
+      const pattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/
+      if (!pattern.test(redemptionCode)) {
+        return { valid: false, error: "Invalid code format" }
+      }
+
+      // You could make this an action or separate API endpoint
+      return { valid: true }
     },
-    [giftCodes]
+    []
   )
 
   const getAvailablePlans = useCallback((): SubscriptionPlan[] => {
-    return mockPlans.filter((plan) => plan.isGiftable)
+    return subscriptionPlans.filter((plan) => plan.isGiftable)
   }, [])
+
+  // Convert gift history to GiftCode format
+  const giftCodes: GiftCode[] = userGiftHistory.map((gift: any) => ({
+    id: gift.id,
+    redemptionCode: gift.claimToken,
+    planId: gift.giftType === "pro_year" ? "pro_yearly" : "pro_monthly",
+    planName: gift.giftType === "pro_year" ? "Pro Yearly" : "Pro Monthly",
+    durationMonths: gift.giftType === "pro_year" ? 12 : 1,
+    status: gift.status,
+    purchaserEmail: "", // Not available from query
+    recipientEmail: gift.recipientEmail,
+    personalMessage: "", // Not returned for privacy
+    expiresAt: new Date(), // Not returned from query
+    createdAt: new Date(gift.createdAt),
+    value: gift.amount,
+    redeemedAt: gift.redeemedAt ? new Date(gift.redeemedAt) : undefined,
+  }))
 
   return {
     giftCodes,
+    userReceivedGifts,
     loading,
     purchaseGift,
     redeemGift,
-    getGiftCodeByCode,
+    validateGiftCode,
     getAvailablePlans,
   }
 }
