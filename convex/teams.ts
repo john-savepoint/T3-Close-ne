@@ -1,6 +1,7 @@
 import { v } from "convex/values"
 import { mutation, query, action } from "./_generated/server"
 import { Id } from "./_generated/dataModel"
+import { DEFAULT_TEAM_SETTINGS, ERROR_CODES, MAX_TEAM_MEMBERS } from "../lib/constants"
 
 // Generate a unique slug for teams
 function generateTeamSlug(name: string): string {
@@ -27,7 +28,7 @@ export const createTeam = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
-      throw new Error("Must be logged in to create a team")
+      throw new Error(ERROR_CODES.AUTH_REQUIRED)
     }
 
     // Get the current user
@@ -37,7 +38,7 @@ export const createTeam = mutation({
       .first()
 
     if (!user) {
-      throw new Error("User not found")
+      throw new Error(ERROR_CODES.USER_NOT_FOUND)
     }
 
     // Check if user already owns a team
@@ -47,7 +48,7 @@ export const createTeam = mutation({
       .first()
 
     if (existingTeam) {
-      throw new Error("You already own a team")
+      throw new Error(ERROR_CODES.TEAM_ALREADY_EXISTS)
     }
 
     // Generate unique slug
@@ -69,11 +70,7 @@ export const createTeam = mutation({
       slug: slug!,
       description: args.description,
       ownerId: user._id,
-      settings: args.settings || {
-        allowFileSharing: true,
-        allowPublicChats: false,
-        defaultModel: "gpt-4",
-      },
+      settings: args.settings || DEFAULT_TEAM_SETTINGS,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     })
@@ -110,7 +107,13 @@ export const addTeamMember = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
-      throw new Error("Must be logged in")
+      throw new Error(ERROR_CODES.AUTH_REQUIRED)
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(args.userEmail)) {
+      throw new Error(ERROR_CODES.INVALID_EMAIL)
     }
 
     // Get current user
@@ -120,7 +123,7 @@ export const addTeamMember = mutation({
       .first()
 
     if (!currentUser) {
-      throw new Error("User not found")
+      throw new Error(ERROR_CODES.USER_NOT_FOUND)
     }
 
     // Check if current user is owner or admin
@@ -133,7 +136,7 @@ export const addTeamMember = mutation({
       !currentMembership ||
       (currentMembership.role !== "owner" && currentMembership.role !== "admin")
     ) {
-      throw new Error("You don't have permission to add members")
+      throw new Error(ERROR_CODES.TEAM_PERMISSION_DENIED)
     }
 
     // Find user to add
@@ -143,7 +146,7 @@ export const addTeamMember = mutation({
       .first()
 
     if (!userToAdd) {
-      throw new Error("User not found")
+      throw new Error(ERROR_CODES.USER_NOT_FOUND)
     }
 
     // Check if user is already a member
@@ -153,7 +156,18 @@ export const addTeamMember = mutation({
       .first()
 
     if (existingMembership) {
-      throw new Error("User is already a team member")
+      throw new Error(ERROR_CODES.TEAM_ALREADY_MEMBER)
+    }
+
+    // Check team capacity
+    const currentMemberCount = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_team", (q) => q.eq("teamId", args.teamId))
+      .collect()
+      .then(members => members.length)
+
+    if (currentMemberCount >= MAX_TEAM_MEMBERS) {
+      throw new Error(ERROR_CODES.TEAM_AT_CAPACITY)
     }
 
     // Add member
@@ -187,7 +201,7 @@ export const removeMember = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
-      throw new Error("Must be logged in")
+      throw new Error(ERROR_CODES.AUTH_REQUIRED)
     }
 
     // Get current user
@@ -197,7 +211,7 @@ export const removeMember = mutation({
       .first()
 
     if (!currentUser) {
-      throw new Error("User not found")
+      throw new Error(ERROR_CODES.USER_NOT_FOUND)
     }
 
     // Check permissions
@@ -210,13 +224,13 @@ export const removeMember = mutation({
       !currentMembership ||
       (currentMembership.role !== "owner" && !currentMembership.permissions?.canManageMembers)
     ) {
-      throw new Error("You don't have permission to remove members")
+      throw new Error(ERROR_CODES.TEAM_PERMISSION_DENIED)
     }
 
     // Cannot remove yourself if you're the owner
     const team = await ctx.db.get(args.teamId)
     if (team && team.ownerId === args.userId && currentUser._id === args.userId) {
-      throw new Error("Owner cannot remove themselves")
+      throw new Error(ERROR_CODES.TEAM_OWNER_CANNOT_LEAVE)
     }
 
     // Find membership
@@ -226,7 +240,7 @@ export const removeMember = mutation({
       .first()
 
     if (!membership) {
-      throw new Error("Member not found")
+      throw new Error(ERROR_CODES.TEAM_MEMBER_NOT_FOUND)
     }
 
     // Delete membership
@@ -303,7 +317,7 @@ export const getTeamDetails = query({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
-      throw new Error("Must be logged in")
+      throw new Error(ERROR_CODES.AUTH_REQUIRED)
     }
 
     const user = await ctx.db
@@ -312,7 +326,7 @@ export const getTeamDetails = query({
       .first()
 
     if (!user) {
-      throw new Error("User not found")
+      throw new Error(ERROR_CODES.USER_NOT_FOUND)
     }
 
     // Check if user is a member
@@ -322,12 +336,12 @@ export const getTeamDetails = query({
       .first()
 
     if (!membership) {
-      throw new Error("You are not a member of this team")
+      throw new Error(ERROR_CODES.TEAM_PERMISSION_DENIED)
     }
 
     const team = await ctx.db.get(args.teamId)
     if (!team) {
-      throw new Error("Team not found")
+      throw new Error(ERROR_CODES.TEAM_NOT_FOUND)
     }
 
     // Get all members

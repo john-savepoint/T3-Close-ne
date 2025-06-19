@@ -1,6 +1,8 @@
 import { v } from "convex/values"
 import { mutation, query, action } from "./_generated/server"
 import { Id } from "./_generated/dataModel"
+import { GIFT_EXPIRY_MS, PRICING, ERROR_CODES } from "../lib/constants"
+import { checkRateLimit, formatRateLimitError } from "../lib/rate-limiting"
 
 // Generate a unique claim token for gifts
 function generateClaimToken(): string {
@@ -24,7 +26,13 @@ export const purchaseGift = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
-      throw new Error("Must be logged in to purchase a gift")
+      throw new Error(ERROR_CODES.AUTH_REQUIRED)
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(args.recipientEmail)) {
+      throw new Error(ERROR_CODES.INVALID_EMAIL)
     }
 
     // Get the user making the purchase
@@ -34,7 +42,16 @@ export const purchaseGift = mutation({
       .first()
 
     if (!user) {
-      throw new Error("User not found")
+      throw new Error(ERROR_CODES.USER_NOT_FOUND)
+    }
+
+    // Check rate limiting
+    const rateLimitCheck = checkRateLimit(user._id, "gift_purchase")
+    if (!rateLimitCheck.allowed) {
+      const errorMessage = rateLimitCheck.resetTime 
+        ? formatRateLimitError(rateLimitCheck.resetTime)
+        : "Rate limit exceeded"
+      throw new Error(errorMessage)
     }
 
     // Generate unique claim token
@@ -51,7 +68,7 @@ export const purchaseGift = mutation({
     }
 
     // Calculate amount based on gift type
-    const amount = args.giftType === "pro_year" ? 200 : 20
+    const amount = args.giftType === "pro_year" ? PRICING.PRO_YEARLY : PRICING.PRO_MONTHLY
 
     const giftId = await ctx.db.insert("gifts", {
       fromUserId: user._id,
@@ -62,7 +79,7 @@ export const purchaseGift = mutation({
       status: "pending",
       claimToken: claimToken!,
       purchasedAt: Date.now(),
-      expiresAt: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1 year expiry
+      expiresAt: Date.now() + GIFT_EXPIRY_MS,
     })
 
     return { giftId, claimToken: claimToken! }
@@ -77,7 +94,7 @@ export const redeemGift = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
-      throw new Error("Must be logged in to redeem a gift")
+      throw new Error(ERROR_CODES.AUTH_REQUIRED)
     }
 
     // Find the gift by claim token
@@ -87,18 +104,18 @@ export const redeemGift = mutation({
       .first()
 
     if (!gift) {
-      throw new Error("Invalid gift code")
+      throw new Error(ERROR_CODES.INVALID_GIFT_CODE)
     }
 
     // Check if gift is still valid
     if (gift.status !== "pending") {
-      throw new Error(`This gift has already been ${gift.status}`)
+      throw new Error(ERROR_CODES.GIFT_ALREADY_CLAIMED)
     }
 
     // Check if gift has expired
     if (gift.expiresAt < Date.now()) {
       await ctx.db.patch(gift._id, { status: "expired" })
-      throw new Error("This gift has expired")
+      throw new Error(ERROR_CODES.GIFT_EXPIRED)
     }
 
     // Get the current user
@@ -108,7 +125,7 @@ export const redeemGift = mutation({
       .first()
 
     if (!user) {
-      throw new Error("User not found")
+      throw new Error(ERROR_CODES.USER_NOT_FOUND)
     }
 
     // Update user's plan
@@ -166,11 +183,16 @@ export const validateGiftCode = query({
 
 // Get user's gift history (purchased gifts)
 export const getUserGiftHistory = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    paginationOpts: v.object({
+      numItems: v.number(),
+      cursor: v.union(v.string(), v.null()),
+    }),
+  },
+  handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
-      return []
+      return { page: [], isDone: true, continueCursor: "" }
     }
 
     const user = await ctx.db
@@ -179,25 +201,29 @@ export const getUserGiftHistory = query({
       .first()
 
     if (!user) {
-      return []
+      return { page: [], isDone: true, continueCursor: "" }
     }
 
-    const gifts = await ctx.db
+    const result = await ctx.db
       .query("gifts")
       .withIndex("by_from_user", (q) => q.eq("fromUserId", user._id))
       .order("desc")
-      .collect()
+      .paginate(args.paginationOpts)
 
-    return gifts.map((gift) => ({
-      id: gift._id,
-      claimToken: gift.claimToken,
-      giftType: gift.giftType,
-      amount: gift.amount,
-      recipientEmail: gift.toEmail,
-      status: gift.status,
-      createdAt: new Date(gift.purchasedAt).toISOString(),
-      redeemedAt: gift.claimedAt ? new Date(gift.claimedAt).toISOString() : undefined,
-    }))
+    return {
+      page: result.page.map((gift) => ({
+        id: gift._id,
+        claimToken: gift.claimToken,
+        giftType: gift.giftType,
+        amount: gift.amount,
+        recipientEmail: gift.toEmail,
+        status: gift.status,
+        createdAt: new Date(gift.purchasedAt).toISOString(),
+        redeemedAt: gift.claimedAt ? new Date(gift.claimedAt).toISOString() : undefined,
+      })),
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    }
   },
 })
 

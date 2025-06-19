@@ -47,7 +47,9 @@ export function useGifting() {
   // Convex mutations and queries
   const purchaseGiftMutation = useMutation(api.gifts.purchaseGift)
   const redeemGiftMutation = useMutation(api.gifts.redeemGift)
-  const userGiftHistory = useQuery(api.gifts.getUserGiftHistory) || []
+  const userGiftHistory = useQuery(api.gifts.getUserGiftHistory, {
+    paginationOpts: { numItems: 20, cursor: null }
+  }) || { page: [], isDone: true, continueCursor: "" }
   const userReceivedGifts = useQuery(api.gifts.getUserReceivedGifts) || []
   const sendGiftEmailAction = useAction(api.gifts.sendGiftEmail)
 
@@ -188,8 +190,8 @@ export function useGifting() {
     return subscriptionPlans.filter((plan) => plan.isGiftable)
   }, [])
 
-  // Convert gift history to GiftCode format
-  const giftCodes: GiftCode[] = userGiftHistory.map((gift: any) => ({
+  // Convert gift history to GiftCode format  
+  const giftCodes: GiftCode[] = userGiftHistory.page.map((gift: any) => ({
     id: gift.id,
     redemptionCode: gift.claimToken,
     planId: gift.giftType === "pro_year" ? "pro_yearly" : "pro_monthly",
