@@ -13,17 +13,20 @@ import {
   ThumbsUp,
   ThumbsDown,
   Volume2,
+  VolumeX,
   Code,
   Share2,
 } from "lucide-react"
 import { CodeBlockEnhanced } from "@/components/code-block-enhanced"
 import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
+import { AudioPlayer } from "@/components/audio-player"
 import { Textarea } from "@/components/ui/textarea"
 import type { Attachment } from "@/types/attachment"
 import dynamic from "next/dynamic"
 import { sanitizeSVG } from "@/lib/content-sanitizer"
 import { CodeCanvas } from "@/components/code-canvas"
+import { useToast } from "@/hooks/use-toast"
 
 // Dynamic import for Mermaid to avoid SSR issues
 const Mermaid = dynamic(() => import("@/components/ui/mermaid"), { ssr: false })
@@ -67,7 +70,9 @@ export function ChatMessage({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showAudioPlayer, setShowAudioPlayer] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
     if (isEditMode && textareaRef.current) {
@@ -305,6 +310,30 @@ export function ChatMessage({
           </div>
         )}
 
+        {/* Audio Player for Assistant Messages */}
+        {type === "assistant" && showAudioPlayer && !isEditMode && !showDeleteConfirm && (
+          <div className="mt-3">
+            <AudioPlayer
+              text={content}
+              voice="nova" // You can make this configurable in user settings
+              speed={1.0}
+              onError={(error) => {
+                toast({
+                  title: "Audio playback error",
+                  description: error,
+                  variant: "destructive",
+                })
+              }}
+              onPlayStart={() => {
+                toast({
+                  title: "Playing audio",
+                  description: "Reading message aloud...",
+                })
+              }}
+            />
+          </div>
+        )}
+
         {/* Enhanced Action Buttons */}
         {(isHovered || isEditMode) && !isEditMode && !showDeleteConfirm && (
           <div className="mt-3 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -327,8 +356,18 @@ export function ChatMessage({
                 >
                   <RefreshCw className="h-3 w-3" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Volume2 className="h-3 w-3" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setShowAudioPlayer(!showAudioPlayer)}
+                  title={showAudioPlayer ? "Hide audio player" : "Read aloud"}
+                >
+                  {showAudioPlayer ? (
+                    <VolumeX className="h-3 w-3" />
+                  ) : (
+                    <Volume2 className="h-3 w-3" />
+                  )}
                 </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7">
                   <ThumbsUp className="h-3 w-3" />
