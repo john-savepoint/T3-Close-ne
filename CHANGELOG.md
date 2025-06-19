@@ -18,6 +18,11 @@
 - feat(projects): add Convex backend functions for project management
 - feat(ui): create modern Z6 Chat logo with gradient design
 
+#### Documentation
+
+- docs: create comprehensive testing strategy for UI verification
+- docs: create UI implementation status report documenting disconnects
+
 ## 0.3.1
 
 ### Patch Changes
