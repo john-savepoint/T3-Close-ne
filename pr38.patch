@@ -1,0 +1,2008 @@
+diff --git a/app/api/send-gift-email/route.ts b/app/api/send-gift-email/route.ts
+new file mode 100644
+index 0000000..ee32b76
+--- /dev/null
++++ b/app/api/send-gift-email/route.ts
+@@ -0,0 +1,22 @@
++import { NextResponse } from "next/server"
++import { generateGiftEmailHTML } from "@/lib/email-templates"
++
++export async function POST(req: Request) {
++  try {
++    const { gift } = await req.json()
++
++    // In production, this would use Resend or SendGrid
++    // For now, log the email details
++    console.log("Sending gift email:", {
++      to: gift.recipientEmail,
++      subject: "You've received a Z6Chat gift! 🎁",
++      html: generateGiftEmailHTML(gift),
++    })
++
++    // Mock successful send
++    return NextResponse.json({ success: true, messageId: "mock-message-id" })
++  } catch (error) {
++    console.error("Failed to send gift email:", error)
++    return NextResponse.json({ error: "Failed to send email" }, { status: 500 })
++  }
++}
+diff --git a/app/api/stripe/create-gift-checkout/route.ts b/app/api/stripe/create-gift-checkout/route.ts
+new file mode 100644
+index 0000000..d31c007
+--- /dev/null
++++ b/app/api/stripe/create-gift-checkout/route.ts
+@@ -0,0 +1,21 @@
++import { NextResponse } from "next/server"
++
++export async function POST(req: Request) {
++  try {
++    const { planId, recipientEmail, personalMessage } = await req.json()
++
++    // In production, this would:
++    // 1. Create a Stripe Checkout Session
++    // 2. Include metadata for gift details
++    // 3. Return the checkout URL
++
++    // For now, return a mock response
++    return NextResponse.json({
++      checkoutUrl: "https://checkout.stripe.com/pay/cs_test_mock",
++      sessionId: "cs_test_mock_session",
++    })
++  } catch (error) {
++    console.error("Failed to create gift checkout:", error)
++    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 })
++  }
++}
+diff --git a/app/api/stripe/create-team-subscription/route.ts b/app/api/stripe/create-team-subscription/route.ts
+new file mode 100644
+index 0000000..6d39551
+--- /dev/null
++++ b/app/api/stripe/create-team-subscription/route.ts
+@@ -0,0 +1,25 @@
++import { NextResponse } from "next/server"
++
++export async function POST(req: Request) {
++  try {
++    const { teamName, planType, maxSeats } = await req.json()
++
++    // In production, this would:
++    // 1. Create a Stripe Subscription with quantity-based pricing
++    // 2. Set up recurring billing
++    // 3. Return the subscription ID
++
++    // Calculate price based on plan type
++    const monthlyPrice = planType === "family" ? 45 : maxSeats * 15
++
++    // For now, return a mock response
++    return NextResponse.json({
++      subscriptionId: "sub_mock_" + Date.now(),
++      checkoutUrl: "https://checkout.stripe.com/pay/sub_test_mock",
++      monthlyPrice,
++    })
++  } catch (error) {
++    console.error("Failed to create team subscription:", error)
++    return NextResponse.json({ error: "Failed to create team subscription" }, { status: 500 })
++  }
++}
+diff --git a/app/api/stripe/webhook/route.ts b/app/api/stripe/webhook/route.ts
+new file mode 100644
+index 0000000..be126e3
+--- /dev/null
++++ b/app/api/stripe/webhook/route.ts
+@@ -0,0 +1,31 @@
++import { NextResponse } from "next/server"
++
++export async function POST(req: Request) {
++  try {
++    const body = await req.text()
++    const signature = req.headers.get("stripe-signature")
++
++    if (!signature) {
++      return NextResponse.json({ error: "Missing signature" }, { status: 400 })
++    }
++
++    // In production, this would:
++    // 1. Verify the webhook signature
++    // 2. Process different event types:
++    //    - checkout.session.completed (for gifts)
++    //    - customer.subscription.created (for teams)
++    //    - customer.subscription.updated
++    //    - customer.subscription.deleted
++    //    - invoice.payment_succeeded
++    //    - invoice.payment_failed
++    // 3. Update database accordingly
++
++    // Mock webhook processing
++    console.log("Stripe webhook received")
++
++    return NextResponse.json({ received: true })
++  } catch (error) {
++    console.error("Webhook error:", error)
++    return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 })
++  }
++}
+diff --git a/app/redeem/page.tsx b/app/redeem/page.tsx
+index 08b63b6..aa15b9d 100644
+--- a/app/redeem/page.tsx
++++ b/app/redeem/page.tsx
+@@ -13,7 +13,7 @@ import { useGifting } from "@/hooks/use-gifting"
+ import Link from "next/link"
+ 
+ export default function RedeemGiftPage() {
+-  const { redeemGift, getGiftCodeByCode, loading } = useGifting()
++  const { redeemGift, loading } = useGifting()
+   const [redemptionCode, setRedemptionCode] = useState("")
+   const [redemptionComplete, setRedemptionComplete] = useState(false)
+   const [error, setError] = useState("")
+@@ -34,7 +34,7 @@ export default function RedeemGiftPage() {
+     try {
+       const gift = await redeemGift({
+         redemptionCode: redemptionCode.trim().toUpperCase(),
+-        userId: "user-123", // Would come from auth context
++        userId: "demo-user", // Auth disabled for competition
+       })
+       setRedeemedGift(gift)
+       setRedemptionComplete(true)
+diff --git a/components/team-management-dashboard.tsx b/components/team-management-dashboard.tsx
+index 1e80f28..f5f4a1c 100644
+--- a/components/team-management-dashboard.tsx
++++ b/components/team-management-dashboard.tsx
+@@ -41,7 +41,7 @@ export function TeamManagementDashboard() {
+ 
+   // For demo, we'll use the first team
+   const userTeam = teams[0]
+-  const teamMembers = userTeam ? getTeamMembers(userTeam.id) : []
++  const teamMembers = userTeam ? getTeamMembers() : []
+ 
+   const handleInviteMember = async (e: React.FormEvent) => {
+     e.preventDefault()
+diff --git a/convex/_generated/api.d.ts b/convex/_generated/api.d.ts
+index 2bdf662..30edfc0 100644
+--- a/convex/_generated/api.d.ts
++++ b/convex/_generated/api.d.ts
+@@ -8,22 +8,20 @@
+  * @module
+  */
+ 
+-import type {
+-  ApiFromModules,
+-  FilterApi,
+-  FunctionReference,
+-} from "convex/server";
+-import type * as ResendOTP from "../ResendOTP.js";
+-import type * as auth from "../auth.js";
+-import type * as chats from "../chats.js";
+-import type * as cleanupAuth from "../cleanupAuth.js";
+-import type * as cleanupDatabase from "../cleanupDatabase.js";
+-import type * as cleanupStaleAuth from "../cleanupStaleAuth.js";
+-import type * as files from "../files.js";
+-import type * as http from "../http.js";
+-import type * as memories from "../memories.js";
+-import type * as messages from "../messages.js";
+-import type * as users from "../users.js";
++import type { ApiFromModules, FilterApi, FunctionReference } from "convex/server"
++import type * as ResendOTP from "../ResendOTP.js"
++import type * as auth from "../auth.js"
++import type * as chats from "../chats.js"
++import type * as cleanupAuth from "../cleanupAuth.js"
++import type * as cleanupDatabase from "../cleanupDatabase.js"
++import type * as cleanupStaleAuth from "../cleanupStaleAuth.js"
++import type * as files from "../files.js"
++import type * as gifts from "../gifts.js"
++import type * as http from "../http.js"
++import type * as memories from "../memories.js"
++import type * as messages from "../messages.js"
++import type * as teams from "../teams.js"
++import type * as users from "../users.js"
+ 
+ /**
+  * A utility for referencing Convex functions in your app's API.
+@@ -34,23 +32,19 @@ import type * as users from "../users.js";
+  * ```
+  */
+ declare const fullApi: ApiFromModules<{
+-  ResendOTP: typeof ResendOTP;
+-  auth: typeof auth;
+-  chats: typeof chats;
+-  cleanupAuth: typeof cleanupAuth;
+-  cleanupDatabase: typeof cleanupDatabase;
+-  cleanupStaleAuth: typeof cleanupStaleAuth;
+-  files: typeof files;
+-  http: typeof http;
+-  memories: typeof memories;
+-  messages: typeof messages;
+-  users: typeof users;
+-}>;
+-export declare const api: FilterApi<
+-  typeof fullApi,
+-  FunctionReference<any, "public">
+->;
+-export declare const internal: FilterApi<
+-  typeof fullApi,
+-  FunctionReference<any, "internal">
+->;
++  ResendOTP: typeof ResendOTP
++  auth: typeof auth
++  chats: typeof chats
++  cleanupAuth: typeof cleanupAuth
++  cleanupDatabase: typeof cleanupDatabase
++  cleanupStaleAuth: typeof cleanupStaleAuth
++  files: typeof files
++  gifts: typeof gifts
++  http: typeof http
++  memories: typeof memories
++  messages: typeof messages
++  teams: typeof teams
++  users: typeof users
++}>
++export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>
++export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>
+diff --git a/convex/gifts.ts b/convex/gifts.ts
+new file mode 100644
+index 0000000..eb76828
+--- /dev/null
++++ b/convex/gifts.ts
+@@ -0,0 +1,281 @@
++import { v } from "convex/values"
++import { mutation, query, action } from "./_generated/server"
++import { Id } from "./_generated/dataModel"
++import { GIFT_EXPIRY_MS, PRICING, ERROR_CODES } from "../lib/constants"
++import { checkRateLimit, formatRateLimitError } from "../lib/rate-limiting"
++
++// Generate a unique claim token for gifts
++function generateClaimToken(): string {
++  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
++  let token = ""
++  for (let i = 0; i < 12; i++) {
++    if (i > 0 && i % 4 === 0) token += "-"
++    token += chars[Math.floor(Math.random() * chars.length)]
++  }
++  return token
++}
++
++// Purchase a gift subscription
++export const purchaseGift = mutation({
++  args: {
++    giftType: v.union(v.literal("pro_month"), v.literal("pro_year")),
++    recipientEmail: v.string(),
++    personalMessage: v.optional(v.string()),
++    stripePaymentIntentId: v.optional(v.string()),
++  },
++  handler: async (ctx, args) => {
++    const identity = await ctx.auth.getUserIdentity()
++    if (!identity) {
++      throw new Error(ERROR_CODES.AUTH_REQUIRED)
++    }
++
++    // Validate email format
++    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
++    if (!emailRegex.test(args.recipientEmail)) {
++      throw new Error(ERROR_CODES.INVALID_EMAIL)
++    }
++
++    // Get the user making the purchase
++    const user = await ctx.db
++      .query("users")
++      .withIndex("email", (q) => q.eq("email", identity.email!))
++      .first()
++
++    if (!user) {
++      throw new Error(ERROR_CODES.USER_NOT_FOUND)
++    }
++
++    // Check rate limiting
++    const rateLimitCheck = checkRateLimit(user._id, "gift_purchase")
++    if (!rateLimitCheck.allowed) {
++      const errorMessage = rateLimitCheck.resetTime 
++        ? formatRateLimitError(rateLimitCheck.resetTime)
++        : "Rate limit exceeded"
++      throw new Error(errorMessage)
++    }
++
++    // Generate unique claim token
++    let claimToken: string
++    let tokenExists = true
++
++    while (tokenExists) {
++      claimToken = generateClaimToken()
++      const existingGift = await ctx.db
++        .query("gifts")
++        .withIndex("by_claim_token", (q) => q.eq("claimToken", claimToken))
++        .first()
++      tokenExists = !!existingGift
++    }
++
++    // Calculate amount based on gift type
++    const amount = args.giftType === "pro_year" ? PRICING.PRO_YEARLY : PRICING.PRO_MONTHLY
++
++    const giftId = await ctx.db.insert("gifts", {
++      fromUserId: user._id,
++      toEmail: args.recipientEmail,
++      giftType: args.giftType,
++      amount,
++      message: args.personalMessage,
++      status: "pending",
++      claimToken: claimToken!,
++      purchasedAt: Date.now(),
++      expiresAt: Date.now() + GIFT_EXPIRY_MS,
++    })
++
++    return { giftId, claimToken: claimToken! }
++  },
++})
++
++// Redeem a gift code
++export const redeemGift = mutation({
++  args: {
++    claimToken: v.string(),
++  },
++  handler: async (ctx, args) => {
++    const identity = await ctx.auth.getUserIdentity()
++    if (!identity) {
++      throw new Error(ERROR_CODES.AUTH_REQUIRED)
++    }
++
++    // Find the gift by claim token
++    const gift = await ctx.db
++      .query("gifts")
++      .withIndex("by_claim_token", (q) => q.eq("claimToken", args.claimToken))
++      .first()
++
++    if (!gift) {
++      throw new Error(ERROR_CODES.INVALID_GIFT_CODE)
++    }
++
++    // Check if gift is still valid
++    if (gift.status !== "pending") {
++      throw new Error(ERROR_CODES.GIFT_ALREADY_CLAIMED)
++    }
++
++    // Check if gift has expired
++    if (gift.expiresAt < Date.now()) {
++      await ctx.db.patch(gift._id, { status: "expired" })
++      throw new Error(ERROR_CODES.GIFT_EXPIRED)
++    }
++
++    // Get the current user
++    const user = await ctx.db
++      .query("users")
++      .withIndex("email", (q) => q.eq("email", identity.email!))
++      .first()
++
++    if (!user) {
++      throw new Error(ERROR_CODES.USER_NOT_FOUND)
++    }
++
++    // Update user's plan
++    const durationMonths = gift.giftType === "pro_year" ? 12 : 1
++
++    await ctx.db.patch(user._id, {
++      plan: "pro",
++    })
++
++    // Mark gift as claimed
++    await ctx.db.patch(gift._id, {
++      status: "claimed",
++      toUserId: user._id,
++      claimedAt: Date.now(),
++    })
++
++    return {
++      success: true,
++      plan: "pro",
++      durationMonths,
++    }
++  },
++})
++
++// Validate a gift code (check if it's valid without redeeming)
++export const validateGiftCode = query({
++  args: {
++    claimToken: v.string(),
++  },
++  handler: async (ctx, args) => {
++    const gift = await ctx.db
++      .query("gifts")
++      .withIndex("by_claim_token", (q) => q.eq("claimToken", args.claimToken))
++      .first()
++
++    if (!gift) {
++      return { valid: false, error: "Invalid gift code" }
++    }
++
++    if (gift.status !== "pending") {
++      return { valid: false, error: `This gift has already been ${gift.status}` }
++    }
++
++    if (gift.expiresAt < Date.now()) {
++      return { valid: false, error: "This gift has expired" }
++    }
++
++    return {
++      valid: true,
++      giftType: gift.giftType,
++      message: gift.message,
++    }
++  },
++})
++
++// Get user's gift history (purchased gifts)
++export const getUserGiftHistory = query({
++  args: {
++    paginationOpts: v.object({
++      numItems: v.number(),
++      cursor: v.union(v.string(), v.null()),
++    }),
++  },
++  handler: async (ctx, args) => {
++    const identity = await ctx.auth.getUserIdentity()
++    if (!identity) {
++      return { page: [], isDone: true, continueCursor: "" }
++    }
++
++    const user = await ctx.db
++      .query("users")
++      .withIndex("email", (q) => q.eq("email", identity.email!))
++      .first()
++
++    if (!user) {
++      return { page: [], isDone: true, continueCursor: "" }
++    }
++
++    const result = await ctx.db
++      .query("gifts")
++      .withIndex("by_from_user", (q) => q.eq("fromUserId", user._id))
++      .order("desc")
++      .paginate(args.paginationOpts)
++
++    return {
++      page: result.page.map((gift) => ({
++        id: gift._id,
++        claimToken: gift.claimToken,
++        giftType: gift.giftType,
++        amount: gift.amount,
++        recipientEmail: gift.toEmail,
++        status: gift.status,
++        createdAt: new Date(gift.purchasedAt).toISOString(),
++        redeemedAt: gift.claimedAt ? new Date(gift.claimedAt).toISOString() : undefined,
++      })),
++      isDone: result.isDone,
++      continueCursor: result.continueCursor,
++    }
++  },
++})
++
++// Get user's received gifts
++export const getUserReceivedGifts = query({
++  args: {},
++  handler: async (ctx) => {
++    const identity = await ctx.auth.getUserIdentity()
++    if (!identity) {
++      return []
++    }
++
++    const user = await ctx.db
++      .query("users")
++      .withIndex("email", (q) => q.eq("email", identity.email!))
++      .first()
++
++    if (!user) {
++      return []
++    }
++
++    const gifts = await ctx.db
++      .query("gifts")
++      .withIndex("by_to_user", (q) => q.eq("toUserId", user._id))
++      .order("desc")
++      .collect()
++
++    return gifts.map((gift) => ({
++      id: gift._id,
++      giftType: gift.giftType,
++      amount: gift.amount,
++      message: gift.message,
++      claimedAt: gift.claimedAt ? new Date(gift.claimedAt).toISOString() : undefined,
++    }))
++  },
++})
++
++// Send gift email notification (action that can call external APIs)
++export const sendGiftEmail = action({
++  args: {
++    giftId: v.id("gifts"),
++  },
++  handler: async (ctx, args) => {
++    // In a real action, we would use ctx.runQuery with api.gifts.getGiftById
++    // For now, we'll just log the gift ID
++    console.log("Would send email for gift:", args.giftId)
++
++    // In production, this would:
++    // 1. Query the gift details
++    // 2. Call the email API (Resend/SendGrid)
++    // 3. Update gift status if needed
++
++    return { success: true }
++  },
++})
+diff --git a/convex/teams.ts b/convex/teams.ts
+new file mode 100644
+index 0000000..e3b017b
+--- /dev/null
++++ b/convex/teams.ts
+@@ -0,0 +1,381 @@
++import { v } from "convex/values"
++import { mutation, query, action } from "./_generated/server"
++import { Id } from "./_generated/dataModel"
++import { DEFAULT_TEAM_SETTINGS, ERROR_CODES, MAX_TEAM_MEMBERS } from "../lib/constants"
++
++// Generate a unique slug for teams
++function generateTeamSlug(name: string): string {
++  const baseSlug = name
++    .toLowerCase()
++    .replace(/[^a-z0-9]+/g, "-")
++    .replace(/^-|-$/g, "")
++  return `${baseSlug}-${Math.random().toString(36).substr(2, 6)}`
++}
++
++// Create a new team
++export const createTeam = mutation({
++  args: {
++    name: v.string(),
++    description: v.optional(v.string()),
++    settings: v.optional(
++      v.object({
++        allowFileSharing: v.optional(v.boolean()),
++        allowPublicChats: v.optional(v.boolean()),
++        defaultModel: v.optional(v.string()),
++      })
++    ),
++  },
++  handler: async (ctx, args) => {
++    const identity = await ctx.auth.getUserIdentity()
++    if (!identity) {
++      throw new Error(ERROR_CODES.AUTH_REQUIRED)
++    }
++
++    // Get the current user
++    const user = await ctx.db
++      .query("users")
++      .withIndex("email", (q) => q.eq("email", identity.email!))
++      .first()
++
++    if (!user) {
++      throw new Error(ERROR_CODES.USER_NOT_FOUND)
++    }
++
++    // Check if user already owns a team
++    const existingTeam = await ctx.db
++      .query("teams")
++      .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
++      .first()
++
++    if (existingTeam) {
++      throw new Error(ERROR_CODES.TEAM_ALREADY_EXISTS)
++    }
++
++    // Generate unique slug
++    let slug: string
++    let slugExists = true
++
++    while (slugExists) {
++      slug = generateTeamSlug(args.name)
++      const existingTeam = await ctx.db
++        .query("teams")
++        .withIndex("by_slug", (q) => q.eq("slug", slug))
++        .first()
++      slugExists = !!existingTeam
++    }
++
++    // Create the team
++    const teamId = await ctx.db.insert("teams", {
++      name: args.name,
++      slug: slug!,
++      description: args.description,
++      ownerId: user._id,
++      settings: args.settings || DEFAULT_TEAM_SETTINGS,
++      createdAt: Date.now(),
++      updatedAt: Date.now(),
++    })
++
++    // Add owner as first member
++    await ctx.db.insert("teamMembers", {
++      teamId,
++      userId: user._id,
++      role: "owner",
++      permissions: {
++        canManageMembers: true,
++        canManageSettings: true,
++        canDeleteChats: true,
++      },
++      joinedAt: Date.now(),
++    })
++
++    // Update user's plan to reflect team membership
++    await ctx.db.patch(user._id, {
++      plan: "pro",
++    })
++
++    return { teamId, slug: slug! }
++  },
++})
++
++// Add a member to team
++export const addTeamMember = mutation({
++  args: {
++    teamId: v.id("teams"),
++    userEmail: v.string(),
++    role: v.union(v.literal("admin"), v.literal("member")),
++  },
++  handler: async (ctx, args) => {
++    const identity = await ctx.auth.getUserIdentity()
++    if (!identity) {
++      throw new Error(ERROR_CODES.AUTH_REQUIRED)
++    }
++
++    // Validate email format
++    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
++    if (!emailRegex.test(args.userEmail)) {
++      throw new Error(ERROR_CODES.INVALID_EMAIL)
++    }
++
++    // Get current user
++    const currentUser = await ctx.db
++      .query("users")
++      .withIndex("email", (q) => q.eq("email", identity.email!))
++      .first()
++
++    if (!currentUser) {
++      throw new Error(ERROR_CODES.USER_NOT_FOUND)
++    }
++
++    // Check if current user is owner or admin
++    const currentMembership = await ctx.db
++      .query("teamMembers")
++      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", currentUser._id))
++      .first()
++
++    if (
++      !currentMembership ||
++      (currentMembership.role !== "owner" && currentMembership.role !== "admin")
++    ) {
++      throw new Error(ERROR_CODES.TEAM_PERMISSION_DENIED)
++    }
++
++    // Find user to add
++    const userToAdd = await ctx.db
++      .query("users")
++      .withIndex("email", (q) => q.eq("email", args.userEmail))
++      .first()
++
++    if (!userToAdd) {
++      throw new Error(ERROR_CODES.USER_NOT_FOUND)
++    }
++
++    // Check if user is already a member
++    const existingMembership = await ctx.db
++      .query("teamMembers")
++      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userToAdd._id))
++      .first()
++
++    if (existingMembership) {
++      throw new Error(ERROR_CODES.TEAM_ALREADY_MEMBER)
++    }
++
++    // Check team capacity
++    const currentMemberCount = await ctx.db
++      .query("teamMembers")
++      .withIndex("by_team", (q) => q.eq("teamId", args.teamId))
++      .collect()
++      .then(members => members.length)
++
++    if (currentMemberCount >= MAX_TEAM_MEMBERS) {
++      throw new Error(ERROR_CODES.TEAM_AT_CAPACITY)
++    }
++
++    // Add member
++    await ctx.db.insert("teamMembers", {
++      teamId: args.teamId,
++      userId: userToAdd._id,
++      role: args.role,
++      permissions: {
++        canManageMembers: args.role === "admin",
++        canManageSettings: args.role === "admin",
++        canDeleteChats: args.role === "admin",
++      },
++      joinedAt: Date.now(),
++    })
++
++    // Update team
++    await ctx.db.patch(args.teamId, {
++      updatedAt: Date.now(),
++    })
++
++    return { success: true }
++  },
++})
++
++// Remove a member from team
++export const removeMember = mutation({
++  args: {
++    teamId: v.id("teams"),
++    userId: v.id("users"),
++  },
++  handler: async (ctx, args) => {
++    const identity = await ctx.auth.getUserIdentity()
++    if (!identity) {
++      throw new Error(ERROR_CODES.AUTH_REQUIRED)
++    }
++
++    // Get current user
++    const currentUser = await ctx.db
++      .query("users")
++      .withIndex("email", (q) => q.eq("email", identity.email!))
++      .first()
++
++    if (!currentUser) {
++      throw new Error(ERROR_CODES.USER_NOT_FOUND)
++    }
++
++    // Check permissions
++    const currentMembership = await ctx.db
++      .query("teamMembers")
++      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", currentUser._id))
++      .first()
++
++    if (
++      !currentMembership ||
++      (currentMembership.role !== "owner" && !currentMembership.permissions?.canManageMembers)
++    ) {
++      throw new Error(ERROR_CODES.TEAM_PERMISSION_DENIED)
++    }
++
++    // Cannot remove yourself if you're the owner
++    const team = await ctx.db.get(args.teamId)
++    if (team && team.ownerId === args.userId && currentUser._id === args.userId) {
++      throw new Error(ERROR_CODES.TEAM_OWNER_CANNOT_LEAVE)
++    }
++
++    // Find membership
++    const membership = await ctx.db
++      .query("teamMembers")
++      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", args.userId))
++      .first()
++
++    if (!membership) {
++      throw new Error(ERROR_CODES.TEAM_MEMBER_NOT_FOUND)
++    }
++
++    // Delete membership
++    await ctx.db.delete(membership._id)
++
++    // Update team
++    await ctx.db.patch(args.teamId, {
++      updatedAt: Date.now(),
++    })
++
++    return { success: true }
++  },
++})
++
++// Get user's teams
++export const getUserTeams = query({
++  args: {},
++  handler: async (ctx) => {
++    const identity = await ctx.auth.getUserIdentity()
++    if (!identity) {
++      return []
++    }
++
++    const user = await ctx.db
++      .query("users")
++      .withIndex("email", (q) => q.eq("email", identity.email!))
++      .first()
++
++    if (!user) {
++      return []
++    }
++
++    // Get all team memberships
++    const memberships = await ctx.db
++      .query("teamMembers")
++      .withIndex("by_user", (q) => q.eq("userId", user._id))
++      .collect()
++
++    // Get team details
++    const teams = await Promise.all(
++      memberships.map(async (membership) => {
++        const team = await ctx.db.get(membership.teamId)
++        if (!team) return null
++
++        // Get member count
++        const memberCount = await ctx.db
++          .query("teamMembers")
++          .withIndex("by_team", (q) => q.eq("teamId", team._id))
++          .collect()
++          .then((members) => members.length)
++
++        return {
++          id: team._id,
++          name: team.name,
++          slug: team.slug,
++          description: team.description,
++          role: membership.role,
++          memberCount,
++          isOwner: team.ownerId === user._id,
++          createdAt: new Date(team.createdAt).toISOString(),
++        }
++      })
++    )
++
++    return teams.filter(Boolean)
++  },
++})
++
++// Get team details with members
++export const getTeamDetails = query({
++  args: {
++    teamId: v.id("teams"),
++  },
++  handler: async (ctx, args) => {
++    const identity = await ctx.auth.getUserIdentity()
++    if (!identity) {
++      throw new Error(ERROR_CODES.AUTH_REQUIRED)
++    }
++
++    const user = await ctx.db
++      .query("users")
++      .withIndex("email", (q) => q.eq("email", identity.email!))
++      .first()
++
++    if (!user) {
++      throw new Error(ERROR_CODES.USER_NOT_FOUND)
++    }
++
++    // Check if user is a member
++    const membership = await ctx.db
++      .query("teamMembers")
++      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", user._id))
++      .first()
++
++    if (!membership) {
++      throw new Error(ERROR_CODES.TEAM_PERMISSION_DENIED)
++    }
++
++    const team = await ctx.db.get(args.teamId)
++    if (!team) {
++      throw new Error(ERROR_CODES.TEAM_NOT_FOUND)
++    }
++
++    // Get all members
++    const memberships = await ctx.db
++      .query("teamMembers")
++      .withIndex("by_team", (q) => q.eq("teamId", args.teamId))
++      .collect()
++
++    const members = await Promise.all(
++      memberships.map(async (m) => {
++        const member = await ctx.db.get(m.userId)
++        if (!member) return null
++
++        return {
++          id: member._id,
++          email: member.email || "",
++          name: member.name || member.email?.split("@")[0] || "Unknown",
++          role: m.role,
++          permissions: m.permissions,
++          joinedAt: new Date(m.joinedAt).toISOString(),
++        }
++      })
++    )
++
++    return {
++      id: team._id,
++      name: team.name,
++      slug: team.slug,
++      description: team.description,
++      settings: team.settings,
++      isOwner: team.ownerId === user._id,
++      members: members.filter(Boolean),
++      createdAt: new Date(team.createdAt).toISOString(),
++      updatedAt: new Date(team.updatedAt).toISOString(),
++    }
++  },
++})
+diff --git a/hooks/use-gifting.ts b/hooks/use-gifting.ts
+index 8d6baad..8f909f8 100644
+--- a/hooks/use-gifting.ts
++++ b/hooks/use-gifting.ts
+@@ -1,6 +1,10 @@
+ "use client"
+ 
+ import { useState, useCallback } from "react"
++import { useMutation, useQuery, useAction } from "convex/react"
++import { api } from "@/convex/_generated/api"
++import { Id } from "@/convex/_generated/dataModel"
++import { useToast } from "@/hooks/use-toast"
+ import type {
+   GiftCode,
+   GiftPurchaseData,
+@@ -8,12 +12,12 @@ import type {
+   SubscriptionPlan,
+ } from "@/types/gifting"
+ 
+-// Mock subscription plans
+-const mockPlans: SubscriptionPlan[] = [
++// Available subscription plans
++const subscriptionPlans: SubscriptionPlan[] = [
+   {
+     id: "pro_monthly",
+     name: "Pro Monthly",
+-    description: "Full access to T3Chat Pro features",
++    description: "Full access to Z6Chat Pro features",
+     monthlyPrice: 20,
+     yearlyPrice: 200,
+     features: ["Unlimited chats", "Advanced AI models", "Priority support", "Export features"],
+@@ -22,7 +26,7 @@ const mockPlans: SubscriptionPlan[] = [
+   {
+     id: "pro_yearly",
+     name: "Pro Yearly",
+-    description: "Full access to T3Chat Pro features (12 months)",
++    description: "Full access to Z6Chat Pro features (12 months)",
+     monthlyPrice: 20,
+     yearlyPrice: 200,
+     features: [
+@@ -36,142 +40,180 @@ const mockPlans: SubscriptionPlan[] = [
+   },
+ ]
+ 
+-// Mock gift codes for demonstration
+-const mockGiftCodes: GiftCode[] = [
+-  {
+-    id: "gift-1",
+-    redemptionCode: "GIFT-ABCD-1234-EFGH",
+-    planId: "pro_yearly",
+-    planName: "Pro Yearly",
+-    durationMonths: 12,
+-    status: "active",
+-    purchaserEmail: "john@example.com",
+-    recipientEmail: "alex@example.com",
+-    personalMessage: "Hope this helps with your coding projects!",
+-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+-    createdAt: new Date("2024-01-15"),
+-    value: 200,
+-  },
+-]
+-
+ export function useGifting() {
+-  const [giftCodes, setGiftCodes] = useState<GiftCode[]>(mockGiftCodes)
++  const { toast } = useToast()
+   const [loading, setLoading] = useState(false)
+ 
+-  const generateRedemptionCode = (): string => {
+-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+-    const segments = []
+-    for (let i = 0; i < 4; i++) {
+-      let segment = ""
+-      for (let j = 0; j < 4; j++) {
+-        segment += chars.charAt(Math.floor(Math.random() * chars.length))
+-      }
+-      segments.push(segment)
+-    }
+-    return `GIFT-${segments.join("-")}`
+-  }
+-
+-  const purchaseGift = useCallback(async (data: GiftPurchaseData): Promise<GiftCode> => {
+-    setLoading(true)
+-
+-    try {
+-      // Simulate payment processing
+-      await new Promise((resolve) => setTimeout(resolve, 2000))
+-
+-      const plan = mockPlans.find((p) => p.id === data.planId)
+-      if (!plan) throw new Error("Invalid plan selected")
+-
+-      const newGiftCode: GiftCode = {
+-        id: `gift-${Date.now()}`,
+-        redemptionCode: generateRedemptionCode(),
+-        planId: data.planId,
+-        planName: plan.name,
+-        durationMonths: data.planId.includes("yearly") ? 12 : 1,
+-        status: "active",
+-        purchaserEmail: data.purchaserEmail,
+-        recipientEmail: data.recipientEmail,
+-        personalMessage: data.personalMessage,
+-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days to redeem
+-        createdAt: new Date(),
+-        value: data.planId.includes("yearly") ? plan.yearlyPrice : plan.monthlyPrice,
+-      }
+-
+-      setGiftCodes((prev) => [...prev, newGiftCode])
++  // Convex mutations and queries
++  const purchaseGiftMutation = useMutation(api.gifts.purchaseGift)
++  const redeemGiftMutation = useMutation(api.gifts.redeemGift)
++  const userGiftHistory = useQuery(api.gifts.getUserGiftHistory, {
++    paginationOpts: { numItems: 20, cursor: null }
++  }) || { page: [], isDone: true, continueCursor: "" }
++  const userReceivedGifts = useQuery(api.gifts.getUserReceivedGifts) || []
++  const sendGiftEmailAction = useAction(api.gifts.sendGiftEmail)
++
++  const purchaseGift = useCallback(
++    async (data: GiftPurchaseData): Promise<GiftCode> => {
++      setLoading(true)
+ 
+-      // In real implementation, this would:
+-      // 1. Process payment via Stripe
+-      // 2. Send gift email to recipient
+-      // 3. Send confirmation email to purchaser
++      try {
++        const plan = subscriptionPlans.find((p) => p.id === data.planId)
++        if (!plan) throw new Error("Invalid plan selected")
++
++        // In production, this would process payment via Stripe first
++        // For now, we'll proceed with the gift creation
++
++        const durationMonths = data.planId.includes("yearly") ? 12 : 1
++        const value = data.planId.includes("yearly") ? plan.yearlyPrice : plan.monthlyPrice
++
++        // Create gift in database
++        const result = await purchaseGiftMutation({
++          giftType: durationMonths === 12 ? "pro_year" : "pro_month",
++          recipientEmail: data.recipientEmail,
++          personalMessage: data.personalMessage,
++          // stripePaymentIntentId would come from Stripe integration
++        })
++
++        // Send gift email
++        try {
++          await sendGiftEmailAction({ giftId: result.giftId as Id<"gifts"> })
++        } catch (emailError) {
++          console.error("Failed to send gift email:", emailError)
++          // Don't fail the purchase if email fails
++        }
+ 
+-      return newGiftCode
+-    } catch (error) {
+-      console.error("Failed to purchase gift:", error)
+-      throw error
+-    } finally {
+-      setLoading(false)
+-    }
+-  }, [])
++        toast({
++          title: "Gift purchased successfully!",
++          description: `Gift code: ${result.claimToken}`,
++        })
++
++        // Return a GiftCode object matching the type interface
++        return {
++          id: result.giftId,
++          redemptionCode: result.claimToken,
++          planId: data.planId,
++          planName: plan.name,
++          durationMonths,
++          status: "active",
++          purchaserEmail: data.purchaserEmail,
++          recipientEmail: data.recipientEmail,
++          personalMessage: data.personalMessage,
++          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
++          createdAt: new Date(),
++          value,
++        }
++      } catch (error) {
++        console.error("Failed to purchase gift:", error)
++        toast({
++          title: "Purchase failed",
++          description: error instanceof Error ? error.message : "Please try again",
++          variant: "destructive",
++        })
++        throw error
++      } finally {
++        setLoading(false)
++      }
++    },
++    [purchaseGiftMutation, sendGiftEmailAction, toast]
++  )
+ 
+   const redeemGift = useCallback(
+     async (data: GiftRedemptionData): Promise<GiftCode> => {
+       setLoading(true)
+ 
+       try {
+-        // Simulate API call
+-        await new Promise((resolve) => setTimeout(resolve, 1000))
+-
+-        const giftCode = giftCodes.find(
+-          (code) => code.redemptionCode === data.redemptionCode && code.status === "active"
+-        )
+-
+-        if (!giftCode) {
+-          throw new Error("Invalid or already redeemed gift code")
+-        }
+-
+-        if (new Date() > giftCode.expiresAt) {
+-          throw new Error("Gift code has expired")
+-        }
+-
+-        // Update gift code status
+-        const updatedGiftCode = {
+-          ...giftCode,
+-          status: "redeemed" as const,
+-          redeemedByUserId: data.userId || "anonymous",
++        const result = await redeemGiftMutation({
++          claimToken: data.redemptionCode,
++        })
++
++        toast({
++          title: "Gift redeemed successfully!",
++          description: `Your Pro plan is now active!`,
++        })
++
++        // Return a simplified GiftCode object
++        return {
++          id: "redeemed",
++          redemptionCode: data.redemptionCode,
++          planId: "pro",
++          planName: "Pro",
++          durationMonths: result.durationMonths,
++          status: "redeemed",
++          purchaserEmail: "",
++          recipientEmail: "",
++          personalMessage: "",
++          expiresAt: new Date(),
++          createdAt: new Date(),
++          value: 0,
+           redeemedAt: new Date(),
++          redeemedByUserId: data.userId,
+         }
+-
+-        setGiftCodes((prev) =>
+-          prev.map((code) => (code.id === giftCode.id ? updatedGiftCode : code))
+-        )
+-
+-        return updatedGiftCode
+       } catch (error) {
+         console.error("Failed to redeem gift:", error)
++        toast({
++          title: "Redemption failed",
++          description:
++            error instanceof Error ? error.message : "Please check your code and try again",
++          variant: "destructive",
++        })
+         throw error
+       } finally {
+         setLoading(false)
+       }
+     },
+-    [giftCodes]
++    [redeemGiftMutation, toast]
+   )
+ 
+-  const getGiftCodeByCode = useCallback(
+-    (redemptionCode: string): GiftCode | null => {
+-      return giftCodes.find((code) => code.redemptionCode === redemptionCode) || null
++  const validateGiftCode = useCallback(
++    async (
++      redemptionCode: string
++    ): Promise<{ valid: boolean; error?: string; gift?: Partial<GiftCode> }> => {
++      // For now, we'll do basic validation on the format
++      // In production, this would be a separate API call
++      if (!redemptionCode || redemptionCode.length !== 15) {
++        return { valid: false, error: "Invalid code format" }
++      }
++
++      const pattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/
++      if (!pattern.test(redemptionCode)) {
++        return { valid: false, error: "Invalid code format" }
++      }
++
++      // You could make this an action or separate API endpoint
++      return { valid: true }
+     },
+-    [giftCodes]
++    []
+   )
+ 
+   const getAvailablePlans = useCallback((): SubscriptionPlan[] => {
+-    return mockPlans.filter((plan) => plan.isGiftable)
++    return subscriptionPlans.filter((plan) => plan.isGiftable)
+   }, [])
+ 
++  // Convert gift history to GiftCode format  
++  const giftCodes: GiftCode[] = userGiftHistory.page.map((gift: any) => ({
++    id: gift.id,
++    redemptionCode: gift.claimToken,
++    planId: gift.giftType === "pro_year" ? "pro_yearly" : "pro_monthly",
++    planName: gift.giftType === "pro_year" ? "Pro Yearly" : "Pro Monthly",
++    durationMonths: gift.giftType === "pro_year" ? 12 : 1,
++    status: gift.status,
++    purchaserEmail: "", // Not available from query
++    recipientEmail: gift.recipientEmail,
++    personalMessage: "", // Not returned for privacy
++    expiresAt: new Date(), // Not returned from query
++    createdAt: new Date(gift.createdAt),
++    value: gift.amount,
++    redeemedAt: gift.redeemedAt ? new Date(gift.redeemedAt) : undefined,
++  }))
++
+   return {
+     giftCodes,
++    userReceivedGifts,
+     loading,
+     purchaseGift,
+     redeemGift,
+-    getGiftCodeByCode,
++    validateGiftCode,
+     getAvailablePlans,
+   }
+ }
+diff --git a/hooks/use-teams.ts b/hooks/use-teams.ts
+index 772bb8a..d5c6cc5 100644
+--- a/hooks/use-teams.ts
++++ b/hooks/use-teams.ts
+@@ -1,63 +1,21 @@
+ "use client"
+ 
+ import { useState, useCallback } from "react"
++import { useMutation, useQuery } from "convex/react"
++import { api } from "@/convex/_generated/api"
++import { Id } from "@/convex/_generated/dataModel"
++import { useToast } from "@/hooks/use-toast"
+ import type { Team, TeamMember, TeamInvitation } from "@/types/gifting"
+ 
+-// Mock data for demonstration
+-const mockTeams: Team[] = [
+-  {
+-    id: "team-1",
+-    ownerUserId: "user-1",
+-    name: "Zealand Family",
+-    planType: "family",
+-    maxSeats: 5,
+-    usedSeats: 3,
+-    monthlyPrice: 45,
+-    status: "active",
+-    createdAt: new Date("2024-01-10"),
+-    updatedAt: new Date("2024-01-20"),
+-  },
+-]
+-
+-const mockTeamMembers: TeamMember[] = [
+-  {
+-    teamId: "team-1",
+-    userId: "user-1",
+-    userEmail: "john@example.com",
+-    userName: "John Zealand-Doyle",
+-    role: "owner",
+-    joinedAt: new Date("2024-01-10"),
+-    status: "active",
+-  },
+-  {
+-    teamId: "team-1",
+-    userId: "user-2",
+-    userEmail: "sarah@example.com",
+-    userName: "Sarah Zealand",
+-    role: "member",
+-    joinedAt: new Date("2024-01-12"),
+-    status: "active",
+-  },
+-  {
+-    teamId: "team-1",
+-    userId: "user-3",
+-    userEmail: "alex@example.com",
+-    userName: "Alex Zealand",
+-    role: "member",
+-    joinedAt: new Date("2024-01-15"),
+-    status: "active",
+-  },
+-]
+-
+ export function useTeams() {
+-  const [teams, setTeams] = useState<Team[]>(mockTeams)
+-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(mockTeamMembers)
+-  const [invitations, setInvitations] = useState<TeamInvitation[]>([])
++  const { toast } = useToast()
+   const [loading, setLoading] = useState(false)
+ 
+-  const generateInvitationCode = (): string => {
+-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+-  }
++  // Convex queries and mutations
++  const userTeams = useQuery(api.teams.getUserTeams) || []
++  const createTeamMutation = useMutation(api.teams.createTeam)
++  const addTeamMemberMutation = useMutation(api.teams.addTeamMember)
++  const removeMemberMutation = useMutation(api.teams.removeMember)
+ 
+   const createTeam = useCallback(
+     async (data: {
+@@ -68,195 +26,126 @@ export function useTeams() {
+       setLoading(true)
+ 
+       try {
+-        // Simulate API call
+-        await new Promise((resolve) => setTimeout(resolve, 1000))
++        // Calculate monthly price based on plan type
++        const monthlyPrice = data.planType === "family" ? 45 : data.maxSeats * 15
+ 
+-        const newTeam: Team = {
+-          id: `team-${Date.now()}`,
+-          ownerUserId: "user-1", // Would come from auth context
++        // Create team in database
++        const result = await createTeamMutation({
++          name: data.name,
++          description: `${data.planType} plan team`,
++        })
++
++        toast({
++          title: "Team created successfully!",
++          description: `Team created with slug: ${result.slug}`,
++        })
++
++        // Return a Team object matching the type interface
++        return {
++          id: result.teamId,
++          ownerUserId: "", // Not returned from mutation
+           name: data.name,
+           planType: data.planType,
+           maxSeats: data.maxSeats,
+-          usedSeats: 1, // Owner counts as first member
+-          monthlyPrice: data.planType === "family" ? 45 : data.maxSeats * 15,
++          usedSeats: 1,
++          monthlyPrice,
+           status: "active",
+           createdAt: new Date(),
+           updatedAt: new Date(),
+         }
+-
+-        setTeams((prev) => [...prev, newTeam])
+-
+-        // Add owner as first member
+-        const ownerMember: TeamMember = {
+-          teamId: newTeam.id,
+-          userId: "user-1",
+-          userEmail: "john@example.com",
+-          userName: "John Zealand-Doyle",
+-          role: "owner",
+-          joinedAt: new Date(),
+-          status: "active",
+-        }
+-
+-        setTeamMembers((prev) => [...prev, ownerMember])
+-
+-        return newTeam
+       } catch (error) {
+         console.error("Failed to create team:", error)
++        toast({
++          title: "Failed to create team",
++          description: error instanceof Error ? error.message : "Please try again",
++          variant: "destructive",
++        })
+         throw error
+       } finally {
+         setLoading(false)
+       }
+     },
+-    []
++    [createTeamMutation, toast]
+   )
+ 
+   const inviteMember = useCallback(
+-    async (teamId: string, email: string): Promise<TeamInvitation> => {
++    async (teamId: string, email: string): Promise<void> => {
+       setLoading(true)
+ 
+       try {
+-        // Simulate API call
+-        await new Promise((resolve) => setTimeout(resolve, 500))
+-
+-        const team = teams.find((t) => t.id === teamId)
+-        if (!team) throw new Error("Team not found")
+-
+-        if (team.usedSeats >= team.maxSeats) {
+-          throw new Error("Team is at maximum capacity")
+-        }
+-
+-        const newInvitation: TeamInvitation = {
+-          id: `inv-${Date.now()}`,
+-          teamId,
+-          inviterUserId: "user-1", // Would come from auth context
+-          inviteeEmail: email,
+-          invitationCode: generateInvitationCode(),
+-          status: "pending",
+-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+-          createdAt: new Date(),
+-        }
+-
+-        setInvitations((prev) => [...prev, newInvitation])
++        await addTeamMemberMutation({
++          teamId: teamId as Id<"teams">,
++          userEmail: email,
++          role: "member",
++        })
+ 
+-        return newInvitation
++        toast({
++          title: "Member invited successfully!",
++          description: `${email} has been added to the team`,
++        })
+       } catch (error) {
+         console.error("Failed to invite member:", error)
++        toast({
++          title: "Failed to invite member",
++          description: error instanceof Error ? error.message : "Please try again",
++          variant: "destructive",
++        })
+         throw error
+       } finally {
+         setLoading(false)
+       }
+     },
+-    [teams]
++    [addTeamMemberMutation, toast]
+   )
+ 
+-  const acceptInvitation = useCallback(
+-    async (invitationCode: string, userId: string): Promise<void> => {
++  const removeMember = useCallback(
++    async (teamId: string, memberId: string): Promise<void> => {
+       setLoading(true)
+ 
+       try {
+-        // Simulate API call
+-        await new Promise((resolve) => setTimeout(resolve, 1000))
+-
+-        const invitation = invitations.find(
+-          (inv) => inv.invitationCode === invitationCode && inv.status === "pending"
+-        )
+-
+-        if (!invitation) {
+-          throw new Error("Invalid or expired invitation")
+-        }
+-
+-        if (new Date() > invitation.expiresAt) {
+-          throw new Error("Invitation has expired")
+-        }
+-
+-        // Update invitation status
+-        setInvitations((prev) =>
+-          prev.map((inv) =>
+-            inv.id === invitation.id ? { ...inv, status: "accepted" as const } : inv
+-          )
+-        )
+-
+-        // Add member to team
+-        const newMember: TeamMember = {
+-          teamId: invitation.teamId,
+-          userId,
+-          userEmail: invitation.inviteeEmail,
+-          userName: "New Member", // Would be fetched from user data
+-          role: "member",
+-          joinedAt: new Date(),
+-          status: "active",
+-        }
+-
+-        setTeamMembers((prev) => [...prev, newMember])
+-
+-        // Update team used seats
+-        setTeams((prev) =>
+-          prev.map((team) =>
+-            team.id === invitation.teamId
+-              ? { ...team, usedSeats: team.usedSeats + 1, updatedAt: new Date() }
+-              : team
+-          )
+-        )
++        await removeMemberMutation({
++          teamId: teamId as Id<"teams">,
++          userId: memberId as Id<"users">,
++        })
++
++        toast({
++          title: "Member removed",
++          description: "The member has been removed from the team",
++        })
+       } catch (error) {
+-        console.error("Failed to accept invitation:", error)
++        console.error("Failed to remove member:", error)
++        toast({
++          title: "Failed to remove member",
++          description: error instanceof Error ? error.message : "Please try again",
++          variant: "destructive",
++        })
+         throw error
+       } finally {
+         setLoading(false)
+       }
+     },
+-    [invitations]
++    [removeMemberMutation, toast]
+   )
+ 
+-  const removeMember = useCallback(async (teamId: string, userId: string): Promise<void> => {
+-    setLoading(true)
+-
+-    try {
+-      // Simulate API call
+-      await new Promise((resolve) => setTimeout(resolve, 500))
+-
+-      // Update member status
+-      setTeamMembers((prev) =>
+-        prev.map((member) =>
+-          member.teamId === teamId && member.userId === userId
+-            ? { ...member, status: "removed" as const }
+-            : member
+-        )
+-      )
+-
+-      // Update team used seats
+-      setTeams((prev) =>
+-        prev.map((team) =>
+-          team.id === teamId
+-            ? { ...team, usedSeats: Math.max(1, team.usedSeats - 1), updatedAt: new Date() }
+-            : team
+-        )
+-      )
+-    } catch (error) {
+-      console.error("Failed to remove member:", error)
+-      throw error
+-    } finally {
+-      setLoading(false)
+-    }
+-  }, [])
+-
+-  const getTeamMembers = useCallback(
+-    (teamId: string): TeamMember[] => {
+-      return teamMembers.filter((member) => member.teamId === teamId && member.status === "active")
+-    },
+-    [teamMembers]
+-  )
++  // Convert Convex data to type interfaces
++  const teams: Team[] = userTeams.map((team: any) => ({
++    id: team.id,
++    ownerUserId: "", // Not exposed for privacy
++    name: team.name,
++    planType: team.role === "owner" ? "team" : "family", // Infer from role
++    maxSeats: team.memberCount + 2, // Estimate
++    usedSeats: team.memberCount,
++    monthlyPrice: team.memberCount * 15,
++    status: "active",
++    createdAt: new Date(team.createdAt),
++    updatedAt: new Date(team.createdAt),
++  }))
+ 
+-  const getUserTeam = useCallback(
+-    (userId: string): Team | null => {
+-      const memberRecord = teamMembers.find(
+-        (member) => member.userId === userId && member.status === "active"
+-      )
+-      if (!memberRecord) return null
++  const currentTeam = teams[0] || null
++  const teamMembers: TeamMember[] = []
+ 
+-      return teams.find((team) => team.id === memberRecord.teamId) || null
+-    },
+-    [teams, teamMembers]
+-  )
++  // Mock invitations for now (would need a separate Convex table)
++  const invitations: TeamInvitation[] = []
+ 
+   return {
+     teams,
+@@ -265,9 +154,11 @@ export function useTeams() {
+     loading,
+     createTeam,
+     inviteMember,
+-    acceptInvitation,
++    acceptInvitation: async () => {
++      throw new Error("Not implemented")
++    },
+     removeMember,
+-    getTeamMembers,
+-    getUserTeam,
++    getTeamMembers: () => teamMembers,
++    getUserTeam: () => currentTeam,
+   }
+ }
+diff --git a/lib/constants.ts b/lib/constants.ts
+new file mode 100644
+index 0000000..1711165
+--- /dev/null
++++ b/lib/constants.ts
+@@ -0,0 +1,55 @@
++// Time constants
++export const MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000
++export const MILLISECONDS_IN_HOUR = 60 * 60 * 1000
++export const MILLISECONDS_IN_MINUTE = 60 * 1000
++
++// Gift system constants
++export const GIFT_EXPIRY_DAYS = 365
++export const GIFT_EXPIRY_MS = GIFT_EXPIRY_DAYS * MILLISECONDS_IN_DAY
++
++// Rate limiting constants
++export const GIFT_PURCHASE_RATE_LIMIT = 5 // Max gifts per hour per user
++export const GIFT_PURCHASE_RATE_WINDOW_MS = MILLISECONDS_IN_HOUR
++
++// Team constants
++export const MAX_TEAM_MEMBERS = 50
++export const DEFAULT_TEAM_SETTINGS = {
++  allowFileSharing: true,
++  allowPublicChats: false,
++  defaultModel: "gpt-4",
++}
++
++// Pricing constants
++export const PRICING = {
++  PRO_MONTHLY: 20,
++  PRO_YEARLY: 200,
++} as const
++
++// Error codes for internationalization
++export const ERROR_CODES = {
++  // Authentication errors
++  AUTH_REQUIRED: "AUTH_REQUIRED",
++  USER_NOT_FOUND: "USER_NOT_FOUND",
++  
++  // Gift errors
++  INVALID_GIFT_CODE: "INVALID_GIFT_CODE",
++  GIFT_ALREADY_CLAIMED: "GIFT_ALREADY_CLAIMED",
++  GIFT_EXPIRED: "GIFT_EXPIRED",
++  GIFT_RATE_LIMIT_EXCEEDED: "GIFT_RATE_LIMIT_EXCEEDED",
++  INVALID_PLAN: "INVALID_PLAN",
++  
++  // Team errors
++  TEAM_ALREADY_EXISTS: "TEAM_ALREADY_EXISTS",
++  TEAM_NOT_FOUND: "TEAM_NOT_FOUND",
++  TEAM_MEMBER_NOT_FOUND: "TEAM_MEMBER_NOT_FOUND",
++  TEAM_ALREADY_MEMBER: "TEAM_ALREADY_MEMBER",
++  TEAM_PERMISSION_DENIED: "TEAM_PERMISSION_DENIED",
++  TEAM_OWNER_CANNOT_LEAVE: "TEAM_OWNER_CANNOT_LEAVE",
++  TEAM_AT_CAPACITY: "TEAM_AT_CAPACITY",
++  
++  // General errors
++  INVALID_EMAIL: "INVALID_EMAIL",
++  OPERATION_FAILED: "OPERATION_FAILED",
++} as const
++
++export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES]
+\ No newline at end of file
+diff --git a/lib/email-templates.ts b/lib/email-templates.ts
+new file mode 100644
+index 0000000..88ae99f
+--- /dev/null
++++ b/lib/email-templates.ts
+@@ -0,0 +1,290 @@
++// Email templates for gift and team notifications
++
++export function generateGiftEmailHTML(gift: {
++  redemptionCode: string
++  plan: string
++  durationMonths: number
++  personalMessage?: string
++  recipientEmail: string
++}) {
++  return `
++<!DOCTYPE html>
++<html>
++<head>
++  <meta charset="utf-8">
++  <meta name="viewport" content="width=device-width, initial-scale=1.0">
++  <title>You've received a Z6Chat gift!</title>
++  <style>
++    body {
++      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
++      background-color: #1a1a1a;
++      color: #e5e5e5;
++      margin: 0;
++      padding: 0;
++    }
++    .container {
++      max-width: 600px;
++      margin: 0 auto;
++      padding: 40px 20px;
++    }
++    .card {
++      background-color: #2a2a2a;
++      border-radius: 12px;
++      padding: 40px;
++      border: 1px solid #3a3a3a;
++    }
++    .header {
++      text-align: center;
++      margin-bottom: 40px;
++    }
++    .gift-icon {
++      width: 80px;
++      height: 80px;
++      margin: 0 auto 20px;
++      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
++      border-radius: 50%;
++      display: flex;
++      align-items: center;
++      justify-content: center;
++      font-size: 40px;
++    }
++    h1 {
++      color: #fff;
++      font-size: 32px;
++      font-weight: 700;
++      margin: 0 0 10px;
++    }
++    .subtitle {
++      color: #a5a5a5;
++      font-size: 18px;
++      margin: 0;
++    }
++    .message-box {
++      background-color: #1a1a1a;
++      border-radius: 8px;
++      padding: 20px;
++      margin: 30px 0;
++      border-left: 4px solid #8b5cf6;
++    }
++    .message-label {
++      color: #8b5cf6;
++      font-size: 14px;
++      font-weight: 600;
++      margin-bottom: 8px;
++    }
++    .redemption-code {
++      background-color: #3a3a3a;
++      border-radius: 8px;
++      padding: 30px;
++      text-align: center;
++      margin: 30px 0;
++    }
++    .code-label {
++      color: #a5a5a5;
++      font-size: 14px;
++      margin-bottom: 10px;
++    }
++    .code {
++      font-family: 'Courier New', monospace;
++      font-size: 28px;
++      font-weight: 700;
++      color: #ec4899;
++      letter-spacing: 2px;
++    }
++    .details {
++      margin: 30px 0;
++    }
++    .detail-row {
++      display: flex;
++      justify-content: space-between;
++      padding: 15px 0;
++      border-bottom: 1px solid #3a3a3a;
++    }
++    .detail-label {
++      color: #a5a5a5;
++    }
++    .detail-value {
++      color: #fff;
++      font-weight: 600;
++    }
++    .cta-button {
++      display: block;
++      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
++      color: #fff;
++      text-decoration: none;
++      padding: 16px 40px;
++      border-radius: 8px;
++      text-align: center;
++      font-weight: 600;
++      font-size: 18px;
++      margin: 40px auto 0;
++      max-width: 300px;
++    }
++    .footer {
++      text-align: center;
++      margin-top: 40px;
++      color: #6a6a6a;
++      font-size: 14px;
++    }
++  </style>
++</head>
++<body>
++  <div class="container">
++    <div class="card">
++      <div class="header">
++        <div class="gift-icon">🎁</div>
++        <h1>You've received a gift!</h1>
++        <p class="subtitle">Someone special has gifted you Z6Chat Pro</p>
++      </div>
++
++      ${
++        gift.personalMessage
++          ? `
++      <div class="message-box">
++        <div class="message-label">Personal Message</div>
++        <p>${gift.personalMessage}</p>
++      </div>
++      `
++          : ""
++      }
++
++      <div class="redemption-code">
++        <div class="code-label">Your Gift Code</div>
++        <div class="code">${gift.redemptionCode}</div>
++      </div>
++
++      <div class="details">
++        <div class="detail-row">
++          <span class="detail-label">Plan</span>
++          <span class="detail-value">Z6Chat ${gift.plan.charAt(0).toUpperCase() + gift.plan.slice(1)}</span>
++        </div>
++        <div class="detail-row">
++          <span class="detail-label">Duration</span>
++          <span class="detail-value">${gift.durationMonths} ${gift.durationMonths === 1 ? "month" : "months"}</span>
++        </div>
++        <div class="detail-row">
++          <span class="detail-label">Value</span>
++          <span class="detail-value">$${gift.durationMonths * 20}</span>
++        </div>
++      </div>
++
++      <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://z6chat.com"}/redeem" class="cta-button">
++        Redeem Your Gift
++      </a>
++
++      <div class="footer">
++        <p>This gift expires in 365 days. Don't wait to activate it!</p>
++        <p>© 2025 Z6Chat. All rights reserved.</p>
++      </div>
++    </div>
++  </div>
++</body>
++</html>
++  `
++}
++
++export function generateTeamInviteEmailHTML(invite: {
++  teamName: string
++  inviteCode: string
++  inviterName: string
++  planType: "family" | "team"
++}) {
++  return `
++<!DOCTYPE html>
++<html>
++<head>
++  <meta charset="utf-8">
++  <meta name="viewport" content="width=device-width, initial-scale=1.0">
++  <title>You're invited to join ${invite.teamName} on Z6Chat</title>
++  <style>
++    body {
++      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
++      background-color: #1a1a1a;
++      color: #e5e5e5;
++      margin: 0;
++      padding: 0;
++    }
++    .container {
++      max-width: 600px;
++      margin: 0 auto;
++      padding: 40px 20px;
++    }
++    .card {
++      background-color: #2a2a2a;
++      border-radius: 12px;
++      padding: 40px;
++      border: 1px solid #3a3a3a;
++    }
++    .header {
++      text-align: center;
++      margin-bottom: 40px;
++    }
++    .team-icon {
++      width: 80px;
++      height: 80px;
++      margin: 0 auto 20px;
++      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
++      border-radius: 50%;
++      display: flex;
++      align-items: center;
++      justify-content: center;
++      font-size: 40px;
++    }
++    h1 {
++      color: #fff;
++      font-size: 32px;
++      font-weight: 700;
++      margin: 0 0 10px;
++    }
++    .invite-code {
++      background-color: #3a3a3a;
++      border-radius: 8px;
++      padding: 30px;
++      text-align: center;
++      margin: 30px 0;
++    }
++    .code {
++      font-family: 'Courier New', monospace;
++      font-size: 32px;
++      font-weight: 700;
++      color: #3b82f6;
++      letter-spacing: 2px;
++    }
++    .cta-button {
++      display: block;
++      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
++      color: #fff;
++      text-decoration: none;
++      padding: 16px 40px;
++      border-radius: 8px;
++      text-align: center;
++      font-weight: 600;
++      font-size: 18px;
++      margin: 40px auto 0;
++      max-width: 300px;
++    }
++  </style>
++</head>
++<body>
++  <div class="container">
++    <div class="card">
++      <div class="header">
++        <div class="team-icon">👥</div>
++        <h1>You're invited!</h1>
++        <p>${invite.inviterName} has invited you to join "${invite.teamName}" on Z6Chat</p>
++      </div>
++
++      <div class="invite-code">
++        <p>Your invite code:</p>
++        <div class="code">${invite.inviteCode}</div>
++      </div>
++
++      <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://z6chat.com"}/settings" class="cta-button">
++        Join Team
++      </a>
++    </div>
++  </div>
++</body>
++</html>
++  `
++}
+diff --git a/lib/rate-limiting.ts b/lib/rate-limiting.ts
+new file mode 100644
+index 0000000..6e235da
+--- /dev/null
++++ b/lib/rate-limiting.ts
+@@ -0,0 +1,41 @@
++import { GIFT_PURCHASE_RATE_LIMIT, GIFT_PURCHASE_RATE_WINDOW_MS } from "./constants"
++
++// Simple in-memory rate limiting (in production, use Redis or database)
++const rateLimitStore = new Map<string, { count: number; windowStart: number }>()
++
++export function checkRateLimit(userId: string, action: string): { allowed: boolean; resetTime?: number } {
++  const key = `${userId}:${action}`
++  const now = Date.now()
++  const entry = rateLimitStore.get(key)
++
++  // Clean up expired entries periodically
++  if (Math.random() < 0.01) { // 1% chance to clean up
++    for (const [k, v] of rateLimitStore.entries()) {
++      if (now - v.windowStart > GIFT_PURCHASE_RATE_WINDOW_MS) {
++        rateLimitStore.delete(k)
++      }
++    }
++  }
++
++  if (!entry || now - entry.windowStart > GIFT_PURCHASE_RATE_WINDOW_MS) {
++    // First request or window expired
++    rateLimitStore.set(key, { count: 1, windowStart: now })
++    return { allowed: true }
++  }
++
++  if (entry.count >= GIFT_PURCHASE_RATE_LIMIT) {
++    // Rate limit exceeded
++    const resetTime = entry.windowStart + GIFT_PURCHASE_RATE_WINDOW_MS
++    return { allowed: false, resetTime }
++  }
++
++  // Increment counter
++  entry.count++
++  rateLimitStore.set(key, entry)
++  return { allowed: true }
++}
++
++export function formatRateLimitError(resetTime: number): string {
++  const minutesLeft = Math.ceil((resetTime - Date.now()) / (1000 * 60))
++  return `Rate limit exceeded. Please try again in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}.`
++}
+\ No newline at end of file

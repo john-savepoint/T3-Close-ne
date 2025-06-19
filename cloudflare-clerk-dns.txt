@@ -1,0 +1,16 @@
+; Cloudflare DNS Zone File for z6chat.savepoint.com.au - Clerk Configuration
+; Generated for Clerk DNS integration
+; Import this into Cloudflare DNS management
+
+; Clerk Frontend API
+clerk.z6chat	CNAME	frontend-api.clerk.services.
+
+; Clerk Account Portal
+accounts.z6chat	CNAME	accounts.clerk.services.
+
+; Clerk Email Configuration
+clkmail.z6chat	CNAME	mail.ghy58qnwo07w.clerk.services.
+
+; Clerk DKIM Email Authentication Records
+clk._domainkey.z6chat	CNAME	dkim1.ghy58qnwo07w.clerk.services.
+clk2._domainkey.z6chat	CNAME	dkim2.ghy58qnwo07w.clerk.services.
