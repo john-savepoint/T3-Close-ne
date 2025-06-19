@@ -17,14 +17,21 @@ import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
+import { useModels } from "@/hooks/use-models"
+import { ChatModel } from "@/types/models"
+import { createOpenRouterClient } from "@/lib/openrouter"
+import type { Attachment } from "@/types/attachment"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { useConversationTree } from "@/hooks/use-conversation-tree"
 import { useAuth } from "@/hooks/use-auth"
+import { DEFAULT_MODEL_ID } from "@/lib/default-models"
 
 export function MainContent() {
   const isMobile = useIsMobile()
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const { selectedModel: modelsSelectedModel, setSelectedModel } = useModels()
+  const [estimatedTokens, setEstimatedTokens] = useState(1000)
   const { suggestions } = useMemory()
   const {
     temporaryChat,
@@ -126,7 +133,7 @@ export function MainContent() {
               })),
               { role: "user", content },
             ],
-            model: selectedModel,
+            model: modelsSelectedModel?.id || "openai/gpt-4o-mini",
             temperature,
             // Don't include memory/context if setting is disabled
             includeMemory: settings.includeMemoryInTempChats,
@@ -145,7 +152,7 @@ export function MainContent() {
         const decoder = new TextDecoder()
 
         // Add empty assistant message that we'll update as chunks come in
-        const assistantMessageId = addMessageToTemporaryChat("", "assistant", selectedModel)
+        const assistantMessageId = addMessageToTemporaryChat("", "assistant", modelsSelectedModel?.id || "openai/gpt-4o-mini")
         if (!assistantMessageId) throw new Error("Failed to create assistant message")
 
         while (!abortController.signal.aborted) {
@@ -222,6 +229,15 @@ export function MainContent() {
       await handleSendMessage(`Tool result from ${toolId}: ${result.content}`)
     } else {
       await sendMessage(`Tool result from ${toolId}: ${result.content}`)
+    }
+  }
+
+  const handleMessageSent = async (message: string, modelId: string, attachments: Attachment[]) => {
+    // Delegate to the appropriate chat handler based on mode
+    if (isTemporaryMode) {
+      await handleSendMessage(message, attachments)
+    } else {
+      await sendMessage(message, attachments)
     }
   }
 
@@ -345,6 +361,7 @@ export function MainContent() {
           <div className="sticky bottom-0 bg-gradient-to-t from-mauve-dark to-transparent px-4 pb-4 md:pb-8">
             <ChatInput
               onSendMessage={handleSendMessage}
+              onMessageSent={handleMessageSent}
               isLoading={isTemporaryMode ? isStreaming : isLoading}
               onStopGeneration={stopStreaming}
               selectedModel={selectedModel}
@@ -379,14 +396,6 @@ export function MainContent() {
             onBranchRename={renameBranch}
           />
         </div>
-
-        {/* Enhanced Model Switcher Dialog */}
-        <EnhancedModelSwitcher
-          isOpen={isModelSwitcherOpen}
-          onClose={closeModelSwitcher}
-          onModelChange={(model: string) => changeModel(model as any)}
-          selectedModel={selectedModel}
-        />
       </div>
     </main>
   )

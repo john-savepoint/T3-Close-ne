@@ -21,6 +21,12 @@ import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { Textarea } from "@/components/ui/textarea"
 import type { Attachment } from "@/types/attachment"
+import dynamic from "next/dynamic"
+import { sanitizeSVG } from "@/lib/content-sanitizer"
+import { CodeCanvas } from "@/components/code-canvas"
+
+// Dynamic import for Mermaid to avoid SSR issues
+const Mermaid = dynamic(() => import("@/components/ui/mermaid"), { ssr: false })
 
 interface ChatMessageProps {
   id: string
@@ -133,12 +139,27 @@ export function ChatMessage({
         })
       }
 
-      // Add code block
-      blocks.push({
-        type: "code",
-        language: match[1] || "text",
-        content: match[2].trim(),
-      })
+      // Check if it's a mermaid diagram or SVG
+      const language = match[1] || "text"
+      const content = match[2].trim()
+
+      if (language.toLowerCase() === "mermaid") {
+        blocks.push({
+          type: "mermaid",
+          content: content,
+        })
+      } else if (language.toLowerCase() === "svg") {
+        blocks.push({
+          type: "svg",
+          content: sanitizeSVG(content),
+        })
+      } else {
+        blocks.push({
+          type: "code",
+          language: language,
+          content: content,
+        })
+      }
 
       lastIndex = match.index + match[0].length
     }
@@ -261,13 +282,22 @@ export function ChatMessage({
               <div key={index}>
                 {block.type === "text" ? (
                   <div className="whitespace-pre-wrap text-sm text-foreground">{block.content}</div>
+                ) : block.type === "mermaid" ? (
+                  <div className="my-4 overflow-x-auto rounded-lg border border-mauve-dark/50 bg-mauve-dark/20 p-4">
+                    <Mermaid code={block.content} className="min-w-0" />
+                  </div>
+                ) : block.type === "svg" ? (
+                  <div className="my-4 overflow-x-auto rounded-lg border border-mauve-dark/50 bg-mauve-dark/20 p-4">
+                    <div
+                      className="flex justify-center"
+                      dangerouslySetInnerHTML={{ __html: block.content }}
+                    />
+                  </div>
                 ) : (
-                  <CodeBlockEnhanced
+                  <CodeCanvas
                     code={block.content}
-                    language={block.language}
-                    showLineNumbers={true}
-                    showActions={true}
-                    maxHeight="500px"
+                    language={block.language || "text"}
+                    title={block.language || "text"}
                   />
                 )}
               </div>

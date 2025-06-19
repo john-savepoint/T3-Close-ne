@@ -1,4 +1,4 @@
-import { query, mutation } from "./_generated/server"
+import { query, mutation, internalMutation } from "./_generated/server"
 import { v } from "convex/values"
 
 export const list = query({
@@ -394,5 +394,61 @@ export const createFromTemporary = mutation({
     }
 
     return chatId
+  },
+})
+
+// Internal mutation for auto-purging trashed chats older than 30 days
+// This is called by the daily cron job
+export const autoPurgeTrashedChats = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000
+
+    // Find all trashed chats older than 30 days
+    const trashedChats = await ctx.db
+      .query("chats")
+      .withIndex("by_status", (q) => q.eq("status", "trashed"))
+      .filter((q) => q.lt(q.field("statusChangedAt"), thirtyDaysAgo))
+      .collect()
+
+    if (trashedChats.length === 0) {
+      console.log("Auto-purge: No trashed chats older than 30 days found")
+      return { purgedCount: 0, chatIds: [] }
+    }
+
+    console.log(`Auto-purge: Found ${trashedChats.length} chats to purge`)
+
+    // Delete all messages for these chats
+    const deletePromises = trashedChats.map(async (chat) => {
+      // Delete all messages in the chat
+      const messages = await ctx.db
+        .query("messages")
+        .withIndex("by_chat", (q) => q.eq("chatId", chat._id))
+        .collect()
+
+      await Promise.all(messages.map((message) => ctx.db.delete(message._id)))
+
+      // Delete chat shares
+      const chatShares = await ctx.db
+        .query("chatShares")
+        .withIndex("by_chat", (q) => q.eq("chatId", chat._id))
+        .collect()
+
+      await Promise.all(chatShares.map((share) => ctx.db.delete(share._id)))
+
+      // Delete the chat itself
+      await ctx.db.delete(chat._id)
+
+      return chat._id
+    })
+
+    const purgedChatIds = await Promise.all(deletePromises)
+
+    console.log(`Auto-purge: Successfully purged ${purgedChatIds.length} chats`)
+
+    return {
+      purgedCount: purgedChatIds.length,
+      chatIds: purgedChatIds,
+    }
   },
 })
