@@ -4,7 +4,7 @@ import "./globals.css"
 import { ConvexClientProvider } from "@/components/convex-client-provider"
 import { AuthErrorBoundary } from "@/components/auth-error-boundary"
 import { ThemeProvider } from "@/components/theme-provider"
-import { ToastProvider } from "@/components/toast-provider"
+import { validateClerkConfig } from "@/lib/clerk-config"
 
 export const metadata: Metadata = {
   title: "Z6Chat - AI-Powered Conversations",
@@ -16,18 +16,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Validate Clerk configuration on app start
+  try {
+    validateClerkConfig()
+  } catch (error) {
+    console.error('Clerk configuration error:', error)
+    // The error will be caught by AuthErrorBoundary
+    throw error
+  }
+
   return (
-<<<<<<< HEAD
-    <html lang="en">
-      <body className="bg-slate-950">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <AuthProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </body>
-    </html>
-=======
     <AuthErrorBoundary>
       {/* @ts-expect-error Server Component - React 19 compatibility */}
       <ClerkProvider>
@@ -40,6 +38,5 @@ export default function RootLayout({
         </html>
       </ClerkProvider>
     </AuthErrorBoundary>
->>>>>>> 528abe5 (feat(auth): complete Convex Auth to Clerk migration with production-ready implementation)
   )
 }

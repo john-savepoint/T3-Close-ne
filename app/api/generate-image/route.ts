@@ -4,10 +4,14 @@ import OpenAI from "openai"
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
+    // Check authentication with detailed error response
     const { userId } = await auth()
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ 
+        error: "Authentication required",
+        message: "Please sign in to generate images",
+        code: "AUTH_REQUIRED"
+      }, { status: 401 })
     }
 
     // Check for API key before initializing OpenAI client

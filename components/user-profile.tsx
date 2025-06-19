@@ -13,22 +13,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LogOut, Settings, User } from "lucide-react"
 import Link from "next/link"
+import { UserProfileSkeleton } from "@/components/skeletons/user-profile-skeleton"
 
 export function UserProfile() {
   const { isLoaded, isSignedIn, user } = useUser()
   const { signOut } = useClerk()
 
-  // Show loading state while Clerk is loading
+  // Show skeleton loading state while Clerk is loading
   if (!isLoaded) {
-    return (
-      <div className="flex items-center gap-3 p-2">
-        <div className="h-8 w-8 rounded-full bg-slate-700 animate-pulse" />
-        <div className="flex flex-col gap-1">
-          <div className="h-4 w-20 bg-slate-700 animate-pulse rounded" />
-          <div className="h-3 w-12 bg-slate-700 animate-pulse rounded" />
-        </div>
-      </div>
-    )
+    return <UserProfileSkeleton />
   }
 
   if (!isSignedIn || !user) {
