@@ -162,13 +162,20 @@ export function Sidebar() {
   })
 
   // Filter chats based on search query
-  const filteredChats = activeChats.filter((chat) =>
+  const filteredActiveChats = activeChats.filter((chat) =>
     chat.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  // Filter archived chats for search results
+  const filteredArchivedChats = searchQuery
+    ? archivedChatsData.filter((chat) =>
+        chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : []
+
   // Group chats by time periods
   const { pinnedThreads, todayThreads, yesterdayThreads, thisWeekThreads, olderThreads } =
-    groupChatsByTime(filteredChats)
+    groupChatsByTime(filteredActiveChats)
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
@@ -370,11 +377,36 @@ export function Sidebar() {
                       </>
                     )}
 
-                    {filteredChats.length === 0 && !chatsLoading && (
-                      <div className="px-3 py-8 text-center text-sm text-mauve-subtle">
-                        {searchQuery ? "No chats found" : "No chats yet. Create your first chat!"}
-                      </div>
+                    {/* Archived Search Results */}
+                    {searchQuery && filteredArchivedChats.length > 0 && (
+                      <>
+                        <Separator className="my-3 bg-mauve-dark" />
+                        <GroupLabel label="Archived Results" />
+                        {filteredArchivedChats.map((thread) => (
+                          <div key={thread._id} className="relative">
+                            <ThreadItem
+                              chat={thread}
+                              onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                              onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                            />
+                            <Badge
+                              variant="outline"
+                              className="absolute right-2 top-2 border-blue-500/50 bg-blue-500/10 text-xs text-blue-400"
+                            >
+                              Archived
+                            </Badge>
+                          </div>
+                        ))}
+                      </>
                     )}
+
+                    {filteredActiveChats.length === 0 &&
+                      filteredArchivedChats.length === 0 &&
+                      !chatsLoading && (
+                        <div className="px-3 py-8 text-center text-sm text-mauve-subtle">
+                          {searchQuery ? "No chats found" : "No chats yet. Create your first chat!"}
+                        </div>
+                      )}
                   </>
                 )}
               </div>
