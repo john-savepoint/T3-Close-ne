@@ -40,7 +40,7 @@ export default function TestChatPage() {
   }
 
   const handleModelChange = (model: string | import("@/types/models").ChatModel) => {
-    const modelId = typeof model === 'string' ? model : model.id
+    const modelId = typeof model === "string" ? model : model.id
     setModel(modelId as any)
   }
 

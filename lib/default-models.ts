@@ -77,5 +77,5 @@ export const DEFAULT_MODEL_ID = "openai/gpt-4o-mini"
 
 export const getModelById = (id: string | null | undefined): ChatModel => {
   if (!id) return getDefaultModel()
-  return DEFAULT_MODELS.find(model => model.id === id) || getDefaultModel()
+  return DEFAULT_MODELS.find((model) => model.id === id) || getDefaultModel()
 }

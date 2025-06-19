@@ -5,6 +5,7 @@ This document provides comprehensive information about how different LLM provide
 ## Overview
 
 Tokens are the basic units that AI models use to process text. They can be words, parts of words, or even individual characters, depending on the model's tokenization scheme. Understanding token counting is crucial for:
+
 - Cost estimation (as usage is priced by token)
 - Staying within model context limits
 - Optimizing prompt efficiency
@@ -16,6 +17,7 @@ Tokens are the basic units that AI models use to process text. They can be words
 **Tokenizer**: Tiktoken (open-source BPE tokenizer)
 
 **Encoding Types**:
+
 - `o200k_base`: GPT-4o, GPT-4o-mini
 - `cl100k_base`: GPT-4-turbo, GPT-4, GPT-3.5-turbo
 - `p50k_base`: Codex models, text-davinci-002/003
@@ -24,6 +26,7 @@ Tokens are the basic units that AI models use to process text. They can be words
 **Character-to-Token Ratio**: ~4 characters per token (English)
 
 **Key Points**:
+
 - Punctuation marks count as 1 token each
 - Special characters: 1-3 tokens
 - Emojis: 2-3 tokens
@@ -36,6 +39,7 @@ Tokens are the basic units that AI models use to process text. They can be words
 **Character-to-Token Ratio**: ~2.5 characters per token
 
 **Key Points**:
+
 - No public tokenizer available
 - Must use official API endpoint for accurate counting
 - API tokens = text tokens + 3 (for start/end tokens)
@@ -48,6 +52,7 @@ Tokens are the basic units that AI models use to process text. They can be words
 **Character-to-Token Ratio**: ~4 characters per token
 
 **Key Points**:
+
 - 100 tokens ≈ 60-80 English words
 - Audio content: ~32 tokens per second
 - Count Tokens API available with no charge
@@ -58,10 +63,12 @@ Tokens are the basic units that AI models use to process text. They can be words
 **Tokenizer**: Custom tokenizer with 128,000 token vocabulary
 
 **Character-to-Token Ratios**:
+
 - English: ~4 characters per token
 - Chinese: ~1.67 characters per token
 
 **Key Points**:
+
 - 100-word English sentence ≈ 133 tokens
 - 100-character Chinese sentence ≈ 60 tokens
 - Actual tokens determined by model processing
@@ -73,6 +80,7 @@ Tokens are the basic units that AI models use to process text. They can be words
 **Character-to-Token Ratio**: ~3.75 characters per token
 
 **Key Points**:
+
 - 1 million tokens ≈ 750,000 words
 - Context windows: 128K tokens (Grok-1.5), 1M tokens (Grok-3)
 - Common words are single tokens
@@ -85,6 +93,7 @@ Tokens are the basic units that AI models use to process text. They can be words
 **Character-to-Token Ratio**: ~4 characters per token
 
 **Key Points**:
+
 - More efficient than Llama 2's SentencePiece tokenizer
 - Particularly efficient for code tokenization
 - Special tokens for conversation structure
@@ -97,6 +106,7 @@ Tokens are the basic units that AI models use to process text. They can be words
 **Character-to-Token Ratio**: ~4 characters per token (English)
 
 **Key Points**:
+
 - 30% more efficient for non-English European languages
 - 2-3x more efficient for Korean and Arabic
 - Byte-fallback BPE prevents out-of-vocabulary tokens
@@ -119,24 +129,27 @@ const PROVIDER_TOKEN_RATIOS = {
   mistral: 4.0,
   mistralai: 4.0,
   // Default fallback
-  default: 4.0
+  default: 4.0,
 }
 ```
 
 ## Best Practices for Token Counting
 
 1. **Use Official Tools When Available**:
+
    - OpenAI: Tiktoken library
    - Anthropic: Count tokens API endpoint
    - Google: CountTokens API
    - DeepSeek: Official tokenizer package
 
 2. **Consider Language Differences**:
+
    - Non-English text often uses more tokens
    - Chinese/Japanese/Korean can vary significantly
    - Code tokenization differs from natural language
 
 3. **Account for Special Formatting**:
+
    - Chat messages have token overhead
    - System prompts add tokens
    - Function/tool definitions consume tokens

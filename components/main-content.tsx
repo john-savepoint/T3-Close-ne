@@ -152,7 +152,11 @@ export function MainContent() {
         const decoder = new TextDecoder()
 
         // Add empty assistant message that we'll update as chunks come in
-        const assistantMessageId = addMessageToTemporaryChat("", "assistant", modelsSelectedModel?.id || "openai/gpt-4o-mini")
+        const assistantMessageId = addMessageToTemporaryChat(
+          "",
+          "assistant",
+          modelsSelectedModel?.id || "openai/gpt-4o-mini"
+        )
         if (!assistantMessageId) throw new Error("Failed to create assistant message")
 
         while (!abortController.signal.aborted) {
@@ -252,7 +256,6 @@ export function MainContent() {
         {/* Context Indicators */}
         {isTemporaryMode ? <TemporaryChatBanner /> : <ProjectContextIndicator />}
         {!isTemporaryMode && <MemoryContextIndicator />}
-
 
         {/* Content wrapper */}
         <div className="relative flex flex-1 flex-col overflow-y-auto">

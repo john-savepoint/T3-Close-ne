@@ -61,11 +61,7 @@ export class ModelErrorBoundary extends React.Component<
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Try Again
               </Button>
-              <Button
-                onClick={() => window.location.reload()}
-                variant="outline"
-                className="w-full"
-              >
+              <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
                 Reload Page
               </Button>
             </div>
@@ -74,9 +70,7 @@ export class ModelErrorBoundary extends React.Component<
                 <summary className="cursor-pointer text-xs text-muted-foreground">
                   Error Details
                 </summary>
-                <pre className="mt-2 rounded bg-muted p-2 text-xs">
-                  {this.state.error.message}
-                </pre>
+                <pre className="mt-2 rounded bg-muted p-2 text-xs">{this.state.error.message}</pre>
               </details>
             )}
           </CardContent>
