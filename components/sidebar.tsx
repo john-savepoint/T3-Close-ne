@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Search, Trash2, Menu, EyeOff, Plus, Gift, Archive } from "lucide-react"
-import { T3Logo } from "@/components/t3-logo"
+import { Search, Trash2, Menu, EyeOff, Plus, Gift, Archive, X } from "lucide-react"
+import { Z6Logo } from "@/components/z6-logo"
 import { useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ProjectList } from "@/components/project-list"
@@ -137,6 +137,13 @@ export function Sidebar() {
   const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
   const { archivedChats, trashedChats } = useChatLifecycle()
   const { user } = useAuth()
+  const [showGiftButton, setShowGiftButton] = useState(() => {
+    // Check localStorage to see if user has dismissed the gift button
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("hideGiftButton") !== "true"
+    }
+    return true
+  })
 
   // Get archived and trashed chat counts
   const { chats: archivedChatsData } = useChats({
@@ -212,6 +219,13 @@ export function Sidebar() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [startTemporaryChat])
 
+  const dismissGiftButton = () => {
+    setShowGiftButton(false)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("hideGiftButton", "true")
+    }
+  }
+
   // For mobile: collapsed sidebar unless opened
   // For desktop: always show sidebar
   const showSidebar = !isMobile || isOpen
@@ -236,7 +250,7 @@ export function Sidebar() {
           {/* Header */}
           <div className="flex flex-col space-y-2 pb-2">
             <div className="px-2 py-1">
-              <T3Logo className="h-6 text-foreground" />
+              <Z6Logo className="h-6 text-foreground" />
             </div>
 
             {/* Chat Creation Buttons */}
@@ -253,24 +267,47 @@ export function Sidebar() {
 
               <Button
                 variant="outline"
-                className="w-full justify-center border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
-                onClick={startTemporaryChat}
+                className={`w-full justify-center border-orange-500/50 ${
+                  isTemporaryMode
+                    ? "bg-orange-500/30 text-orange-300 ring-2 ring-orange-500/50"
+                    : "bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
+                }`}
+                onClick={() => {
+                  if (!isTemporaryMode) {
+                    startTemporaryChat()
+                    // Navigate to main page to see the temporary chat
+                    router.push("/")
+                  }
+                }}
+                disabled={isTemporaryMode}
               >
                 <EyeOff className="mr-2 h-4 w-4" />
-                Temporary Chat
+                {isTemporaryMode ? "In Temporary Mode" : "Temporary Chat"}
               </Button>
 
-              <GiftPurchaseModal
-                trigger={
+              {showGiftButton && (
+                <div className="relative">
+                  <GiftPurchaseModal
+                    trigger={
+                      <Button
+                        variant="outline"
+                        className="w-full justify-center border-pink-500/50 bg-gradient-to-r from-pink-500/10 to-purple-600/10 text-pink-400 hover:from-pink-500/20 hover:to-purple-600/20"
+                      >
+                        <Gift className="mr-2 h-4 w-4" />
+                        Gift Z6Chat Pro
+                      </Button>
+                    }
+                  />
                   <Button
-                    variant="outline"
-                    className="w-full justify-center border-pink-500/50 bg-gradient-to-r from-pink-500/10 to-purple-600/10 text-pink-400 hover:from-pink-500/20 hover:to-purple-600/20"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute -right-1 -top-1 h-5 w-5 rounded-full bg-mauve-surface hover:bg-mauve-surface/80"
+                    onClick={dismissGiftButton}
                   >
-                    <Gift className="mr-2 h-4 w-4" />
-                    Gift T3Chat Pro
+                    <X className="h-3 w-3" />
                   </Button>
-                }
-              />
+                </div>
+              )}
             </div>
 
             <div className="relative">

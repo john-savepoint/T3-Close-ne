@@ -1,9 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useConvexAuth, useMutation, useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
 import type { Project, CreateProjectData, ProjectAttachment } from "@/types/project"
+import type { Id } from "@/convex/_generated/dataModel"
 
-// Mock data for demonstration
+// Mock data for demonstration - will be replaced with real data
 const mockProjects: Project[] = [
   {
     id: "proj-1",
@@ -123,97 +126,122 @@ const mockProjects: Project[] = [
 ]
 
 export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>(mockProjects)
+  const { isAuthenticated } = useConvexAuth()
+  const convexProjects = useQuery(api.projects.getUserProjects, isAuthenticated ? {} : "skip")
+  const createProjectMutation = useMutation(api.projects.createProject)
+  const updateProjectMutation = useMutation(api.projects.updateProject)
+  const deleteProjectMutation = useMutation(api.projects.deleteProject)
+  const addAttachmentMutation = useMutation(api.projects.addAttachmentToProject)
+  const removeAttachmentMutation = useMutation(api.projects.removeAttachmentFromProject)
+
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  // Use Convex data if available, otherwise fall back to mock data
+  const projects = convexProjects || []
   const activeProject = projects.find((p) => p.id === activeProjectId)
 
   const createProject = async (data: CreateProjectData): Promise<Project> => {
     setLoading(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    try {
+      const projectId = await createProjectMutation({
+        name: data.name,
+        systemPrompt: data.systemPrompt,
+        parentProjectId: data.parentProjectId as Id<"projects"> | undefined,
+      })
 
-    const newProject: Project = {
-      id: `proj-${Date.now()}`,
-      name: data.name,
-      systemPrompt: data.systemPrompt,
-      parentProjectId: data.parentProjectId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      attachments: [],
-      chats: [],
+      // Return a temporary project object - the real data will come from the query
+      const newProject: Project = {
+        id: projectId,
+        name: data.name,
+        systemPrompt: data.systemPrompt,
+        parentProjectId: data.parentProjectId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        attachments: [],
+        chats: [],
+      }
+
+      setLoading(false)
+      return newProject
+    } catch (error) {
+      console.error("Failed to create project:", error)
+      setLoading(false)
+      throw error
     }
-
-    setProjects((prev) => [...prev, newProject])
-    setLoading(false)
-
-    return newProject
   }
 
   const updateProject = async (id: string, updates: Partial<Project>): Promise<void> => {
     setLoading(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    try {
+      await updateProjectMutation({
+        id: id as Id<"projects">,
+        name: updates.name,
+        systemPrompt: updates.systemPrompt,
+      })
 
-    setProjects((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates, updatedAt: new Date() } : p))
-    )
-
-    setLoading(false)
+      setLoading(false)
+    } catch (error) {
+      console.error("Failed to update project:", error)
+      setLoading(false)
+      throw error
+    }
   }
 
   const deleteProject = async (id: string): Promise<void> => {
     setLoading(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    try {
+      await deleteProjectMutation({
+        id: id as Id<"projects">,
+      })
 
-    setProjects((prev) => prev.filter((p) => p.id !== id))
+      if (activeProjectId === id) {
+        setActiveProjectId(null)
+      }
 
-    if (activeProjectId === id) {
-      setActiveProjectId(null)
+      setLoading(false)
+    } catch (error) {
+      console.error("Failed to delete project:", error)
+      setLoading(false)
+      throw error
     }
-
-    setLoading(false)
   }
 
   const addAttachmentToProject = async (
     projectId: string,
     attachment: Omit<ProjectAttachment, "id" | "projectId">
   ): Promise<void> => {
-    const newAttachment: ProjectAttachment = {
-      id: `att-${Date.now()}`,
-      projectId,
-      ...attachment,
+    try {
+      await addAttachmentMutation({
+        projectId: projectId as Id<"projects">,
+        attachmentId: attachment.attachmentId as Id<"attachments">,
+        name: attachment.name,
+        type: attachment.type,
+        size: attachment.size,
+        content: attachment.content,
+      })
+    } catch (error) {
+      console.error("Failed to add attachment to project:", error)
+      throw error
     }
-
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === projectId
-          ? { ...p, attachments: [...p.attachments, newAttachment], updatedAt: new Date() }
-          : p
-      )
-    )
   }
 
   const removeAttachmentFromProject = async (
     projectId: string,
     attachmentId: string
   ): Promise<void> => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === projectId
-          ? {
-              ...p,
-              attachments: p.attachments.filter((a) => a.id !== attachmentId),
-              updatedAt: new Date(),
-            }
-          : p
-      )
-    )
+    try {
+      await removeAttachmentMutation({
+        projectId: projectId as Id<"projects">,
+        attachmentId: attachmentId as Id<"projectAttachments">,
+      })
+    } catch (error) {
+      console.error("Failed to remove attachment from project:", error)
+      throw error
+    }
   }
 
   return {

@@ -1,5 +1,23 @@
 # z6chat
 
+## Unreleased
+
+### Branch: fix/ui-implementation-issues
+
+#### Fixes
+
+- fix(ui): fix projects dropdown where Add Project button disappears when expanded
+- fix(projects): implement real Convex functions for projects instead of mock data
+- fix(logo): replace T3 logo with new Z6 Chat SVG logo
+- fix(ui): add dismiss functionality to Gift button with localStorage persistence
+- fix(ui): remove unnecessary quick prompts from main content area
+- fix(ui): improve temporary chat UX with visual indicators and navigation
+
+#### Features
+
+- feat(projects): add Convex backend functions for project management
+- feat(ui): create modern Z6 Chat logo with gradient design
+
 ## 0.3.1
 
 ### Patch Changes

@@ -67,8 +67,8 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
   return (
     <div className="space-y-2">
       {/* Projects Section Header */}
-      <Collapsible open={isProjectsExpanded} onOpenChange={setIsProjectsExpanded}>
-        <div className="flex items-center justify-between px-3 py-2">
+      <div className="flex items-center justify-between px-3 py-2">
+        <Collapsible open={isProjectsExpanded} onOpenChange={setIsProjectsExpanded}>
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
@@ -83,16 +83,18 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
               Projects
             </Button>
           </CollapsibleTrigger>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={() => setIsCreateModalOpen(true)}
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-        </div>
+        </Collapsible>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6"
+          onClick={() => setIsCreateModalOpen(true)}
+        >
+          <Plus className="h-3 w-3" />
+        </Button>
+      </div>
 
+      <Collapsible open={isProjectsExpanded} onOpenChange={setIsProjectsExpanded}>
         <CollapsibleContent className="space-y-1">
           {projects.length === 0 ? (
             <div className="px-3 py-2 text-sm text-mauve-subtle/70">

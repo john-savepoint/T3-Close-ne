@@ -234,9 +234,9 @@ export function MainContent() {
         <div className="noise-bg absolute inset-0 rounded-tl-xl opacity-20 mix-blend-overlay"></div>
 
         {/* Context Indicators */}
-        {isTemporaryMode ? <TemporaryChatBanner /> : <ProjectContextIndicator />}
+        {isTemporaryMode && <TemporaryChatBanner />}
+        {!isTemporaryMode && <ProjectContextIndicator />}
         {!isTemporaryMode && <MemoryContextIndicator />}
-
 
         {/* Content wrapper */}
         <div className="relative flex flex-1 flex-col overflow-y-auto">
@@ -264,43 +264,6 @@ export function MainContent() {
                   <TemporaryChatStarter />
                 </div>
               )}
-
-              {/* Quick Start Prompts */}
-              <div className="mx-auto flex w-full max-w-2xl flex-col space-y-2">
-                <div className="mb-2 text-sm text-mauve-subtle/60">Or try these quick prompts:</div>
-                <Button
-                  variant="ghost"
-                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
-                  onClick={() => handleSendMessage("How does AI work?")}
-                  disabled={isTemporaryMode ? isStreaming : isLoading}
-                >
-                  How does AI work?
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
-                  onClick={() => handleSendMessage("Are black holes real?")}
-                  disabled={isTemporaryMode ? isStreaming : isLoading}
-                >
-                  Are black holes real?
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
-                  onClick={() => handleSendMessage('How many Rs are in the word "strawberry"?')}
-                  disabled={isTemporaryMode ? isStreaming : isLoading}
-                >
-                  How many Rs are in the word "strawberry"?
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
-                  onClick={() => handleSendMessage("What is the meaning of life?")}
-                  disabled={isTemporaryMode ? isStreaming : isLoading}
-                >
-                  What is the meaning of life?
-                </Button>
-              </div>
             </div>
           ) : (
             // Chat messages
