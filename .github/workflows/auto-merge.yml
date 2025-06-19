@@ -30,3 +30,24 @@ jobs:
           MERGE_RETRY_SLEEP: 10000
           UPDATE_LABELS: "auto-merge"
           UPDATE_METHOD: "rebase"
+
+  auto-merge-dependabot:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@v2
+        
+      - name: Auto-merge minor/patch updates
+        if: |
+          steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor' ||
+          steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

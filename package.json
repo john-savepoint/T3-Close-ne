@@ -88,6 +88,7 @@
     "date-fns": "latest",
     "embla-carousel-react": "8.5.1",
     "input-otp": "1.4.1",
+    "isomorphic-dompurify": "^2.25.0",
     "jose": "^6.0.11",
     "lucide-react": "^0.454.0",
     "mermaid": "^11.6.0",
