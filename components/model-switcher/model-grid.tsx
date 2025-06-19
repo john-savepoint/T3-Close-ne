@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { ChatModel } from "@/types/models"
 import { ModelCard } from "./model-card"
 import { MODEL_UI_CONSTANTS } from "@/lib/model-utils"
+import { ModelGridSkeleton } from "./model-grid-skeleton"
 
 interface ModelGridProps {
   models: ChatModel[]
@@ -19,6 +20,7 @@ interface ModelGridProps {
   isInComparison?: (modelId: string) => boolean
   showCost?: boolean
   estimatedTokens?: number
+  isLoading?: boolean
 }
 
 export function ModelGrid({
@@ -32,6 +34,7 @@ export function ModelGrid({
   isInComparison,
   showCost = true,
   estimatedTokens,
+  isLoading = false,
 }: ModelGridProps) {
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -50,6 +53,11 @@ export function ModelGrid({
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)))
+  }
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <ModelGridSkeleton itemCount={MODEL_UI_CONSTANTS.ITEMS_PER_PAGE} />
   }
 
   return (

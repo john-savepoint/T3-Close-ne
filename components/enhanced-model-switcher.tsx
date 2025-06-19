@@ -24,6 +24,8 @@ import { ModelFilters } from "@/components/model-switcher/model-filters"
 import { ModelGrid } from "@/components/model-switcher/model-grid"
 import { ModelComparison } from "@/components/model-switcher/model-comparison"
 import { CostEstimation } from "@/components/model-switcher/cost-estimation"
+import { estimateTokens } from "@/lib/token-utils"
+import { filterAndSortModels } from "@/lib/filter-utils"
 
 // Custom debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -96,58 +98,23 @@ export function EnhancedModelSwitcher({
     }
   }, [models])
 
-  // Apply all filters using the state from useModelFilters
+  // Apply all filters using the state from useModelFilters - optimized single pass
   const displayModels = useMemo(() => {
-    let filtered = filteredModels.length > 0 ? filteredModels : models
+    const baseModels = filteredModels.length > 0 ? filteredModels : models
 
-    // Search filter
-    if (debouncedSearchQuery) {
-      filtered = filtered.filter(
-        (model) =>
-          model.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-          model.provider.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-          model.description?.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-      )
-    }
+    // Convert favorites to Set for O(1) lookup
+    const favoritesSet = filtersState.showFavoritesOnly
+      ? new Set(getFavoriteModels(baseModels).map((m) => m.id))
+      : undefined
 
-    // Provider filter
-    if (filtersState.selectedProvider !== "all") {
-      filtered = filtered.filter((model) => model.provider === filtersState.selectedProvider)
-    }
-
-    // Price range filter
-    const [minPrice, maxPrice] = filtersState.priceRange
-    filtered = filtered.filter((model) => {
-      const avgCost = (model.costPer1kTokens.input + model.costPer1kTokens.output) / 2
-      return avgCost >= minPrice && avgCost <= maxPrice
-    })
-
-    // Context length filter
-    if (filtersState.minContextLength > 0) {
-      filtered = filtered.filter((model) => model.maxTokens >= filtersState.minContextLength)
-    }
-
-    // Vision models filter
-    if (filtersState.showImageModels) {
-      filtered = filtered.filter((model) => model.architecture?.input_modalities?.includes("image"))
-    }
-
-    // Favorites filter
-    if (filtersState.showFavoritesOnly) {
-      filtered = getFavoriteModels(filtered)
-    }
-
-    // Sort by category and name
-    return filtered.sort((a, b) => {
-      const categoryOrder = { fast: 0, balanced: 1, heavy: 2 }
-      const aCat = getModelCategory(a)
-      const bCat = getModelCategory(b)
-
-      if (aCat !== bCat) {
-        return categoryOrder[aCat] - categoryOrder[bCat]
-      }
-
-      return a.name.localeCompare(b.name)
+    return filterAndSortModels(baseModels, {
+      searchQuery: debouncedSearchQuery,
+      selectedProvider: filtersState.selectedProvider,
+      priceRange: filtersState.priceRange,
+      minContextLength: filtersState.minContextLength,
+      showImageModels: filtersState.showImageModels,
+      favoritesSet,
+      showFavoritesOnly: filtersState.showFavoritesOnly,
     })
   }, [filteredModels, models, debouncedSearchQuery, filtersState, getFavoriteModels])
 
@@ -266,6 +233,7 @@ export function EnhancedModelSwitcher({
                   isInComparison={(modelId) => filtersState.compareModels.includes(modelId)}
                   showCost={showCost}
                   estimatedTokens={estimatedTokens}
+                  isLoading={loading}
                 />
               </TabsContent>
 

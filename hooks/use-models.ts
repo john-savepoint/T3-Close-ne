@@ -38,6 +38,67 @@ interface UseModelsReturn {
 
 const OPENROUTER_API_BASE = "https://openrouter.ai/api/v1"
 
+// Cache configuration
+const CACHE_CONFIG = {
+  TTL: 5 * 60 * 1000, // 5 minutes
+  KEY: "z6chat_models_cache",
+  VERSION: "1.0", // Increment to invalidate old cache
+}
+
+interface CachedModels {
+  data: ChatModel[]
+  timestamp: number
+  version: string
+}
+
+function getCachedModels(): ChatModel[] | null {
+  try {
+    const cached = localStorage.getItem(CACHE_CONFIG.KEY)
+    if (!cached) return null
+
+    const parsedCache: CachedModels = JSON.parse(cached)
+
+    // Check version
+    if (parsedCache.version !== CACHE_CONFIG.VERSION) {
+      localStorage.removeItem(CACHE_CONFIG.KEY)
+      return null
+    }
+
+    // Check TTL
+    const age = Date.now() - parsedCache.timestamp
+    if (age > CACHE_CONFIG.TTL) {
+      localStorage.removeItem(CACHE_CONFIG.KEY)
+      return null
+    }
+
+    return parsedCache.data
+  } catch (error) {
+    console.warn("Failed to read models cache:", error)
+    return null
+  }
+}
+
+function setCachedModels(models: ChatModel[]): void {
+  try {
+    const cache: CachedModels = {
+      data: models,
+      timestamp: Date.now(),
+      version: CACHE_CONFIG.VERSION,
+    }
+    localStorage.setItem(CACHE_CONFIG.KEY, JSON.stringify(cache))
+  } catch (error) {
+    console.warn("Failed to cache models:", error)
+  }
+}
+
+function clearModelsCache(): void {
+  try {
+    localStorage.removeItem(CACHE_CONFIG.KEY)
+  } catch (error) {
+    console.warn("Failed to clear models cache:", error)
+  }
+}
+
 function convertOpenRouterModel(orModel: OpenRouterModel): ChatModel {
   const promptPrice = parseFloat(orModel.pricing.prompt) * 1000 // Convert to per 1k tokens
   const completionPrice = parseFloat(orModel.pricing.completion) * 1000
@@ -59,7 +120,6 @@ function convertOpenRouterModel(orModel: OpenRouterModel): ChatModel {
   }
 }
 
-
 function createError(type: ModelError["type"], message: string, statusCode?: number): ModelError {
   const retryable = type === "network" || type === "ratelimit" || type === "unknown"
   return { type, message, retryable, statusCode }
@@ -74,11 +134,29 @@ export function useModels(): UseModelsReturn {
   const [retryCount, setRetryCount] = useState(0)
 
   const fetchModels = useCallback(
-    async (attempt: number = 0): Promise<void> => {
+    async (attempt: number = 0, forceRefresh: boolean = false): Promise<void> => {
       setLoading(true)
       if (attempt === 0) {
         setError(null)
         setRetryCount(0)
+
+        // Check cache first unless force refresh
+        if (!forceRefresh) {
+          const cachedModels = getCachedModels()
+          if (cachedModels && cachedModels.length > 0) {
+            setModels(cachedModels)
+            setLoading(false)
+
+            // Set default selected model if none selected
+            if (!selectedModel && cachedModels.length > 0) {
+              const defaultModel =
+                cachedModels.find((m: ChatModel) => m.id === "openai/gpt-4o-mini") ||
+                cachedModels[0]
+              setSelectedModel(defaultModel)
+            }
+            return
+          }
+        }
       }
 
       try {
@@ -125,6 +203,9 @@ export function useModels(): UseModelsReturn {
         setModels(sortedModels)
         setRetryCount(0) // Reset retry count on success
 
+        // Cache the models
+        setCachedModels(sortedModels)
+
         // Set default selected model if none selected
         if (!selectedModel && sortedModels.length > 0) {
           const defaultModel =
@@ -160,7 +241,7 @@ export function useModels(): UseModelsReturn {
 
         setError(modelError)
         console.error("Error fetching models:", err)
-        
+
         // Fallback to default models if all retries failed
         if (attempt >= MODEL_CONFIG.MAX_RETRIES) {
           console.warn("Using default models as fallback")
@@ -250,11 +331,21 @@ export function useModels(): UseModelsReturn {
     }
   }, [fetchModels])
 
+  const refetch = useCallback(
+    async (forceRefresh: boolean = true) => {
+      if (forceRefresh) {
+        clearModelsCache()
+      }
+      return fetchModels(0, forceRefresh)
+    },
+    [fetchModels]
+  )
+
   return {
     models,
     loading,
     error,
-    refetch: fetchModels,
+    refetch,
     filter,
     filteredModels,
     selectedModel,

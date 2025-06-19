@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Search, Star } from "lucide-react"
+import { sanitizeSearchQuery } from "@/lib/sanitize"
 
 interface ModelFiltersProps {
   searchQuery: string
@@ -43,8 +44,9 @@ export function ModelFilters({
         <Input
           placeholder="Search models..."
           value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={(e) => onSearchChange(sanitizeSearchQuery(e.target.value))}
           className="pl-8"
+          aria-label="Search models"
         />
       </div>
       <Select value={selectedProvider} onValueChange={onProviderChange}>

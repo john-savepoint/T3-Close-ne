@@ -17,6 +17,7 @@ import { EnhancedFileUpload } from "@/components/enhanced-file-upload"
 import { Badge } from "@/components/ui/badge"
 import type { Attachment } from "@/types/attachment"
 import { DEFAULT_MODEL_ID } from "@/lib/default-models"
+import { estimateTokens } from "@/lib/token-utils"
 
 interface ChatInputProps {
   onSendMessage?: (content: string, attachments?: Attachment[]) => void
@@ -45,7 +46,7 @@ export function ChatInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isMobile = useIsMobile()
   const { selectedModel: modelsSelectedModel, setSelectedModel, getModelById } = useModels()
-  
+
   // Use prop selectedModel if provided, otherwise fall back to models hook
   const currentSelectedModel = selectedModel || modelsSelectedModel?.id || "openai/gpt-4o-mini"
 
@@ -162,7 +163,7 @@ export function ChatInput({
               selectedModel={modelsSelectedModel}
               onModelChange={handleModelChange}
               showCost={true}
-              estimatedTokens={message.length > 0 ? Math.max(100, message.length * 2) : undefined}
+              estimatedTokens={message.length > 0 ? estimateTokens(message) : undefined}
             />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
