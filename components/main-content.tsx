@@ -386,6 +386,8 @@ export function MainContent() {
           onClose={closeModelSwitcher}
           onModelChange={(model: string) => changeModel(model as any)}
           selectedModel={selectedModel}
+          temperature={temperature}
+          onTemperatureChange={setTemperature}
         />
       </div>
     </main>

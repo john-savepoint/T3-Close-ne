@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/command"
 import { Check, Zap, Brain, Code, Sparkles, Crown } from "lucide-react"
 import { ChatModel, DEFAULT_MODELS } from "@/types/models"
+import { Slider } from "@/components/ui/slider"
 
 interface ModelWithUI extends ChatModel {
   description: string
@@ -64,6 +65,8 @@ interface EnhancedModelSwitcherProps {
   onClose: () => void
   selectedModel: string
   onModelChange: (modelId: string) => void
+  temperature?: number
+  onTemperatureChange?: (value: number) => void
 }
 
 export function EnhancedModelSwitcher({
@@ -71,6 +74,8 @@ export function EnhancedModelSwitcher({
   onClose,
   selectedModel,
   onModelChange,
+  temperature = 0.7,
+  onTemperatureChange,
 }: EnhancedModelSwitcherProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
@@ -158,6 +163,29 @@ export function EnhancedModelSwitcher({
         <div className="mt-2 text-xs text-mauve-subtle/50">
           Use ↑↓ to navigate, Enter to select, Esc to close
         </div>
+
+        {onTemperatureChange && (
+          <>
+            <div className="mt-4 h-px bg-mauve-dark/50" />
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-foreground">Temperature</label>
+                <span className="text-sm text-mauve-subtle">{temperature.toFixed(2)}</span>
+              </div>
+              <Slider
+                value={[temperature]}
+                onValueChange={(value) => onTemperatureChange(value[0])}
+                min={0}
+                max={2}
+                step={0.01}
+                className="w-full"
+              />
+              <p className="text-xs text-mauve-subtle/70">
+                Lower values make output more focused and deterministic, higher values make it more creative and diverse.
+              </p>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   )
