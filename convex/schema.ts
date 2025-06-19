@@ -256,6 +256,66 @@ const schema = defineSchema({
     .index("by_to_email", ["toEmail"])
     .index("by_claim_token", ["claimToken"])
     .index("by_status", ["status"]),
+
+  // Deep Research system
+  researchJobs: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    initialPrompt: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("decomposing"),
+      v.literal("searching"),
+      v.literal("synthesizing"),
+      v.literal("generating"),
+      v.literal("completed"),
+      v.literal("failed")
+    ),
+    currentStep: v.optional(v.string()),
+    progress: v.number(), // 0-100
+    subQuestions: v.optional(v.array(v.string())),
+    searchResults: v.optional(
+      v.array(
+        v.object({
+          question: v.string(),
+          sources: v.array(
+            v.object({
+              url: v.string(),
+              title: v.string(),
+              content: v.string(),
+              relevanceScore: v.optional(v.number()),
+            })
+          ),
+        })
+      )
+    ),
+    finalReport: v.optional(v.string()),
+    reportSections: v.optional(
+      v.array(
+        v.object({
+          title: v.string(),
+          content: v.string(),
+          sources: v.array(v.string()),
+        })
+      )
+    ),
+    sourceUrls: v.optional(v.array(v.string())),
+    model: v.optional(v.string()),
+    totalTokensUsed: v.optional(v.number()),
+    estimatedCost: v.optional(v.number()),
+    errorMessage: v.optional(v.string()),
+    createdAt: v.number(),
+    startedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    lastUpdated: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_status", ["status"])
+    .index("by_user_status", ["userId", "status"])
+    .searchIndex("search_research", {
+      searchField: "title",
+      filterFields: ["userId", "status"],
+    }),
 })
 
 export default schema

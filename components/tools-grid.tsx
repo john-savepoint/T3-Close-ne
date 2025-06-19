@@ -2,7 +2,16 @@
 
 import type React from "react"
 
-import { Mail, MessageSquare, FileText, Code, LineChart, ImageIcon, GitBranch } from "lucide-react"
+import {
+  Mail,
+  MessageSquare,
+  FileText,
+  Code,
+  LineChart,
+  ImageIcon,
+  GitBranch,
+  Search,
+} from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -11,6 +20,7 @@ import { EmailResponderTool } from "@/components/tools/email-responder-tool"
 import { SocialMediaTool } from "@/components/tools/social-media-tool"
 import { SummarizerTool } from "@/components/tools/summarizer-tool"
 import { DiagrammerTool } from "@/components/tools/diagrammer-tool"
+import { DeepResearchTool } from "@/components/tools/deep-research-tool"
 
 interface ToolData {
   id: string
@@ -28,6 +38,13 @@ export function ToolsGrid({ onToolSelect }: ToolsGridProps) {
   const [activeTool, setActiveTool] = useState<string | null>(null)
 
   const tools: ToolData[] = [
+    {
+      id: "deep-research",
+      name: "Deep Research",
+      description: "Conduct comprehensive autonomous research on complex topics",
+      icon: <Search className="h-6 w-6" />,
+      component: DeepResearchTool,
+    },
     {
       id: "email-responder",
       name: "Email Responder",
