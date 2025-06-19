@@ -1,9 +1,8 @@
 import { httpRouter } from "convex/server"
-import { auth } from "./auth"
 
 const http = httpRouter()
 
-// Add auth HTTP routes for OAuth providers and password auth
-auth.addHttpRoutes(http)
+// HTTP routes for the app
+// Auth is now handled by Clerk
 
 export default http
