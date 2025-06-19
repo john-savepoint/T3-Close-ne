@@ -1,31 +1,25 @@
 import { defineSchema, defineTable } from "convex/server"
-import { authTables } from "@convex-dev/auth/server"
 import { v } from "convex/values"
 
 const schema = defineSchema({
-  // Include auth tables from @convex-dev/auth
-  ...authTables,
-
-  // Extend the users table from auth with additional fields
+  // Users table for Clerk integration
   users: defineTable({
-    // Required auth fields from authTables
+    // Clerk user ID as primary identifier
+    clerkId: v.string(),
+    email: v.string(),
     name: v.optional(v.string()),
     image: v.optional(v.string()),
-    email: v.optional(v.string()),
-    emailVerificationTime: v.optional(v.number()),
-    phone: v.optional(v.string()),
-    phoneVerificationTime: v.optional(v.number()),
-    isAnonymous: v.optional(v.boolean()),
-    tokenIdentifier: v.optional(v.string()),
     // Storage tracking from PR #3
     storageUsed: v.optional(v.number()), // bytes
     storageLimit: v.optional(v.number()), // bytes
     // Additional fields
     lastActiveAt: v.optional(v.number()),
     plan: v.optional(v.union(v.literal("free"), v.literal("pro"))),
+    createdAt: v.number(),
+    updatedAt: v.number(),
   })
-    .index("email", ["email"])
-    .index("phone", ["phone"]),
+    .index("by_clerk_id", ["clerkId"])
+    .index("by_email", ["email"]),
 
   // Projects table from PR #1
   projects: defineTable({

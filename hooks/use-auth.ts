@@ -1,19 +1,42 @@
 "use client"
 
-import { useAuthActions } from "@convex-dev/auth/react"
-import { useConvexAuth, useQuery } from "convex/react"
-import { api } from "@/convex/_generated/api"
+import { useUser, useClerk } from "@clerk/nextjs"
+import { useQuery, useMutation } from "convex/react"
+import { useEffect, useCallback } from "react"
 
 export function useAuth() {
-  const { signIn, signOut } = useAuthActions()
-  const { isLoading: authLoading, isAuthenticated } = useConvexAuth()
-  const user = useQuery(api.users.getCurrentUser)
-
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser()
+  const { signOut } = useClerk()
+  
+  // Define mutations and queries separately to avoid circular types
+  const syncUser = useMutation("users:syncUser" as any)
+  const convexUser = useQuery("users:current" as any)
+  
+  // Sync user to Convex when Clerk user is available
+  const syncUserCallback = useCallback(async () => {
+    if (isSignedIn && clerkUser && syncUser) {
+      try {
+        await syncUser({
+          clerkId: clerkUser.id,
+          email: clerkUser.primaryEmailAddress?.emailAddress || '',
+          name: clerkUser.fullName || clerkUser.firstName || undefined,
+          image: clerkUser.imageUrl || undefined,
+        })
+      } catch (error) {
+        console.error('Failed to sync user:', error)
+      }
+    }
+  }, [isSignedIn, clerkUser, syncUser])
+  
+  useEffect(() => {
+    syncUserCallback()
+  }, [syncUserCallback])
+  
   return {
-    user,
-    isAuthenticated: isAuthenticated && user !== null,
-    signIn,
+    user: convexUser,
+    clerkUser,
+    isAuthenticated: isSignedIn && !!convexUser,
     signOut,
-    isLoading: authLoading || (isAuthenticated && user === undefined),
+    isLoading: !isLoaded || (isSignedIn && convexUser === undefined),
   }
 }

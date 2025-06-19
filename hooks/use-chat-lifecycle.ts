@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { useQuery, useMutation } from "convex/react"
-import { api } from "@/convex/_generated/api"
+// import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
 import type { Chat, ConvexChat } from "@/types/chat"
 import { adaptConvexChatToChat, getChatId, toChatId } from "@/types/chat"
@@ -14,7 +14,7 @@ export function useChatLifecycle() {
 
   // Get real archived and trashed chats from Convex
   const archivedChatsData = useQuery(
-    api.chats.listWithPreview,
+    "chats:listWithPreview" as any,
     user?._id
       ? {
           userId: user._id,
@@ -24,7 +24,7 @@ export function useChatLifecycle() {
   )
 
   const trashedChatsData = useQuery(
-    api.chats.listWithPreview,
+    "chats:listWithPreview" as any,
     user?._id
       ? {
           userId: user._id,
@@ -38,9 +38,9 @@ export function useChatLifecycle() {
   const trashedChats: Chat[] = (trashedChatsData || []).map(adaptConvexChatToChat)
 
   // Convex mutations
-  const updateStatusMutation = useMutation(api.chats.updateStatus)
-  const deletePermanentlyMutation = useMutation(api.chats.deletePermanently)
-  const bulkUpdateStatusMutation = useMutation(api.chats.bulkUpdateStatus)
+  const updateStatusMutation = useMutation("chats:updateStatus" as any)
+  const deletePermanentlyMutation = useMutation("chats:deletePermanently" as any)
+  const bulkUpdateStatusMutation = useMutation("chats:bulkUpdateStatus" as any)
 
   const moveToArchive = useCallback(
     async (chatId: string): Promise<void> => {

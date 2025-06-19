@@ -1,5 +1,6 @@
 "use client"
 
+import { useUser, useClerk } from "@clerk/nextjs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,16 +15,21 @@ import { LogOut, Settings, User } from "lucide-react"
 import Link from "next/link"
 
 export function UserProfile() {
-  // Temporary mock user for demo - no authentication
-  const mockUser = {
-    name: "Demo User",
-    email: "demo@z6chat.com",
-    imageUrl: null,
-    isSignedIn: true
-  }
+  const { isLoaded, isSignedIn, user } = useUser()
+  const { signOut } = useClerk()
 
-  const user = mockUser
-  const isSignedIn = mockUser.isSignedIn
+  // Show loading state while Clerk is loading
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center gap-3 p-2">
+        <div className="h-8 w-8 rounded-full bg-slate-700 animate-pulse" />
+        <div className="flex flex-col gap-1">
+          <div className="h-4 w-20 bg-slate-700 animate-pulse rounded" />
+          <div className="h-3 w-12 bg-slate-700 animate-pulse rounded" />
+        </div>
+      </div>
+    )
+  }
 
   if (!isSignedIn || !user) {
     return (
@@ -46,8 +52,8 @@ export function UserProfile() {
     )
   }
 
-  const userName = user.name
-  const userEmail = user.email
+  const userName = user.fullName || user.firstName
+  const userEmail = user.primaryEmailAddress?.emailAddress
 
   const userInitials = userName
     ? userName
@@ -59,8 +65,7 @@ export function UserProfile() {
 
   const handleSignOut = async () => {
     try {
-      // Mock sign out - just reload the page
-      window.location.reload()
+      await signOut()
     } catch (error) {
       console.error("Sign out failed:", error)
     }
@@ -72,7 +77,7 @@ export function UserProfile() {
         <Button variant="ghost" className="h-auto w-full justify-start p-2">
           <div className="flex w-full items-center gap-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.imageUrl || ""} alt={userName || "User"} />
+              <AvatarImage src={user.imageUrl} alt={userName || "User"} />
               <AvatarFallback className="bg-mauve-accent text-mauve-bright">
                 {userInitials}
               </AvatarFallback>

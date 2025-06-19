@@ -1,12 +1,19 @@
 import { streamText } from "ai"
 import { createOpenAI } from "@ai-sdk/openai"
 import { NextRequest } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 import { SupportedModel } from "@/types/models"
 
 export const runtime = "edge"
 
 export async function POST(req: NextRequest) {
   try {
+    // Check authentication
+    const { userId } = await auth()
+    if (!userId) {
+      return new Response("Unauthorized", { status: 401 })
+    }
+
     const { messages, model, apiKey, memoryContext, ...options } = await req.json()
 
     if (!messages || !Array.isArray(messages)) {
