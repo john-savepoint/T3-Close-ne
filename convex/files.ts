@@ -1,21 +1,14 @@
 import { mutation, query } from "./_generated/server"
 import { v } from "convex/values"
-
+import { requireAuth, getCurrentUser } from "./clerk"
 import { Id } from "./_generated/dataModel"
-
-// For now, we'll use a simple user ID - will be replaced with proper auth
-const getCurrentUserId = (): Id<"users"> => "user-1" as Id<"users"> // Placeholder until auth is implemented
 
 // Generate upload URL with validation
 export const generateUploadUrl = mutation({
   handler: async (ctx) => {
-    // TODO: Add proper authentication when Convex Auth is implemented
-    // const userId = await getAuthUserId(ctx);
-    // if (!userId) {
-    //   throw new Error("Authentication required");
-    // }
-
-    // For now, allow uploads without auth for development
+    // Require authentication for file uploads
+    await requireAuth(ctx)
+    
     return await ctx.storage.generateUploadUrl()
   },
 })
@@ -35,8 +28,8 @@ export const saveFile = mutation({
     tags: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    // TODO: Add proper authentication when Convex Auth is implemented
-    const userId = getCurrentUserId()
+    // Require authentication and get current user
+    const user = await requireAuth(ctx)
 
     // Create attachment record
     const attachmentId = await ctx.db.insert("attachments", {
@@ -46,7 +39,7 @@ export const saveFile = mutation({
       contentType: args.contentType,
       size: args.size,
       category: args.category,
-      userId: userId, // TODO: Fix when users table is created
+      userId: user._id,
       uploadedAt: Date.now(),
       createdAt: Date.now(),
       chatId: args.chatId,
@@ -70,8 +63,12 @@ export const getFile = query({
       throw new Error("File not found")
     }
 
-    // TODO: Add proper authorization when auth is implemented
-    // For now, return file for development
+    // Check if file is public or user owns it
+    const user = await getCurrentUser(ctx)
+    if (!attachment.isPublic && (!user || attachment.userId !== user._id)) {
+      throw new Error("Access denied")
+    }
+
     const url = await ctx.storage.getUrl(attachment.storageId)
 
     return {
@@ -85,7 +82,22 @@ export const getFile = query({
 export const getFileUrl = query({
   args: { storageId: v.id("_storage") },
   handler: async (ctx, args) => {
-    // TODO: Add access control when auth is implemented
+    // Find attachment by storageId to check permissions
+    const attachment = await ctx.db
+      .query("attachments")
+      .withIndex("by_storage_id", (q) => q.eq("storageId", args.storageId))
+      .first()
+    
+    if (!attachment) {
+      throw new Error("File not found")
+    }
+
+    // Check if file is public or user owns it
+    const user = await getCurrentUser(ctx)
+    if (!attachment.isPublic && (!user || attachment.userId !== user._id)) {
+      throw new Error("Access denied")
+    }
+
     return await ctx.storage.getUrl(args.storageId)
   },
 })
@@ -93,20 +105,20 @@ export const getFileUrl = query({
 // List files for a user
 export const getUserFiles = query({
   args: {
-    userId: v.optional(v.id("users")),
     limit: v.optional(v.number()),
     category: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // TODO: Use proper auth to get current user
-    const userId = args.userId || getCurrentUserId()
+    // Get current authenticated user
+    const user = await requireAuth(ctx)
 
-    let query = ctx.db.query("attachments").withIndex("by_user", (q) => q.eq("userId", userId))
+    let query = ctx.db.query("attachments").withIndex("by_user", (q) => q.eq("userId", user._id))
 
     if (args.category) {
       query = ctx.db
         .query("attachments")
         .withIndex("by_category", (q) => q.eq("category", args.category))
+        .filter((q) => q.eq(q.field("userId"), user._id))
     }
 
     const attachments = await query.order("desc").take(args.limit || 50)
@@ -125,6 +137,14 @@ export const getUserFiles = query({
 export const getChatFiles = query({
   args: { chatId: v.id("chats") },
   handler: async (ctx, args) => {
+    // Verify user has access to this chat
+    const user = await requireAuth(ctx)
+    const chat = await ctx.db.get(args.chatId)
+    
+    if (!chat || chat.userId !== user._id) {
+      throw new Error("Access denied")
+    }
+
     const attachments = await ctx.db
       .query("attachments")
       .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
@@ -149,8 +169,11 @@ export const deleteFile = mutation({
       throw new Error("File not found")
     }
 
-    // TODO: Add proper authorization when auth is implemented
-    // For now, allow deletion for development
+    // Verify user owns this file
+    const user = await requireAuth(ctx)
+    if (attachment.userId !== user._id) {
+      throw new Error("Access denied")
+    }
 
     // Delete from storage
     await ctx.storage.delete(attachment.storageId)
@@ -170,10 +193,13 @@ export const searchFiles = query({
     category: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // TODO: Filter by current user when auth is implemented
+    // Filter by current user
+    const user = await requireAuth(ctx)
+    
     let searchQuery = ctx.db
       .query("attachments")
       .withSearchIndex("search_files", (q) => q.search("filename", args.query))
+      .filter((q) => q.eq(q.field("userId"), user._id))
 
     if (args.category) {
       searchQuery = searchQuery.filter((q) => q.eq(q.field("category"), args.category))
@@ -208,7 +234,11 @@ export const updateFile = mutation({
       throw new Error("File not found")
     }
 
-    // TODO: Add proper authorization when auth is implemented
+    // Verify user owns this file
+    const user = await requireAuth(ctx)
+    if (attachment.userId !== user._id) {
+      throw new Error("Access denied")
+    }
 
     // Filter out undefined values
     const filteredUpdates = Object.fromEntries(

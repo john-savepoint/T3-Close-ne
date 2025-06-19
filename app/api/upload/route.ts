@@ -4,10 +4,14 @@ import { validateFile, sanitizeFilename } from "@/lib/file-validation"
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
+    // Check authentication with detailed error response
     const { userId } = await auth()
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ 
+        error: "Authentication required",
+        message: "Please sign in to upload files",
+        code: "AUTH_REQUIRED"
+      }, { status: 401 })
     }
 
     const formData = await request.formData()

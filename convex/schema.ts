@@ -135,6 +135,7 @@ const schema = defineSchema({
     .index("by_category", ["category"])
     .index("by_type", ["type"])
     .index("by_share_token", ["shareToken"])
+    .index("by_storage_id", ["storageId"])
     .searchIndex("search_files", {
       searchField: "filename",
       filterFields: ["userId", "isPublic", "status", "category"],

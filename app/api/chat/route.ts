@@ -8,10 +8,20 @@ export const runtime = "edge"
 
 export async function POST(req: NextRequest) {
   try {
-    // Check authentication
+    // Check authentication with detailed error response
     const { userId } = await auth()
     if (!userId) {
-      return new Response("Unauthorized", { status: 401 })
+      return new Response(
+        JSON.stringify({ 
+          error: 'Authentication required',
+          message: 'Please sign in to use the chat feature',
+          code: 'AUTH_REQUIRED'
+        }), 
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     const { messages, model, apiKey, memoryContext, ...options } = await req.json()
