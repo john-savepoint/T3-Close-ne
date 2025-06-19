@@ -5,7 +5,9 @@ const schema = defineSchema({
   // Users table for Clerk integration
   users: defineTable({
     // Clerk user ID as primary identifier
-    clerkId: v.string(),
+    clerkId: v.optional(v.string()),
+    // Legacy field for backwards compatibility
+    tokenIdentifier: v.optional(v.string()),
     email: v.string(),
     name: v.optional(v.string()),
     image: v.optional(v.string()),
@@ -15,8 +17,8 @@ const schema = defineSchema({
     // Additional fields
     lastActiveAt: v.optional(v.number()),
     plan: v.optional(v.union(v.literal("free"), v.literal("pro"))),
-    createdAt: v.number(),
-    updatedAt: v.number(),
+    createdAt: v.optional(v.number()),
+    updatedAt: v.optional(v.number()),
   })
     .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"]),
