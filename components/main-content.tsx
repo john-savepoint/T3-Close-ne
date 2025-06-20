@@ -15,7 +15,6 @@ import { useSearchParams } from "next/navigation"
 import { useChat } from "@/hooks/use-chat"
 import { useMemory } from "@/hooks/use-memory"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
-import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
 import { useModels } from "@/hooks/use-models"
@@ -31,7 +30,6 @@ import { useUIPreferences } from "@/hooks/use-ui-preferences"
 import { useCollapseState } from "@/hooks/use-collapse-state"
 import { Minimize2, Maximize2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { TempChatDebug } from "@/components/temp-chat-debug"
 
 export function MainContent() {
   const isMobile = useIsMobile()
@@ -275,20 +273,24 @@ export function MainContent() {
 
   return (
     <main className={`flex flex-1 ${isMobile ? "ml-0" : ""}`}>
-      <TempChatDebug />
       {/* Main chat area */}
       <div className="relative flex flex-1 flex-col">
         {/* Background and styling */}
         <div className="absolute inset-0 rounded-tl-xl border-l border-t border-mauve-dark bg-mauve-dark/50"></div>
         <div className="noise-bg absolute inset-0 rounded-tl-xl opacity-20 mix-blend-overlay"></div>
 
-        {/* Context Indicators */}
-        {isTemporaryMode ? <TemporaryChatBanner /> : <ProjectContextIndicator />}
-        {!isTemporaryMode && <MemoryContextIndicator />}
+        {/* Context Indicators - these push down the content */}
+        <div className="relative z-20">
+          {isTemporaryMode ? <TemporaryChatBanner /> : <ProjectContextIndicator />}
+          {!isTemporaryMode && <MemoryContextIndicator />}
+        </div>
 
-        {/* Global collapse/expand button - only show when there are messages */}
+        {/* Global collapse/expand button - position depends on banner presence */}
         {displayMessages.length > 0 && (
-          <div className="absolute left-4 top-4 z-10">
+          <div className={cn(
+            "absolute left-4 z-10",
+            isTemporaryMode ? "top-20" : "top-4"
+          )}>
             <Button
               variant="outline"
               size="icon"
@@ -416,20 +418,16 @@ export function MainContent() {
           </div>
         </div>
 
-        {/* Top right controls */}
-        <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
+        {/* Top right controls - position depends on banner presence */}
+        <div className={cn(
+          "absolute right-4 z-10 flex items-center gap-2",
+          isTemporaryMode ? "top-20" : "top-4"
+        )}>
           <ExportChatModal
             messages={displayMessages}
             chatTitle={
               displayMessages.length > 0 ? `Chat ${new Date().toLocaleDateString()}` : "New Chat"
             }
-          />
-          <ShareChatModal
-            chatId={`chat-${Date.now()}`}
-            chatTitle={
-              displayMessages.length > 0 ? `Chat ${new Date().toLocaleDateString()}` : "New Chat"
-            }
-            messageCount={displayMessages.length}
           />
           <ThreadNavigator
             messages={displayMessages.map((msg) => ({

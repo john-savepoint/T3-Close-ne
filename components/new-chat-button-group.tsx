@@ -15,7 +15,15 @@ export function NewChatButtonGroup({
 }: NewChatButtonGroupProps) {
   const { activeProject } = useProjects()
   const { user } = useAuth()
-  const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
+  const { startTemporaryChat, isTemporaryMode, exitTemporaryMode } = useTemporaryChat()
+
+  const handleTemporaryChat = () => {
+    if (isTemporaryMode) {
+      exitTemporaryMode()
+    } else {
+      startTemporaryChat()
+    }
+  }
 
   return (
     <div className="flex gap-1">
@@ -30,13 +38,17 @@ export function NewChatButtonGroup({
         {activeProject ? `New Chat in ${activeProject.name}` : "New Chat"}
       </Button>
 
-      {/* Temporary Chat Button - now inline */}
+      {/* Temporary Chat Toggle Button */}
       <Button
         variant="outline"
         size="icon"
-        className="border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
-        onClick={startTemporaryChat}
-        title="Start temporary chat"
+        className={
+          isTemporaryMode
+            ? "border-orange-500 bg-orange-500/30 text-orange-300 hover:bg-orange-500/40"
+            : "border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
+        }
+        onClick={handleTemporaryChat}
+        title={isTemporaryMode ? "Exit temporary chat" : "Start temporary chat"}
       >
         <Zap className="h-4 w-4" />
       </Button>

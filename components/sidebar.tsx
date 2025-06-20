@@ -21,7 +21,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { toChatId, ensureStringId, toProjectId } from "@/types/chat"
 import { Separator } from "@/components/ui/separator"
 import { UserProfile } from "@/components/user-profile"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useUIPreferences } from "@/hooks/use-ui-preferences"
 import { useChatPinning } from "@/hooks/use-chat-pinning"
 import { ShareChatModal } from "@/components/share-chat-modal"
@@ -180,6 +180,8 @@ export function Sidebar() {
   const isMobile = useIsMobile()
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentChatId = searchParams.get("chatId")
   const { isDismissed } = useUIPreferences()
   const { togglePin } = useChatPinning()
   const { activeProject, projects } = useProjects()
@@ -287,6 +289,14 @@ export function Sidebar() {
   const [shareModalChatId, setShareModalChatId] = useState<string | null>(null)
 
   const handleShareChat = (chatId: string) => {
+    // Only allow sharing of real Convex chats (IDs start with 'j')
+    if (!chatId.startsWith('j')) {
+      // TODO: Show a toast notification instead of console warning
+      console.warn("Cannot share chat: Chat must be saved first. Send a message to save the conversation.")
+      alert("This chat needs to be saved before it can be shared. Send a message first!")
+      return
+    }
+    
     setShareModalChatId(chatId)
   }
 
@@ -696,23 +706,21 @@ export function Sidebar() {
       )}
 
       {/* Share Modal */}
-      <ShareChatModal
-        chatId={shareModalChatId || ""}
-        chatTitle={
-          shareModalChatId
-            ? [...pinnedThreads, ...todayThreads, ...yesterdayThreads, ...thisWeekThreads, ...olderThreads]
-                .find(chat => chat._id === shareModalChatId)?.title || "Untitled Chat"
-            : ""
-        }
-        messageCount={
-          shareModalChatId
-            ? [...pinnedThreads, ...todayThreads, ...yesterdayThreads, ...thisWeekThreads, ...olderThreads]
-                .find(chat => chat._id === shareModalChatId)?.messageCount || 0
-            : 0
-        }
-        open={!!shareModalChatId}
-        onOpenChange={(open) => !open && setShareModalChatId(null)}
-      />
+      {shareModalChatId && (
+        <ShareChatModal
+          chatId={shareModalChatId}
+          chatTitle={
+            [...pinnedThreads, ...todayThreads, ...yesterdayThreads, ...thisWeekThreads, ...olderThreads]
+              .find(chat => chat._id === shareModalChatId)?.title || "Untitled Chat"
+          }
+          messageCount={
+            [...pinnedThreads, ...todayThreads, ...yesterdayThreads, ...thisWeekThreads, ...olderThreads]
+              .find(chat => chat._id === shareModalChatId)?.messageCount || 0
+          }
+          open={!!shareModalChatId}
+          onOpenChange={(open) => !open && setShareModalChatId(null)}
+        />
+      )}
 
     </>
   )
