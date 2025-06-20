@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Send, Palette, Globe, StopCircle } from "lucide-react"
+import { Send, Palette, Globe, StopCircle, EyeOff } from "lucide-react"
 import { useRef, useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import type { Attachment } from "@/types/attachment"
 import { DEFAULT_MODEL_ID } from "@/lib/default-models"
 import { estimateTokens } from "@/lib/token-utils"
+import { useWebSearch } from "@/hooks/use-web-search"
 
 interface ChatInputProps {
   onSendMessage?: (content: string, attachments?: Attachment[]) => void
@@ -29,6 +30,8 @@ interface ChatInputProps {
   temperature?: number
   onTemperatureChange?: (temperature: number) => void
   onMessageSent?: (message: string, model: string, attachments: Attachment[]) => void
+  isTemporaryMode?: boolean
+  onToggleTemporaryMode?: () => void
 }
 
 export function ChatInput({
@@ -41,11 +44,14 @@ export function ChatInput({
   temperature = 0.7,
   onTemperatureChange,
   onMessageSent,
+  isTemporaryMode = false,
+  onToggleTemporaryMode,
 }: ChatInputProps) {
   const [message, setMessage] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isMobile = useIsMobile()
   const { selectedModel: modelsSelectedModel, setSelectedModel, getModelById } = useModels()
+  const { search, isLoading: isSearching, error: searchError } = useWebSearch()
 
   // Use prop selectedModel if provided, otherwise fall back to models hook
   const currentSelectedModel = selectedModel || modelsSelectedModel?.id || "openai/gpt-4o-mini"
@@ -117,6 +123,45 @@ export function ChatInput({
     }
   }
 
+  const handleWebSearch = async () => {
+    if (!message.trim() || isSearching || isLoading) return
+
+    const query = message.trim()
+    const searchResult = await search(query)
+    
+    if (searchResult) {
+      // Format search results into a message
+      let searchMessage = `🔍 **Web Search Results for:** "${query}"\n\n`
+      
+      if (searchResult.answer) {
+        searchMessage += `**Quick Answer:** ${searchResult.answer}\n\n`
+      }
+      
+      searchMessage += `**Sources:**\n`
+      searchResult.results.slice(0, 5).forEach((result, index) => {
+        searchMessage += `${index + 1}. **[${result.title}](${result.url})**\n`
+        searchMessage += `   ${result.content.substring(0, 200)}...\n\n`
+      })
+      
+      if (searchResult.follow_up_questions && searchResult.follow_up_questions.length > 0) {
+        searchMessage += `**Related Questions:**\n`
+        searchResult.follow_up_questions.slice(0, 3).forEach((question, index) => {
+          searchMessage += `• ${question}\n`
+        })
+      }
+      
+      // Send the search results as a message
+      if (onSendMessage) {
+        onSendMessage(searchMessage)
+      } else if (onMessageSent) {
+        onMessageSent(searchMessage, currentSelectedModel, [])
+      }
+      
+      // Clear the input
+      setMessage("")
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-3xl rounded-2xl border border-b-black/20 border-l-white/10 border-r-black/20 border-t-white/10 bg-mauve-surface/40 p-2 shadow-2xl shadow-black/30 backdrop-blur-xl">
       <div className="flex flex-col">
@@ -159,6 +204,23 @@ export function ChatInput({
 
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1 md:gap-2">
+            {/* Temporary Chat Toggle */}
+            {onToggleTemporaryMode && (
+              <Button
+                variant={isTemporaryMode ? "default" : "outline"}
+                size="sm"
+                onClick={onToggleTemporaryMode}
+                className={`text-xs ${
+                  isTemporaryMode
+                    ? "border-orange-500/50 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
+                    : "border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
+                }`}
+              >
+                <EyeOff className="mr-1 h-3 w-3 md:mr-2" />
+                <span className="hidden sm:inline">Temporary</span>
+                <span className="sm:hidden">Temp</span>
+              </Button>
+            )}
             <EnhancedModelSwitcher
               selectedModel={modelsSelectedModel}
               onModelChange={handleModelChange}
@@ -191,11 +253,19 @@ export function ChatInput({
               <Button
                 variant="ghost"
                 size="sm"
-                className="cursor-not-allowed text-xs text-muted-foreground opacity-50"
-                disabled
-                title="Web search not yet implemented"
+                className={`text-xs ${isSearching ? "opacity-50" : ""}`}
+                onClick={handleWebSearch}
+                disabled={!message.trim() || isSearching || isLoading}
+                title={
+                  !message.trim() 
+                    ? "Enter a search query first" 
+                    : isSearching 
+                    ? "Searching..." 
+                    : "Search the web"
+                }
               >
-                <Globe className="mr-2 h-4 w-4" /> Search
+                <Globe className="mr-2 h-4 w-4" /> 
+                {isSearching ? "Searching..." : "Search"}
               </Button>
             )}
             <EnhancedFileUpload onFilesAttached={handleFilesAttached} maxFiles={10} />

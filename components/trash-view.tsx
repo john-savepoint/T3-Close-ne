@@ -13,6 +13,7 @@ import {
   RotateCcw,
   CheckSquare,
   Square,
+  ArrowLeft,
 } from "lucide-react"
 import { useState } from "react"
 import { useChatLifecycle } from "@/hooks/use-chat-lifecycle"
@@ -21,12 +22,14 @@ import { ConfirmationModal } from "@/components/confirmation-modal"
 import { ChatErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { ToastContainer } from "@/components/ui/toast"
+import { useRouter } from "next/navigation"
 
 export function TrashView() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showEmptyTrashModal, setShowEmptyTrashModal] = useState(false)
   const [selectedChats, setSelectedChats] = useState<Set<string>>(new Set())
   const [isBulkMode, setIsBulkMode] = useState(false)
+  const router = useRouter()
   const {
     trashedChats,
     loading,
@@ -124,6 +127,14 @@ export function TrashView() {
         <div className="border-b border-mauve-dark p-6">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.push('/')}
+                className="text-mauve-subtle hover:text-mauve-bright"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
               <Trash2 className="h-6 w-6 text-red-400" />
               <h1 className="text-2xl font-bold text-foreground">Trash</h1>
               <Badge variant="outline" className="border-red-500/50 bg-red-500/10 text-red-400">

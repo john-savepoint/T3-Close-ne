@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Model Selection</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-info { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Model Selection Debug Test</h1>
+    
+    <div class="debug-info">
+        <h3>Issue: Users can't select any model</h3>
+        <p>Testing if the model selection interface is working...</p>
+    </div>
+    
+    <button class="button" onclick="testModelSelection()">Test Model Selection Click</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        function testModelSelection() {
+            const results = document.getElementById('results');
+            results.innerHTML = `
+                <div class="debug-info">
+                    <h4>Test Results:</h4>
+                    <p>✅ JavaScript click handler working</p>
+                    <p>✅ Button is clickable</p>
+                    <p>Next: Check React components for disabled states or event handlers</p>
+                </div>
+            `;
+        }
+        
+        // Test if the page loads correctly
+        window.onload = function() {
+            console.log('Debug page loaded successfully');
+        }
+    </script>
+</body>
+</html>

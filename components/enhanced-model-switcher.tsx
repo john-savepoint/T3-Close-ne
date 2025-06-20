@@ -25,8 +25,10 @@ import { ModelFilters } from "@/components/model-switcher/model-filters"
 import { ModelGrid } from "@/components/model-switcher/model-grid"
 import { ModelComparison } from "@/components/model-switcher/model-comparison"
 import { CostEstimation } from "@/components/model-switcher/cost-estimation"
+import { PopularModelsGrid } from "@/components/model-switcher/popular-models-grid"
 import { estimateTokens } from "@/lib/token-utils"
 import { filterAndSortModels } from "@/lib/filter-utils"
+import { getPopularModels } from "@/lib/popular-models"
 
 // Custom debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -123,11 +125,51 @@ export function EnhancedModelSwitcher({
     })
   }, [filteredModels, models, debouncedSearchQuery, filtersState, getFavoriteModels])
 
+  // Get popular models for the Popular tab
+  const popularModels = useMemo(() => {
+    return getPopularModels(models)
+  }, [models])
+
   if (loading) {
+    // Show default quick select buttons even while loading
     return (
-      <div className="flex items-center gap-2">
-        <div className="h-8 w-32 animate-pulse rounded bg-muted" />
-      </div>
+      <ModelErrorBoundary>
+        <div className="flex items-center gap-2">
+          {/* Quick Select Buttons (default while loading) */}
+          <div className="hidden items-center gap-1 md:flex">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs opacity-50"
+              disabled
+            >
+              <Zap className="mr-1 h-3 w-3" />
+              Fast
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs opacity-50"
+              disabled
+            >
+              <Gauge className="mr-1 h-3 w-3" />
+              Balanced
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs opacity-50"
+              disabled
+            >
+              <Brain className="mr-1 h-3 w-3" />
+              Heavy
+            </Button>
+          </div>
+          
+          {/* Loading Model Selector */}
+          <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+        </div>
+      </ModelErrorBoundary>
     )
   }
 
@@ -180,7 +222,15 @@ export function EnhancedModelSwitcher({
         {/* Enhanced Model Selector Dialog */}
         <Dialog open={filtersState.open} onOpenChange={filtersActions.setOpen}>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-xs text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              onClick={() => {
+                console.log('Model selector button clicked, opening dialog')
+                filtersActions.setOpen(true)
+              }}
+            >
               {currentModel?.name || "Select Model"} <ChevronDown className="ml-1 h-3 w-3" />
             </Button>
           </DialogTrigger>
@@ -196,14 +246,34 @@ export function EnhancedModelSwitcher({
               </p>
             </DialogHeader>
 
-            <Tabs defaultValue="models" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+            <Tabs defaultValue="popular" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="popular">Popular ({popularModels.length})</TabsTrigger>
                 <TabsTrigger value="models">All Models ({displayModels.length})</TabsTrigger>
                 <TabsTrigger value="filters">Filters & Settings</TabsTrigger>
                 <TabsTrigger value="compare" disabled={filtersState.compareModels.length < 2}>
                   Compare ({filtersState.compareModels.length})
                 </TabsTrigger>
               </TabsList>
+
+              <TabsContent value="popular" className="space-y-4">
+                <PopularModelsGrid
+                  models={popularModels}
+                  selectedModelId={currentModel?.id}
+                  onModelSelect={(model) => {
+                    handleModelChange(model)
+                    filtersActions.setOpen(false)
+                  }}
+                  onToggleFavorite={toggleFavorite}
+                  isFavorite={isFavorite}
+                  isComparing={filtersState.showComparison}
+                  onToggleCompare={filtersActions.toggleCompareModel}
+                  isInComparison={(modelId) => filtersState.compareModels.includes(modelId)}
+                  showCost={showCost}
+                  estimatedTokens={estimatedTokens}
+                  isLoading={loading}
+                />
+              </TabsContent>
 
               <TabsContent value="models" className="space-y-4">
                 <ModelFilters

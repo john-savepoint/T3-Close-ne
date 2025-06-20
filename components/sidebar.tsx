@@ -88,16 +88,29 @@ const ThreadItem = ({
   isActive = false,
   onMoveToTrash,
   onMoveToArchive,
+  onRename,
 }: ThreadItemProps & {
   onMoveToTrash: (chatId: string) => Promise<void>
   onMoveToArchive: (chatId: string) => Promise<void>
+  onRename: (chatId: string, newTitle: string) => Promise<void>
 }) => {
+  const router = useRouter()
   const handleMoveToTrash = async () => {
     await onMoveToTrash(ensureStringId(chat._id))
   }
 
   const handleMoveToArchive = async () => {
     await onMoveToArchive(ensureStringId(chat._id))
+  }
+
+  const handleChatClick = () => {
+    router.push(`/?chatId=${chat._id}`)
+  }
+
+  const handleRename = (newTitle: string) => {
+    if (newTitle && newTitle.trim() !== chat.title) {
+      onRename(ensureStringId(chat._id), newTitle.trim())
+    }
   }
 
   return (
@@ -108,8 +121,10 @@ const ThreadItem = ({
         timestamp: formatTimestamp(chat.lastActivity || chat.updatedAt),
       }}
       isActive={isActive}
+      onClick={handleChatClick}
       onMoveToTrash={handleMoveToTrash}
       onMoveToArchive={handleMoveToArchive}
+      onRename={handleRename}
       onRestore={() => {}}
       onDeletePermanently={() => {}}
       showParentIcon={parent}
@@ -136,7 +151,7 @@ export function Sidebar() {
   const { activeProject } = useProjects()
   const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
   const { archivedChats, trashedChats } = useChatLifecycle()
-  const { user } = useAuth()
+  const { user, clerkUser, isAuthenticated, isAuthenticating, syncError } = useAuth()
 
   // Get archived and trashed chat counts
   const { chats: archivedChatsData } = useChats({
@@ -149,11 +164,12 @@ export function Sidebar() {
     status: "trashed",
   })
 
-  // Get real chat data from Convex
+  // Get real chat data from Convex - only if user is properly synced
   const {
     chats: activeChats,
     isLoading: chatsLoading,
     createChat,
+    updateChat,
     moveToArchive,
     moveToTrash,
   } = useChats({
@@ -181,21 +197,17 @@ export function Sidebar() {
     setIsOpen(!isOpen)
   }
 
-  const handleCreateNewChat = async () => {
-    if (!user?._id) return
+  const handleCreateNewChat = () => {
+    // Navigate to home screen for new chat prompt
+    console.log("New chat button clicked, navigating to home")
+    router.push('/')
+  }
 
+  const handleRenameChat = async (chatId: string, newTitle: string) => {
     try {
-      const chatId = await createChat(
-        activeProject ? `New Chat in ${activeProject.name}` : "New Chat",
-        activeProject?.id ? toProjectId(activeProject.id) : undefined
-      )
-      if (chatId) {
-        // Navigate to the new chat
-        router.push(`/`)
-        console.log("Created new chat:", chatId)
-      }
+      await updateChat(toChatId(chatId), { title: newTitle })
     } catch (error) {
-      console.error("Failed to create chat:", error)
+      console.error("Failed to rename chat:", error)
     }
   }
 
@@ -250,9 +262,10 @@ export function Sidebar() {
             <div className="space-y-2">
               <Button
                 variant="secondary"
-                className="w-full justify-center bg-mauve-accent/20 font-semibold text-mauve-bright hover:bg-mauve-accent/30"
+                className="w-full justify-center bg-mauve-accent/20 font-semibold text-mauve-bright hover:bg-mauve-accent/30 hover:shadow-lg hover:border-mauve-accent/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-[1.02] transform"
                 disabled={isTemporaryMode || !user?._id}
                 onClick={handleCreateNewChat}
+                onMouseEnter={() => console.log("Mouse enter new chat button", {isTemporaryMode, hasUser: !!user?._id})}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 {activeProject ? `New Chat in ${activeProject.name}` : "New Chat"}
@@ -303,7 +316,14 @@ export function Sidebar() {
 
               {/* Standalone Chats */}
               <div className="mt-4">
-                {chatsLoading ? (
+                {isAuthenticating ? (
+                  <div className="px-3 py-2 text-sm text-mauve-subtle">Syncing user account...</div>
+                ) : syncError ? (
+                  <div className="px-3 py-2 text-sm text-yellow-400">
+                    <p className="font-medium">Sync Error</p>
+                    <p className="text-xs">Please refresh the page</p>
+                  </div>
+                ) : chatsLoading ? (
                   <div className="px-3 py-2 text-sm text-mauve-subtle">Loading chats...</div>
                 ) : (
                   <>
@@ -316,6 +336,7 @@ export function Sidebar() {
                             chat={thread}
                             onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
                             onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                            onRename={handleRenameChat}
                           />
                         ))}
                       </>
@@ -330,6 +351,7 @@ export function Sidebar() {
                             chat={thread}
                             onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
                             onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                            onRename={handleRenameChat}
                           />
                         ))}
                       </>
@@ -344,6 +366,7 @@ export function Sidebar() {
                             chat={thread}
                             onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
                             onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                            onRename={handleRenameChat}
                           />
                         ))}
                       </>
@@ -358,6 +381,7 @@ export function Sidebar() {
                             chat={thread}
                             onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
                             onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                            onRename={handleRenameChat}
                           />
                         ))}
                       </>
@@ -372,6 +396,7 @@ export function Sidebar() {
                             chat={thread}
                             onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
                             onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                            onRename={handleRenameChat}
                           />
                         ))}
                       </>
@@ -388,6 +413,7 @@ export function Sidebar() {
                               chat={thread}
                               onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
                               onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                              onRename={handleRenameChat}
                             />
                             <Badge
                               variant="outline"

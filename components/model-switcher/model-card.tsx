@@ -1,7 +1,7 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { Heart } from "lucide-react"
+import { Heart, Star } from "lucide-react"
 import { ChatModel } from "@/types/models"
 import { getModelCategory, formatPrice, formatTokenCount } from "@/lib/model-utils"
 
@@ -16,6 +16,7 @@ interface ModelCardProps {
   isComparing?: boolean
   onToggleCompare?: (modelId: string) => void
   isInComparison?: boolean
+  showPopularBadge?: boolean
 }
 
 function getModelIcon(category: string) {
@@ -38,6 +39,7 @@ export function ModelCard({
   isComparing,
   onToggleCompare,
   isInComparison,
+  showPopularBadge = false,
 }: ModelCardProps) {
   const category = getModelCategory(model)
   const estimatedCost =
@@ -121,6 +123,13 @@ export function ModelCard({
         {model.architecture?.input_modalities?.includes("image") && (
           <Badge variant="outline" className="text-xs">
             🖼️ Vision
+          </Badge>
+        )}
+
+        {showPopularBadge && (
+          <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-600">
+            <Star className="h-3 w-3 mr-1 fill-current" />
+            Popular
           </Badge>
         )}
 

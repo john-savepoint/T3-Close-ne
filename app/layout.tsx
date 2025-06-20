@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs"
 import "./globals.css"
 import { ConvexClientProvider } from "@/components/convex-client-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { GlobalErrorBoundary } from "@/components/global-error-boundary"
 
 export const metadata: Metadata = {
   title: "Z6Chat - AI-Powered Conversations",
@@ -18,9 +19,19 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-slate-950">
         {/* @ts-expect-error Server Component - React 19 compatibility */}
-        <ClerkProvider>
+        <ClerkProvider 
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+          signInUrl="/login"
+          signUpUrl="/signup"
+          afterSignInUrl="/"
+          afterSignUpUrl="/"
+        >
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-            <ConvexClientProvider>{children}</ConvexClientProvider>
+            <ConvexClientProvider>
+              <GlobalErrorBoundary>
+                {children}
+              </GlobalErrorBoundary>
+            </ConvexClientProvider>
           </ThemeProvider>
         </ClerkProvider>
       </body>

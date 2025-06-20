@@ -11,6 +11,7 @@ import { TemporaryChatBanner } from "@/components/temporary-chat-banner"
 import { TemporaryChatStarter } from "@/components/temporary-chat-starter"
 import { ToolsGrid } from "@/components/tools-grid"
 import { useState, useRef, useEffect, useMemo } from "react"
+import { useSearchParams } from "next/navigation"
 import { useChat } from "@/hooks/use-chat"
 import { useMemory } from "@/hooks/use-memory"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
@@ -18,7 +19,7 @@ import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
 import { useModels } from "@/hooks/use-models"
-import { ChatModel } from "@/types/models"
+import { ChatModel, SupportedModel } from "@/types/models"
 import { createOpenRouterClient } from "@/lib/openrouter"
 import type { Attachment } from "@/types/attachment"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
@@ -29,6 +30,8 @@ import { useProjects } from "@/hooks/use-projects"
 
 export function MainContent() {
   const isMobile = useIsMobile()
+  const searchParams = useSearchParams()
+  const chatId = searchParams.get("chatId")
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const { selectedModel: modelsSelectedModel, setSelectedModel } = useModels()
@@ -40,11 +43,12 @@ export function MainContent() {
     addMessageToTemporaryChat,
     updateTemporaryChatMessage,
     deleteTemporaryChatMessage,
+    startTemporaryChat,
     settings,
     isStreaming,
     setIsStreaming,
   } = useTemporaryChat()
-  const { user } = useAuth()
+  const { user, isLoading: authLoading, isAuthenticating, syncError } = useAuth()
   const { activeProject } = useProjects()
 
   // Memoize projectId to prevent infinite re-renders
@@ -60,7 +64,7 @@ export function MainContent() {
     }
   }, [])
 
-  // Real chat functionality
+  // Real chat functionality with persistence
   const {
     messages,
     isLoading,
@@ -76,8 +80,9 @@ export function MainContent() {
     changeModel,
     setTemperature,
   } = useChat({
-    initialModel: "openai/gpt-4o-mini",
+    initialModel: (modelsSelectedModel?.id || "openai/gpt-4o-mini") as SupportedModel,
     projectId,
+    chatId: chatId || undefined,
   })
 
   // Keyboard navigation
@@ -291,42 +296,6 @@ export function MainContent() {
                 </div>
               )}
 
-              {/* Quick Start Prompts */}
-              <div className="mx-auto flex w-full max-w-2xl flex-col space-y-2">
-                <div className="mb-2 text-sm text-mauve-subtle/60">Or try these quick prompts:</div>
-                <Button
-                  variant="ghost"
-                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
-                  onClick={() => handleSendMessage("How does AI work?")}
-                  disabled={isTemporaryMode ? isStreaming : isLoading}
-                >
-                  How does AI work?
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
-                  onClick={() => handleSendMessage("Are black holes real?")}
-                  disabled={isTemporaryMode ? isStreaming : isLoading}
-                >
-                  Are black holes real?
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
-                  onClick={() => handleSendMessage('How many Rs are in the word "strawberry"?')}
-                  disabled={isTemporaryMode ? isStreaming : isLoading}
-                >
-                  How many Rs are in the word "strawberry"?
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start bg-mauve-surface/30 p-3 hover:bg-mauve-surface/50"
-                  onClick={() => handleSendMessage("What is the meaning of life?")}
-                  disabled={isTemporaryMode ? isStreaming : isLoading}
-                >
-                  What is the meaning of life?
-                </Button>
-              </div>
             </div>
           ) : (
             // Chat messages
@@ -338,6 +307,21 @@ export function MainContent() {
                 <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
                   <p className="font-medium">Error:</p>
                   <p className="text-sm">{error.message || String(error)}</p>
+                </div>
+              )}
+              
+              {/* Auth sync error display */}
+              {syncError && (
+                <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 text-yellow-400">
+                  <p className="font-medium">Authentication Sync Issue</p>
+                  <p className="text-sm">We're having trouble syncing your account. Please refresh the page or try signing out and back in.</p>
+                </div>
+              )}
+              
+              {/* Auth loading state */}
+              {isAuthenticating && (
+                <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4 text-blue-400">
+                  <p className="text-sm">Syncing your account...</p>
                 </div>
               )}
 

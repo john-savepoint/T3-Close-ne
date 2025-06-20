@@ -5,18 +5,20 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Search, Archive, RotateCcw, Trash2, CheckSquare, Square } from "lucide-react"
+import { Search, Archive, RotateCcw, Trash2, CheckSquare, Square, ArrowLeft } from "lucide-react"
 import { useState } from "react"
 import { useChatLifecycle } from "@/hooks/use-chat-lifecycle"
 import { EnhancedChatItem } from "@/components/enhanced-chat-item"
 import { ChatErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { ToastContainer } from "@/components/ui/toast"
+import { useRouter } from "next/navigation"
 
 export function ArchiveView() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedChats, setSelectedChats] = useState<Set<string>>(new Set())
   const [isBulkMode, setIsBulkMode] = useState(false)
+  const router = useRouter()
   const { archivedChats, loading, restoreFromArchive, moveToTrash, bulkRestore, bulkMoveToTrash } =
     useChatLifecycle()
 
@@ -108,6 +110,14 @@ export function ArchiveView() {
         <div className="border-b border-mauve-dark p-6">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.push('/')}
+                className="text-mauve-subtle hover:text-mauve-bright"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
               <Archive className="h-6 w-6 text-blue-400" />
               <h1 className="text-2xl font-bold text-foreground">Archive</h1>
               <Badge variant="outline" className="border-blue-500/50 bg-blue-500/10 text-blue-400">

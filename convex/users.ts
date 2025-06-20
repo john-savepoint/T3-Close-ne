@@ -121,3 +121,33 @@ export const initializeUserDefaults = mutation({
     await ctx.db.patch(user._id, updates)
   },
 })
+
+// Initialize demo user for testing
+export const initializeDemoUser = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Check if demo user already exists
+    const existingDemo = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("clerkId"), "demo-user"))
+      .first()
+    
+    if (existingDemo) {
+      return existingDemo._id
+    }
+
+    // Create demo user
+    const now = Date.now()
+    return await ctx.db.insert("users", {
+      clerkId: "demo-user",
+      email: "demo@z6chat.com",
+      name: "Demo User",
+      storageUsed: 0,
+      storageLimit: 1024 * 1024 * 10, // 10MB for demo
+      plan: "demo",
+      createdAt: now,
+      updatedAt: now,
+      lastActiveAt: now,
+    })
+  },
+})

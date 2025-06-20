@@ -1,11 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-// TODO: Add convex dependency and uncomment
-// import { useMutation } from "convex/react";
-// TODO: Uncomment when Convex is properly set up
-// import { api } from "@/convex/_generated/api";
-// import { Id } from "@/convex/_generated/dataModel";
+import { useMutation } from "convex/react"
 import {
   validateFiles,
   validateFile,
@@ -39,20 +35,9 @@ export function useFileUpload(options: UseFileUploadOptions = {}) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
 
-  // TODO: Uncomment when Convex is properly set up
-  // const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-  // const saveFile = useMutation(api.files.saveFile);
-
-  // Mock functions for development
-  const generateUploadUrl = async () => {
-    // Simulate upload URL generation
-    return "https://mock-upload-url.com"
-  }
-
-  const saveFile = async (args: any) => {
-    // Simulate file saving
-    return `file-${Date.now()}`
-  }
+  // Convex functions for file upload
+  const generateUploadUrl = useMutation("files:generateUploadUrl" as any)
+  const saveFile = useMutation("files:saveFile" as any)
 
   const updateProgress = useCallback(
     (id: string, updates: Partial<FileUploadProgress>) => {
@@ -118,14 +103,19 @@ export function useFileUpload(options: UseFileUploadOptions = {}) {
             updateProgress(progressId, { progress: 10 })
             const uploadUrl = await generateUploadUrl()
 
-            // Step 2: Mock upload for development (replace with real Convex upload)
+            // Step 2: Upload file to Convex storage
             updateProgress(progressId, { progress: 30 })
 
-            // Simulate upload delay
-            await new Promise((resolve) => setTimeout(resolve, 500))
+            const response = await fetch(uploadUrl, {
+              method: "POST",
+              body: file,
+            })
 
-            // Mock storage ID for development
-            const storageId = `storage-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            if (!response.ok) {
+              throw new Error(`Upload failed: ${response.statusText}`)
+            }
+
+            const { storageId } = await response.json()
             updateProgress(progressId, { progress: 70 })
 
             // Step 3: Save file metadata

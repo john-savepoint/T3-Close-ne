@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useQuery, useMutation } from "convex/react"
 import type {
   Attachment,
   AttachmentUsage,
@@ -152,10 +153,11 @@ export const SUPPORTED_FILE_TYPES = {
 }
 
 export function useAttachments() {
-  const [attachments, setAttachments] = useState<any[]>(mockAttachments)
+  // Real Convex queries
+  const attachments = useQuery("files:getUserFiles" as any) || []
   const [usages, setUsages] = useState<AttachmentUsage[]>(mockUsages)
   const [uploadProgress, setUploadProgress] = useState<FileUploadProgress[]>([])
-  const [loading, setLoading] = useState(false)
+  const loading = attachments === undefined
 
   const uploadFiles = useCallback(
     async (

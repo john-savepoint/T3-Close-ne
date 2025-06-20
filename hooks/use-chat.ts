@@ -75,22 +75,13 @@ export function useChat(options: UseChatOptions = {}) {
     model: selectedModel,
   }))
 
-  // Enhanced send message with attachments support
+  // Enhanced send message with attachments support and persistence
   const sendMessage = useCallback(
     async (content: string, attachments?: Attachment[]) => {
       if (!content.trim()) return
 
-      // For now, include attachment metadata in the message
-      // In a more advanced implementation, we'd process attachments
-      let messageContent = content.trim()
-      if (attachments && attachments.length > 0) {
-        const attachmentSummary = attachments
-          .map((att) => `[Attachment: ${att.filename}]`)
-          .join(" ")
-        messageContent = `${messageContent}\n\n${attachmentSummary}`
-      }
-
-      await aiSendMessage(messageContent, {
+      // Pass attachments to the streaming hook for persistence
+      await aiSendMessage(content, attachments, {
         model: selectedModel,
         apiKey,
         temperature,

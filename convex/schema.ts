@@ -16,7 +16,7 @@ const schema = defineSchema({
     storageLimit: v.optional(v.number()), // bytes
     // Additional fields
     lastActiveAt: v.optional(v.number()),
-    plan: v.optional(v.union(v.literal("free"), v.literal("pro"))),
+    plan: v.optional(v.union(v.literal("free"), v.literal("pro"), v.literal("demo"))),
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
   })

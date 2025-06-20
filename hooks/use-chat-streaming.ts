@@ -1,8 +1,13 @@
 "use client"
 
 import { useChat as useAIChat } from "ai/react"
-import { useCallback, useRef } from "react"
+import { useCallback, useRef, useState, useEffect, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { SupportedModel } from "@/types/models"
+import { useChats, useMessages } from "./use-chats"
+import { useAuth } from "./use-auth"
+import { Id } from "@/convex/_generated/dataModel"
+import type { Attachment } from "@/types/attachment"
 
 interface UseChatStreamingOptions {
   initialModel?: SupportedModel
@@ -14,11 +19,100 @@ interface UseChatStreamingOptions {
   onError?: (error: Error) => void
 }
 
+// Helper function to convert string to Convex ID
+function toProjectId(id: string): Id<"projects"> {
+  return id as Id<"projects">
+}
+
 export function useChatStreaming(options: UseChatStreamingOptions = {}) {
+  const { user } = useAuth()
+  const router = useRouter()
+  
+  // Safely get chatId from URL or options
+  const [persistentChatId, setPersistentChatId] = useState<Id<"chats"> | undefined>(() => {
+    // First check if chatId is passed via options
+    if (options.chatId) {
+      return options.chatId as Id<"chats">
+    }
+    
+    // Otherwise try to get from URL
+    if (typeof window !== "undefined") {
+      try {
+        const searchParams = new URLSearchParams(window.location.search)
+        const currentChatId = searchParams.get("chatId")
+        return currentChatId ? (currentChatId as Id<"chats">) : undefined
+      } catch {
+        return undefined
+      }
+    }
+    return undefined
+  })
+  const [isCreatingChat, setIsCreatingChat] = useState(false)
   const abortControllerRef = useRef<AbortController | null>(null)
 
+  // Update persistentChatId when options.chatId changes
+  useEffect(() => {
+    if (options.chatId && options.chatId !== persistentChatId) {
+      setPersistentChatId(options.chatId as Id<"chats">)
+    }
+  }, [options.chatId, persistentChatId])
+
+  // Chat persistence hooks
+  const { createChat } = useChats({ userId: user?._id })
+  const { messages: existingMessages, createMessage } = useMessages({ chatId: persistentChatId })
+
+  // Convert existing messages to AI SDK format
+  const initialMessages = useMemo(() => {
+    if (!existingMessages || existingMessages.length === 0) {
+      return []
+    }
+    
+    console.log("Loading existing messages for chat:", persistentChatId, "count:", existingMessages.length)
+    
+    const converted = existingMessages.map((msg) => ({
+      id: msg._id,
+      role: msg.type as "user" | "assistant",
+      content: msg.content,
+      createdAt: new Date(msg.timestamp),
+    }))
+    return converted
+  }, [existingMessages])
+
+  // Auto-create chat on first message
+  const ensureChat = useCallback(async (): Promise<Id<"chats"> | null> => {
+    if (persistentChatId) return persistentChatId
+    if (isCreatingChat) return null
+    if (!user?._id) return null
+
+    setIsCreatingChat(true)
+    try {
+      const chatId = await createChat(
+        options.projectId ? `New Chat in Project` : "New Chat",
+        options.projectId ? toProjectId(options.projectId) : undefined
+      )
+      
+      if (chatId) {
+        setPersistentChatId(chatId)
+        // Update URL to include chatId
+        if (typeof window !== "undefined") {
+          const newUrl = new URL(window.location.href)
+          newUrl.searchParams.set("chatId", chatId)
+          router.replace(newUrl.pathname + newUrl.search)
+        }
+        
+        return chatId
+      }
+    } catch (error) {
+      console.error("Failed to create chat:", error)
+    } finally {
+      setIsCreatingChat(false)
+    }
+    
+    return null
+  }, [persistentChatId, isCreatingChat, user?._id, createChat, options.projectId, router])
+
   const {
-    messages,
+    messages: aiMessages,
     input,
     handleInputChange,
     handleSubmit,
@@ -32,8 +126,8 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
     data,
   } = useAIChat({
     api: "/api/chat",
-    id: options.chatId,
-    initialMessages: [],
+    id: persistentChatId || undefined,
+    initialMessages,
     body: {
       model: options.initialModel || "openai/gpt-4o-mini",
       apiKey: options.apiKey,
@@ -43,8 +137,29 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
       console.log("Stream response started:", response.status)
       options.onResponse?.(response)
     },
-    onFinish: (message) => {
+    onFinish: async (message) => {
       console.log("Stream finished:", message)
+      
+      // Save assistant message to database when streaming finishes
+      if (persistentChatId && message.content && user?._id) {
+        try {
+          await createMessage(
+            persistentChatId,
+            message.content,
+            "assistant",
+            {
+              userId: user._id,
+              model: options.initialModel,
+              metadata: {
+                model: options.initialModel || "openai/gpt-4o-mini",
+              },
+            }
+          )
+        } catch (error) {
+          console.error("Failed to save assistant message:", error)
+        }
+      }
+      
       options.onFinish?.(message)
     },
     onError: (error) => {
@@ -53,10 +168,19 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
     },
   })
 
-  // Enhanced message sending with proper typing
+  // Sync messages when existing messages are loaded but AI SDK messages are empty
+  useEffect(() => {
+    if (initialMessages && initialMessages.length > 0 && aiMessages && aiMessages.length === 0 && !isLoading) {
+      console.log("Syncing messages from database to AI SDK:", initialMessages.length, "messages")
+      setMessages(initialMessages as any)
+    }
+  }, [initialMessages, aiMessages, isLoading, setMessages])
+
+  // Enhanced message sending with persistence
   const sendMessage = useCallback(
     async (
       content: string,
+      attachments?: Attachment[],
       messageOptions?: {
         model?: SupportedModel
         apiKey?: string
@@ -66,19 +190,47 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
       }
     ) => {
       if (!content.trim()) return
+      if (!user?._id) return
 
-      // Cancel any existing request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
+      // Ensure we have a chat to save to
+      const chatId = await ensureChat()
+      if (!chatId) {
+        console.error("Failed to create chat for message")
+        return
       }
 
-      abortControllerRef.current = new AbortController()
-
       try {
+        // Save user message to database first
+        await createMessage(
+          chatId,
+          content,
+          "user",
+          {
+            userId: user._id,
+            attachments: attachments?.map(att => att.id as Id<"attachments">),
+          }
+        )
+
+        // Cancel any existing request
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort()
+        }
+
+        abortControllerRef.current = new AbortController()
+
+        // Send message to AI SDK for streaming response
+        let messageContent = content.trim()
+        if (attachments && attachments.length > 0) {
+          const attachmentSummary = attachments
+            .map((att) => `[Attachment: ${att.filename}]`)
+            .join(" ")
+          messageContent = `${messageContent}\n\n${attachmentSummary}`
+        }
+
         await append(
           {
             role: "user",
-            content: content.trim(),
+            content: messageContent,
           },
           {
             body: {
@@ -102,7 +254,7 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
         abortControllerRef.current = null
       }
     },
-    [append, options.initialModel, options.apiKey, options.projectId]
+    [user?._id, ensureChat, createMessage, append, options.initialModel, options.apiKey, options.projectId]
   )
 
   // Model switching
@@ -134,22 +286,23 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
 
   // Regenerate last message
   const regenerateLastMessage = useCallback(() => {
-    if (messages.length > 0) {
+    if (aiMessages.length > 0) {
       reload()
     }
-  }, [messages.length, reload])
+  }, [aiMessages.length, reload])
 
   // Get streaming status
   const isStreaming = isLoading
 
   return {
     // Core chat state
-    messages,
+    messages: aiMessages,
     input,
-    isLoading,
+    isLoading: isLoading || isCreatingChat,
     isStreaming,
     error,
     data,
+    chatId: persistentChatId,
 
     // Input handling
     handleInputChange,

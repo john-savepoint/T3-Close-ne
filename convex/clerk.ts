@@ -7,17 +7,31 @@ import { QueryCtx, MutationCtx } from "./_generated/server"
 export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity()
   if (!identity) {
-    // Check for demo mode - look for a user with specific test tokenIdentifier
-    const demoUser = await ctx.db
+    // Check for demo mode - create or get demo user
+    let demoUser = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("tokenIdentifier"), "test-user-123"))
+      .filter((q) => q.eq(q.field("clerkId"), "demo-user"))
       .first()
 
-    if (demoUser) {
-      return demoUser
+    // Create demo user if it doesn't exist (only in mutations)
+    if (!demoUser && "db" in ctx && "insert" in ctx.db) {
+      const now = Date.now()
+      const demoUserId = await ctx.db.insert("users", {
+        clerkId: "demo-user",
+        email: "demo@z6chat.com",
+        name: "Demo User",
+        storageUsed: 0,
+        storageLimit: 1024 * 1024 * 10, // 10MB for demo
+        plan: "demo",
+        createdAt: now,
+        updatedAt: now,
+        lastActiveAt: now,
+      })
+      
+      demoUser = await ctx.db.get(demoUserId)
     }
 
-    return null
+    return demoUser
   }
 
   // Get user record from our database - try clerkId first

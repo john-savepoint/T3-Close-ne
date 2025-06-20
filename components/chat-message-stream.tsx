@@ -31,6 +31,10 @@ interface ChatMessageStreamProps {
   model?: string
   isStreaming?: boolean
   isEditing?: boolean
+  user?: {
+    name?: string
+    image?: string
+  }
   onEdit?: (id: string, content: string) => void
   onDelete?: (id: string) => void
   onRegenerate?: (id: string) => void
@@ -46,6 +50,7 @@ export function ChatMessageStream({
   model,
   isStreaming = false,
   isEditing = false,
+  user,
   onEdit,
   onDelete,
   onRegenerate,
@@ -191,13 +196,17 @@ export function ChatMessageStream({
     >
       <Avatar className="h-8 w-8 flex-shrink-0">
         {type === "user" ? (
-          <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
+          <>
+            <AvatarImage src={user?.image} alt={user?.name || "User"} />
+            <AvatarFallback>
+              {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+            </AvatarFallback>
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-mauve-accent/20">
             <span className="text-xs font-bold text-mauve-bright">AI</span>
           </div>
         )}
-        <AvatarFallback>{type === "user" ? "U" : "AI"}</AvatarFallback>
       </Avatar>
 
       <div className="min-w-0 flex-1">

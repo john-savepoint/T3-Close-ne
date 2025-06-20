@@ -23,16 +23,18 @@ import {
 import type { Chat } from "@/types/chat"
 import { formatDistanceToNow } from "date-fns"
 import { useState } from "react"
+import { InlineEdit } from "@/components/inline-edit"
 
 interface EnhancedChatItemProps {
   chat: Chat
   isActive?: boolean
   showParentIcon?: boolean
+  onClick?: () => void
   onMoveToArchive?: () => void
   onMoveToTrash?: () => void
   onRestore?: () => void
   onDeletePermanently?: () => void
-  onRename?: () => void
+  onRename?: (newTitle: string) => void
   onShare?: () => void
   onPin?: () => void
   className?: string
@@ -42,6 +44,7 @@ export function EnhancedChatItem({
   chat,
   isActive = false,
   showParentIcon = false,
+  onClick,
   onMoveToArchive,
   onMoveToTrash,
   onRestore,
@@ -52,6 +55,7 @@ export function EnhancedChatItem({
   className = "",
 }: EnhancedChatItemProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
 
   const getStatusBadge = () => {
     switch (chat.status) {
@@ -120,10 +124,6 @@ export function EnhancedChatItem({
             Move to Trash
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onRename}>
-            <Edit className="mr-2 h-4 w-4" />
-            Rename
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={onShare}>
             <Share className="mr-2 h-4 w-4" />
             Share
@@ -138,10 +138,6 @@ export function EnhancedChatItem({
         <DropdownMenuItem onClick={onPin}>
           <Pin className="mr-2 h-4 w-4" />
           Pin
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onRename}>
-          <Edit className="mr-2 h-4 w-4" />
-          Rename
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onMoveToArchive}>
@@ -165,16 +161,24 @@ export function EnhancedChatItem({
     <div
       className={`group flex items-center rounded-lg p-2 transition-colors hover:bg-white/5 ${
         isActive ? "bg-mauve-accent/10" : ""
-      } ${className}`}
+      } ${onClick ? "cursor-pointer" : ""} ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
     >
       <div className="min-w-0 flex-1 overflow-hidden">
         <div className="mb-1 flex items-center gap-2">
           {showParentIcon && (
             <GitBranch className="inline-block h-4 w-4 flex-shrink-0 text-mauve-subtle/50" />
           )}
-          <span className="truncate text-sm text-mauve-subtle">{chat.title}</span>
+          <InlineEdit
+            value={chat.title}
+            onSave={(newTitle) => onRename?.(newTitle)}
+            placeholder="Chat title..."
+            disabled={!onRename}
+            editTrigger="click"
+            className="flex-1 min-w-0"
+          />
           {getStatusBadge()}
         </div>
 

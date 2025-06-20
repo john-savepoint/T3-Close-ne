@@ -1,0 +1,23 @@
+
+> z6chat@0.3.1 dev /Users/johnzealand-doyle/Projects/Save Point Pty Ltd/T3 Cloneathon/T3-Close-ne
+> next dev
+
+[32m✔[0m [33mConsole Ninja[0m extension is connected to [33mNext.js[0m, see [36mhttps://tinyurl.com/2vt8jxzw[0m
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3002
+   - Network:      http://192.168.0.202:3002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 21.6s
+ ✓ Compiled /middleware in 370ms (262 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 5s (1297 modules)
+ GET / 404 in 9995ms
+ ✓ Compiled in 5.1s (469 modules)
+   Reload env: .env.local
+ ✓ Compiled in 5.1s (717 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/johnzealand-doyle/Projects/Save Point Pty Ltd/T3 Cloneathon/T3-Close-ne/.next/cache/webpack/client-development/0.pack.gz_' -> '/Users/johnzealand-doyle/Projects/Save Point Pty Ltd/T3 Cloneathon/T3-Close-ne/.next/cache/webpack/client-development/0.pack.gz'
+[?25h

@@ -16,7 +16,6 @@ export default function SettingsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="space-y-6">
-        {/* Header */}
         <div className="mb-6">
           <Link href="/">
             <Button variant="ghost" size="sm" className="mb-4 text-mauve-subtle hover:text-foreground">
@@ -42,78 +41,91 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Main Layout with Sidebar */}
         <Tabs defaultValue="memory" className="flex gap-6">
-          {/* Sidebar Navigation */}
-          <div className="w-64 flex-shrink-0">
-            <TabsList className="flex flex-col h-auto w-full bg-transparent p-0 space-y-1">
-              <TabsTrigger value="memory" className="w-full justify-start p-3 h-auto text-left data-[state=active]:bg-mauve-accent/20 data-[state=active]:border-mauve-accent/50 hover:bg-mauve-surface/50">
-                <Brain className="mr-3 h-4 w-4" />
+          <TabsList className="flex flex-col h-fit w-64 bg-mauve-dark/30 p-1 space-y-1">
+            <TabsTrigger value="memory" className="w-full justify-start p-3 h-auto text-left">
+              <div className="flex items-start gap-3">
+                <Brain className="h-4 w-4 mt-0.5" />
                 <div>
                   <div className="font-medium">Memory</div>
-                  <div className="text-xs text-mauve-subtle/70">Context & learning</div>
+                  <div className="text-xs text-muted-foreground">Context & learning</div>
                 </div>
-              </TabsTrigger>
-              <TabsTrigger value="temporary" className="w-full justify-start p-3 h-auto text-left data-[state=active]:bg-mauve-accent/20 data-[state=active]:border-mauve-accent/50 hover:bg-mauve-surface/50">
-                <EyeOff className="mr-3 h-4 w-4" />
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="temporary" className="w-full justify-start p-3 h-auto text-left">
+              <div className="flex items-start gap-3">
+                <EyeOff className="h-4 w-4 mt-0.5" />
                 <div>
                   <div className="font-medium">Temporary</div>
-                  <div className="text-xs text-mauve-subtle/70">Private sessions</div>
+                  <div className="text-xs text-muted-foreground">Private sessions</div>
                 </div>
-              </TabsTrigger>
-              <TabsTrigger value="team" className="w-full justify-start p-3 h-auto text-left data-[state=active]:bg-mauve-accent/20 data-[state=active]:border-mauve-accent/50 hover:bg-mauve-surface/50">
-                <Users className="mr-3 h-4 w-4" />
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="team" className="w-full justify-start p-3 h-auto text-left">
+              <div className="flex items-start gap-3">
+                <Users className="h-4 w-4 mt-0.5" />
                 <div>
                   <div className="font-medium">Team</div>
-                  <div className="text-xs text-mauve-subtle/70">Collaboration</div>
+                  <div className="text-xs text-muted-foreground">Collaboration</div>
                 </div>
-              </TabsTrigger>
-              <TabsTrigger value="api-keys" className="w-full justify-start p-3 h-auto text-left data-[state=active]:bg-mauve-accent/20 data-[state=active]:border-mauve-accent/50 hover:bg-mauve-surface/50">
-                <Key className="mr-3 h-4 w-4" />
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="api-keys" className="w-full justify-start p-3 h-auto text-left">
+              <div className="flex items-start gap-3">
+                <Key className="h-4 w-4 mt-0.5" />
                 <div>
                   <div className="font-medium">API Keys</div>
-                  <div className="text-xs text-mauve-subtle/70">External services</div>
+                  <div className="text-xs text-muted-foreground">External services</div>
                 </div>
-              </TabsTrigger>
-              <TabsTrigger value="gifts" className="w-full justify-start p-3 h-auto text-left data-[state=active]:bg-mauve-accent/20 data-[state=active]:border-mauve-accent/50 hover:bg-mauve-surface/50">
-                <Gift className="mr-3 h-4 w-4" />
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="gifts" className="w-full justify-start p-3 h-auto text-left">
+              <div className="flex items-start gap-3">
+                <Gift className="h-4 w-4 mt-0.5" />
                 <div>
                   <div className="font-medium">Gifts</div>
-                  <div className="text-xs text-mauve-subtle/70">Share subscriptions</div>
+                  <div className="text-xs text-muted-foreground">Share subscriptions</div>
                 </div>
-              </TabsTrigger>
-              <TabsTrigger value="attachments" className="w-full justify-start p-3 h-auto text-left data-[state=active]:bg-mauve-accent/20 data-[state=active]:border-mauve-accent/50 hover:bg-mauve-surface/50">
-                <FileText className="mr-3 h-4 w-4" />
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="attachments" className="w-full justify-start p-3 h-auto text-left">
+              <div className="flex items-start gap-3">
+                <FileText className="h-4 w-4 mt-0.5" />
                 <div>
                   <div className="font-medium">Files</div>
-                  <div className="text-xs text-mauve-subtle/70">Attachment library</div>
+                  <div className="text-xs text-muted-foreground">Attachment library</div>
                 </div>
-              </TabsTrigger>
-              <TabsTrigger value="billing" className="w-full justify-start p-3 h-auto text-left data-[state=active]:bg-mauve-accent/20 data-[state=active]:border-mauve-accent/50 hover:bg-mauve-surface/50">
-                <CreditCard className="mr-3 h-4 w-4" />
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="billing" className="w-full justify-start p-3 h-auto text-left">
+              <div className="flex items-start gap-3">
+                <CreditCard className="h-4 w-4 mt-0.5" />
                 <div>
                   <div className="font-medium">Billing</div>
-                  <div className="text-xs text-mauve-subtle/70">Plans & usage</div>
+                  <div className="text-xs text-muted-foreground">Plans & usage</div>
                 </div>
-              </TabsTrigger>
-              <TabsTrigger value="shortcuts" className="w-full justify-start p-3 h-auto text-left data-[state=active]:bg-mauve-accent/20 data-[state=active]:border-mauve-accent/50 hover:bg-mauve-surface/50">
-                <Keyboard className="mr-3 h-4 w-4" />
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="shortcuts" className="w-full justify-start p-3 h-auto text-left">
+              <div className="flex items-start gap-3">
+                <Keyboard className="h-4 w-4 mt-0.5" />
                 <div>
                   <div className="font-medium">Shortcuts</div>
-                  <div className="text-xs text-mauve-subtle/70">Keyboard controls</div>
+                  <div className="text-xs text-muted-foreground">Keyboard controls</div>
                 </div>
-              </TabsTrigger>
-              <TabsTrigger value="profile" className="w-full justify-start p-3 h-auto text-left data-[state=active]:bg-mauve-accent/20 data-[state=active]:border-mauve-accent/50 hover:bg-mauve-surface/50">
-                <User className="mr-3 h-4 w-4" />
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="w-full justify-start p-3 h-auto text-left">
+              <div className="flex items-start gap-3">
+                <User className="h-4 w-4 mt-0.5" />
                 <div>
                   <div className="font-medium">Profile</div>
-                  <div className="text-xs text-mauve-subtle/70">Account settings</div>
+                  <div className="text-xs text-muted-foreground">Account settings</div>
                 </div>
-              </TabsTrigger>
-            </TabsList>
-          </div>
+              </div>
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Main Content Area */}
           <div className="flex-1 min-w-0">
 
           <TabsContent value="memory">
