@@ -109,6 +109,13 @@ graph TD
     C --> D[Beautiful Display]
 \`\`\`
 
+### Simple Mermaid Test
+
+\`\`\`mermaid
+flowchart TD
+    A[Start] --> B[End]
+\`\`\`
+
 ## Inline HTML (Sanitized)
 
 <div style="background-color: rgba(147, 51, 234, 0.1); padding: 1rem; border-radius: 0.5rem;">

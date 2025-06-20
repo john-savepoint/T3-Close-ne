@@ -15,6 +15,8 @@ import {
   Volume2,
   Code,
   Share2,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react"
 import { CodeBlockEnhanced } from "@/components/code-block-enhanced"
 import { ShareChatModal } from "@/components/share-chat-modal"
@@ -25,6 +27,9 @@ import dynamic from "next/dynamic"
 import { sanitizeSVG } from "@/lib/content-sanitizer"
 import { CodeCanvas } from "@/components/code-canvas"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
+import { useAuth } from "@/hooks/use-auth"
+import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 // Dynamic import for Mermaid to avoid SSR issues
 const Mermaid = dynamic(() => import("@/components/ui/mermaid"), { ssr: false })
@@ -48,6 +53,8 @@ interface ChatMessageProps {
   onRegenerate?: (id: string) => void
   onCopy?: (content: string) => void
   onRemoveAttachment?: (attachmentId: string) => void
+  isCollapsed?: boolean
+  onToggleCollapse?: (id: string) => void
 }
 
 export function ChatMessage({
@@ -66,6 +73,8 @@ export function ChatMessage({
   onRegenerate,
   onCopy,
   onRemoveAttachment,
+  isCollapsed = false,
+  onToggleCollapse,
 }: ChatMessageProps) {
   const [editContent, setEditContent] = useState(content)
   const [isHovered, setIsHovered] = useState(false)
@@ -74,6 +83,7 @@ export function ChatMessage({
   const [isEditing, setIsEditing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const { clerkUser } = useAuth()
 
   useEffect(() => {
     if (isEditMode && textareaRef.current) {
@@ -96,7 +106,6 @@ export function ChatMessage({
         await onEdit?.(id, editContent.trim())
       } catch (error) {
         console.error("Failed to save edit:", error)
-        // Could show error toast here
       } finally {
         setIsEditing(false)
       }
@@ -120,7 +129,6 @@ export function ChatMessage({
       setShowDeleteConfirm(false)
     } catch (error) {
       console.error("Failed to delete message:", error)
-      // Could show error toast here
     } finally {
       setIsDeleting(false)
     }
@@ -181,23 +189,50 @@ export function ChatMessage({
     return blocks.length > 0 ? blocks : [{ type: "text", content: text }]
   }
 
-  const blocks = extractCodeBlocks(content)
+  // Get collapsed preview - first 2-3 lines or 150 characters
+  const getCollapsedPreview = () => {
+    const lines = content.split('\n')
+    const previewLines = lines.slice(0, 3).join('\n')
+    if (previewLines.length > 150) {
+      return previewLines.substring(0, 150) + '...'
+    }
+    return previewLines + (lines.length > 3 ? '...' : '')
+  }
+
+  const blocks = extractCodeBlocks(isCollapsed ? getCollapsedPreview() : content)
+
+  // Get user avatar and name
+  const userName = type === "user" 
+    ? (user?.name || clerkUser?.fullName || clerkUser?.firstName || "You")
+    : "Assistant"
+  
+  const userImage = type === "user"
+    ? (user?.image || clerkUser?.imageUrl)
+    : null
+
+  const userInitials = type === "user"
+    ? userName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "AI"
 
   return (
     <div
       id={`message-${id}`}
-      className={`group flex gap-4 rounded-lg p-4 transition-colors ${
-        type === "user" ? "ml-12 bg-mauve-surface/30" : "bg-mauve-dark/20"
-      }`}
+      className={cn(
+        "group flex gap-4 rounded-lg p-4 transition-all",
+        type === "user" 
+          ? "ml-12 bg-mauve-surface/30 flex-row-reverse" 
+          : "bg-mauve-dark/20",
+        isCollapsed && "opacity-90"
+      )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <Avatar className="h-8 w-8 flex-shrink-0">
         {type === "user" ? (
           <>
-            <AvatarImage src={user?.image} alt={user?.name || "User"} />
-            <AvatarFallback>
-              {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+            <AvatarImage src={userImage} alt={userName} />
+            <AvatarFallback className="bg-blue-500 text-white">
+              {userInitials}
             </AvatarFallback>
           </>
         ) : (
@@ -207,9 +242,29 @@ export function ChatMessage({
         )}
       </Avatar>
 
-      <div className="min-w-0 flex-1">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="text-sm font-semibold">{type === "user" ? "You" : "Assistant"}</span>
+      <div className={cn("min-w-0 flex-1", type === "user" && "text-right")}>
+        <div className={cn(
+          "mb-2 flex items-center gap-2",
+          type === "user" && "justify-end"
+        )}>
+          {/* Collapse/Expand Button */}
+          {onToggleCollapse && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 p-0"
+              onClick={() => onToggleCollapse(id)}
+              title={isCollapsed ? "Expand message" : "Collapse message"}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+            </Button>
+          )}
+          
+          <span className="text-sm font-semibold">{userName}</span>
           {model && type === "assistant" && (
             <Badge variant="outline" className="text-xs">
               {model}
@@ -287,7 +342,11 @@ export function ChatMessage({
             </div>
           </div>
         ) : (
-          <div className="prose prose-invert max-w-none">
+          <div className={cn(
+            "prose prose-invert max-w-none",
+            type === "user" && "text-left",
+            isCollapsed && "line-clamp-3"
+          )}>
             {blocks.map((block, index) => (
               <div key={index}>
                 {block.type === "text" ? (
@@ -304,11 +363,13 @@ export function ChatMessage({
                     />
                   </div>
                 ) : (
-                  <CodeCanvas
-                    code={block.content}
-                    language={block.language || "text"}
-                    title={block.language || "text"}
-                  />
+                  !isCollapsed && (
+                    <CodeCanvas
+                      code={block.content}
+                      language={block.language || "text"}
+                      title={block.language || "text"}
+                    />
+                  )
                 )}
               </div>
             ))}
@@ -317,12 +378,30 @@ export function ChatMessage({
 
         {/* Enhanced Action Buttons */}
         {(isHovered || isEditMode) && !isEditMode && !showDeleteConfirm && (
-          <div className="mt-3 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className={cn(
+            "mt-3 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100",
+            type === "user" && "justify-end"
+          )}>
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7"
-              onClick={() => onCopy?.(content)}
+              onClick={() => {
+                // Always copy the raw content, not the formatted HTML
+                if (onCopy) {
+                  onCopy(content)
+                  toast.success('Message copied to clipboard')
+                } else {
+                  // Fallback to direct clipboard write
+                  navigator.clipboard.writeText(content).then(() => {
+                    toast.success('Message copied to clipboard')
+                  }).catch(err => {
+                    console.error('Failed to copy:', err)
+                    toast.error('Failed to copy message')
+                  })
+                }
+              }}
+              title="Copy message"
             >
               <Copy className="h-3 w-3" />
             </Button>
@@ -363,10 +442,17 @@ export function ChatMessage({
             </Button>
 
             <ExportChatModal
-              messages={[{ id, type, content, timestamp, model }]}
+              messages={[{ 
+                id, 
+                type, 
+                content, 
+                timestamp, 
+                model: model || 'Unknown',
+                user: user
+              }]}
               chatTitle={`Single Message - ${type === "user" ? "User" : "Assistant"}`}
               trigger={
-                <Button variant="ghost" size="icon" className="h-7 w-7">
+                <Button variant="ghost" size="icon" className="h-7 w-7" title="Download message">
                   <Download className="h-3 w-3" />
                 </Button>
               }

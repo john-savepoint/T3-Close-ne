@@ -301,71 +301,79 @@ export function MainContent() {
             </div>
           ) : (
             // Chat messages
-            <div className="flex-1 space-y-4 p-4">
-              {activeSuggestion && <MemorySuggestionBanner suggestion={activeSuggestion} />}
+            <div className="flex-1 flex justify-center">
+              <div className="w-full max-w-4xl space-y-4 px-4 py-4">
+                {activeSuggestion && <MemorySuggestionBanner suggestion={activeSuggestion} />}
 
-              {/* Error display */}
-              {error && (
-                <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
-                  <p className="font-medium">Error:</p>
-                  <p className="text-sm">{error.message || String(error)}</p>
-                </div>
-              )}
-              
-              {/* Auth sync error display */}
-              {syncError && (
-                <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 text-yellow-400">
-                  <p className="font-medium">Authentication Sync Issue</p>
-                  <p className="text-sm">We're having trouble syncing your account. Please refresh the page or try signing out and back in.</p>
-                </div>
-              )}
-              
-              {/* Auth loading state */}
-              {isAuthenticating && (
-                <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4 text-blue-400">
-                  <p className="text-sm">Syncing your account...</p>
-                </div>
-              )}
-
-              {displayMessages.map((message) => (
-                <div key={message.id} id={`message-${message.id}`}>
-                  <ChatMessage
-                    {...message}
-                    onEdit={handleEditMessage}
-                    onDelete={handleDeleteMessage}
-                    onRegenerate={regenerateResponse}
-                    onCopy={(content) => {
-                      navigator.clipboard.writeText(content)
-                    }}
-                  />
-                </div>
-              ))}
-
-              {/* Loading indicator */}
-              {((isLoading && !isTemporaryMode) || (isStreaming && isTemporaryMode)) &&
-                displayMessages.length > 0 && (
-                  <div className="flex items-center space-x-2 text-mauve-subtle">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-mauve-accent border-t-transparent"></div>
-                    <span className="text-sm">AI is thinking...</span>
+                {/* Error display */}
+                {error && (
+                  <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+                    <p className="font-medium">Error:</p>
+                    <p className="text-sm">{error.message || String(error)}</p>
                   </div>
                 )}
+                
+                {/* Auth sync error display */}
+                {syncError && (
+                  <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 text-yellow-400">
+                    <p className="font-medium">Authentication Sync Issue</p>
+                    <p className="text-sm">We're having trouble syncing your account. Please refresh the page or try signing out and back in.</p>
+                  </div>
+                )}
+                
+                {/* Auth loading state */}
+                {isAuthenticating && (
+                  <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4 text-blue-400">
+                    <p className="text-sm">Syncing your account...</p>
+                  </div>
+                )}
+
+                {displayMessages.map((message) => (
+                  <div key={message.id} id={`message-${message.id}`}>
+                    <ChatMessage
+                      {...message}
+                      onEdit={handleEditMessage}
+                      onDelete={handleDeleteMessage}
+                      onRegenerate={regenerateResponse}
+                      onCopy={(content) => {
+                        navigator.clipboard.writeText(content).then(() => {
+                          // Success is handled in the component itself
+                        }).catch(err => {
+                          console.error('Failed to copy:', err)
+                        })
+                      }}
+                    />
+                  </div>
+                ))}
+
+                {/* Loading indicator */}
+                {((isLoading && !isTemporaryMode) || (isStreaming && isTemporaryMode)) &&
+                  displayMessages.length > 0 && (
+                    <div className="flex items-center space-x-2 text-mauve-subtle">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-mauve-accent border-t-transparent"></div>
+                      <span className="text-sm">AI is thinking...</span>
+                    </div>
+                  )}
+              </div>
             </div>
           )}
           <div className="flex-1" />
 
           {/* Chat Input */}
-          <div className="sticky bottom-0 bg-gradient-to-t from-mauve-dark to-transparent px-4 pb-4 md:pb-8">
-            <ChatInput
-              onSendMessage={handleSendMessage}
-              onMessageSent={handleMessageSent}
-              isLoading={isTemporaryMode ? isStreaming : isLoading}
-              onStopGeneration={stopStreaming}
-              selectedModel={selectedModel}
-              onModelChange={(model: string) => changeModel(model as any)}
-              temperature={temperature}
-              onTemperatureChange={setTemperature}
-              disabled={!!error || (isTemporaryMode && isStreaming)}
-            />
+          <div className="sticky bottom-0 bg-gradient-to-t from-mauve-dark to-transparent pb-4 md:pb-8">
+            <div className="mx-auto max-w-4xl px-4">
+              <ChatInput
+                onSendMessage={handleSendMessage}
+                onMessageSent={handleMessageSent}
+                isLoading={isTemporaryMode ? isStreaming : isLoading}
+                onStopGeneration={stopStreaming}
+                selectedModel={selectedModel}
+                onModelChange={(model: string) => changeModel(model as any)}
+                temperature={temperature}
+                onTemperatureChange={setTemperature}
+                disabled={!!error || (isTemporaryMode && isStreaming)}
+              />
+            </div>
           </div>
         </div>
 

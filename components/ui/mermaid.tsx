@@ -35,7 +35,10 @@ export default function Mermaid({ code, className = "" }: MermaidProps) {
   useEffect(() => {
     if (ref.current && code) {
       ref.current.innerHTML = ''
-      const id = `mermaid-${Date.now()}-${Math.random()}`
+      // Generate a unique ID that always starts with a letter for valid CSS selector
+      const uniqueId = Math.random().toString(36).substring(2)
+      // Ensure the ID starts with 'm' in case the random string starts with a number
+      const id = `m${uniqueId}-${Date.now()}`
       
       try {
         mermaid.render(id, code).then(({ svg }) => {

@@ -24,6 +24,8 @@ export interface Chat {
   activeLeafMessageId?: string | null
   status: ChatStatus
   statusChangedAt: Date
+  isPinned?: boolean
+  pinnedAt?: Date
 }
 
 // Convex database types
@@ -47,6 +49,8 @@ export interface ConvexChat {
     timestamp: number
     type: "user" | "assistant"
   } | null
+  isPinned?: boolean
+  pinnedAt?: number
 }
 
 // Type adapter utility functions
@@ -61,6 +65,8 @@ export function adaptConvexChatToChat(convexChat: ConvexChat): Chat {
     activeLeafMessageId: convexChat.activeLeafMessageId,
     status: convexChat.status,
     statusChangedAt: new Date(convexChat.statusChangedAt),
+    isPinned: convexChat.isPinned,
+    pinnedAt: convexChat.pinnedAt ? new Date(convexChat.pinnedAt) : undefined,
   }
 }
 

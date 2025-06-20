@@ -81,18 +81,24 @@ export function EnhancedChatItem({
 
   const getTimeDisplay = () => {
     if (chat.status === "trashed" && chat.statusChangedAt) {
+      // statusChangedAt is already a timestamp (number), not a Date object
+      const statusTimestamp = typeof chat.statusChangedAt === 'number' ? chat.statusChangedAt : chat.statusChangedAt.getTime()
       const daysLeft = Math.max(
         0,
-        30 - Math.floor((Date.now() - chat.statusChangedAt.getTime()) / (1000 * 60 * 60 * 24))
+        30 - Math.floor((Date.now() - statusTimestamp) / (1000 * 60 * 60 * 24))
       )
       return `${daysLeft} days left`
     }
 
     if (chat.statusChangedAt && chat.status !== "active") {
-      return formatDistanceToNow(chat.statusChangedAt, { addSuffix: true })
+      // Convert timestamp to Date for formatDistanceToNow
+      const timestamp = typeof chat.statusChangedAt === 'number' ? chat.statusChangedAt : chat.statusChangedAt.getTime()
+      return formatDistanceToNow(new Date(timestamp), { addSuffix: true })
     }
 
-    return formatDistanceToNow(chat.updatedAt, { addSuffix: true })
+    // Convert timestamp to Date for formatDistanceToNow
+    const updatedTimestamp = typeof chat.updatedAt === 'number' ? chat.updatedAt : chat.updatedAt.getTime()
+    return formatDistanceToNow(new Date(updatedTimestamp), { addSuffix: true })
   }
 
   const renderActions = () => {

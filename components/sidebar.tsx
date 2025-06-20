@@ -13,7 +13,7 @@ import { ProjectList } from "@/components/project-list"
 import { useProjects } from "@/hooks/use-projects"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 import { DismissableGiftButton } from "@/components/dismissable-gift-button"
-import { HoverableNewChatButton } from "@/components/hoverable-new-chat-button"
+import { NewChatButtonGroup } from "@/components/new-chat-button-group"
 import { EnhancedChatItem } from "@/components/enhanced-chat-item"
 import { useChatLifecycle } from "@/hooks/use-chat-lifecycle"
 import { useChats } from "@/hooks/use-chats"
@@ -258,10 +258,23 @@ export function Sidebar() {
     setIsOpen(!isOpen)
   }
 
-  const handleCreateNewChat = () => {
-    // Navigate to home screen for new chat prompt
-    console.log("New chat button clicked, navigating to home")
-    router.push('/')
+  const handleCreateNewChat = async () => {
+    // Create a new chat
+    console.log("New chat button clicked")
+    try {
+      if (!user?._id) {
+        console.error("Cannot create chat: user not authenticated")
+        return
+      }
+      
+      // Clear the current chat by removing chatId from URL
+      router.push('/')
+      
+      // If there's an active project, the new chat will be created in that project
+      // The actual chat creation happens when the first message is sent
+    } catch (error) {
+      console.error("Failed to create new chat:", error)
+    }
   }
 
   const handleRenameChat = async (chatId: string, newTitle: string) => {
@@ -374,7 +387,7 @@ export function Sidebar() {
 
             {/* Chat Creation Buttons */}
             <div className="space-y-2">
-              <HoverableNewChatButton 
+              <NewChatButtonGroup 
                 isTemporaryMode={isTemporaryMode}
                 onCreateNewChat={handleCreateNewChat}
               />

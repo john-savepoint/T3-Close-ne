@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Send, Palette, Globe, StopCircle, EyeOff, Keyboard } from "lucide-react"
+import { Send, Palette, Globe, StopCircle, Zap, Keyboard } from "lucide-react"
 import { useRef, useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
@@ -54,7 +54,6 @@ export function ChatInput({
   const { selectedModel: modelsSelectedModel, setSelectedModel, getModelById } = useModels()
   const { search, isLoading: isSearching, error: searchError } = useWebSearch()
   const { startTemporaryChat, isTemporaryMode: currentlyInTempMode } = useTemporaryChat()
-  const [isHoveringSubmit, setIsHoveringSubmit] = useState(false)
 
   // Use prop selectedModel if provided, otherwise fall back to models hook
   const currentSelectedModel = selectedModel || modelsSelectedModel?.id || "openai/gpt-4o-mini"
@@ -213,24 +212,6 @@ export function ChatInput({
 
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1 md:gap-2">
-            {/* Temporary Chat Toggle */}
-            {onToggleTemporaryMode && (
-              <Button
-                variant={isTemporaryMode ? "default" : "outline"}
-                size="sm"
-                onClick={onToggleTemporaryMode}
-                className={`text-xs ${
-                  isTemporaryMode
-                    ? "border-orange-500/50 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
-                    : "border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
-                }`}
-                title="Temporary Chat (Ctrl+Shift+T)"
-              >
-                <EyeOff className="mr-1 h-3 w-3 md:mr-2" />
-                <span className="hidden sm:inline">Temporary</span>
-                <span className="sm:hidden">Temp</span>
-              </Button>
-            )}
             
             {/* Keyboard Shortcut Hint - only show when not in temp mode and no toggle available */}
             {!onToggleTemporaryMode && !isTemporaryMode && !currentlyInTempMode && (
@@ -288,20 +269,31 @@ export function ChatInput({
             )}
             <EnhancedFileUpload onFilesAttached={handleFilesAttached} maxFiles={10} />
           </div>
-          {isLoading ? (
-            <Button
-              size="icon"
-              onClick={onStopGeneration}
-              className="h-9 w-9 bg-red-500/20 text-red-400 hover:bg-red-500/30"
-            >
-              <StopCircle className="h-4 w-4" />
-            </Button>
-          ) : (
-            <div 
-              className="relative"
-              onMouseEnter={() => setIsHoveringSubmit(true)}
-              onMouseLeave={() => setIsHoveringSubmit(false)}
-            >
+          <div className="flex items-center gap-1">
+            {/* Temporary Chat Button - now inline and semi-transparent when no text */}
+            {!isTemporaryMode && (
+              <Button
+                size="icon"
+                onClick={startTemporaryChat}
+                className={`h-9 w-9 border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all duration-200 ${
+                  !message.trim() ? 'opacity-50' : 'opacity-100'
+                }`}
+                title="Start Temporary Chat (Fast & Secure)"
+              >
+                <Zap className="h-4 w-4" />
+              </Button>
+            )}
+            
+            {/* Submit/Stop Button */}
+            {isLoading ? (
+              <Button
+                size="icon"
+                onClick={onStopGeneration}
+                className="h-9 w-9 bg-red-500/20 text-red-400 hover:bg-red-500/30"
+              >
+                <StopCircle className="h-4 w-4" />
+              </Button>
+            ) : (
               <Button
                 size="icon"
                 onClick={handleSendMessage}
@@ -310,22 +302,8 @@ export function ChatInput({
               >
                 <Send className="h-4 w-4" />
               </Button>
-              
-              {/* Temporary Chat Flyout */}
-              {isHoveringSubmit && !isTemporaryMode && (
-                <div className="absolute bottom-full right-0 mb-2 transition-all duration-200">
-                  <Button
-                    size="icon"
-                    onClick={startTemporaryChat}
-                    className="h-8 w-8 border-orange-500/50 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
-                    title="Start Temporary Chat"
-                  >
-                    <EyeOff className="h-3 w-3" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

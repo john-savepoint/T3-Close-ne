@@ -31,6 +31,8 @@ import {
   Edit3,
   ChevronRight,
   ChevronDown,
+  Maximize2,
+  Minimize2,
 } from "lucide-react"
 
 import { useConversationTree } from "@/hooks/use-conversation-tree"
@@ -61,6 +63,7 @@ export function ThreadNavigator({
   onBranchRename,
 }: ThreadNavigatorProps) {
   const [expandedBranches, setExpandedBranches] = useState<Set<string>>(new Set())
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set())
   const [editingTitle, setEditingTitle] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"standard" | "tree">("standard")
   const { conversationTree, renameBranch } = useConversationTree({
@@ -78,25 +81,60 @@ export function ThreadNavigator({
     setExpandedBranches(newExpanded)
   }
 
+  const toggleMessageExpanded = (messageId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const newExpanded = new Set(expandedMessages)
+    if (newExpanded.has(messageId)) {
+      newExpanded.delete(messageId)
+    } else {
+      newExpanded.add(messageId)
+    }
+    setExpandedMessages(newExpanded)
+  }
+
+  const handleMessageClick = (messageId: string) => {
+    onMessageSelect(messageId)
+    // Scroll to the message in the main chat view
+    setTimeout(() => {
+      const element = document.getElementById(`message-${messageId}`)
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" })
+        // Add a highlight effect
+        element.classList.add("ring-2", "ring-mauve-accent", "ring-opacity-50")
+        setTimeout(() => {
+          element.classList.remove("ring-2", "ring-mauve-accent", "ring-opacity-50")
+        }, 2000)
+      }
+    }, 100)
+  }
+
   const renderMessage = (message: ThreadMessage, depth = 0) => {
     const isExpanded = expandedBranches.has(message.id)
+    const isMessageExpanded = expandedMessages.has(message.id)
     const hasBranches = message.branches && message.branches.length > 0
     const isActive = message.id === currentMessageId
+
+    // Truncate content for preview
+    const previewLength = 80
+    const needsTruncation = message.content.length > previewLength
+    const displayContent = isMessageExpanded 
+      ? message.content 
+      : message.content.substring(0, previewLength) + (needsTruncation ? "..." : "")
 
     return (
       <div key={message.id} className="space-y-1">
         <div
-          className={`flex cursor-pointer items-center gap-2 rounded-lg p-2 transition-colors ${
-            isActive ? "bg-mauve-accent/20" : "hover:bg-mauve-dark/30"
+          className={`group flex cursor-pointer items-center gap-2 rounded-lg p-2 transition-all ${
+            isActive ? "bg-mauve-accent/20 ring-1 ring-mauve-accent/50" : "hover:bg-mauve-dark/30"
           }`}
           style={{ marginLeft: `${depth * 16}px` }}
-          onClick={() => onMessageSelect(message.id)}
+          onClick={() => handleMessageClick(message.id)}
         >
           {hasBranches && (
             <Button
               variant="ghost"
               size="icon"
-              className="h-4 w-4 p-0"
+              className="h-4 w-4 p-0 flex-shrink-0"
               onClick={(e) => {
                 e.stopPropagation()
                 toggleBranch(message.id)
@@ -111,9 +149,9 @@ export function ThreadNavigator({
           )}
 
           {message.type === "user" ? (
-            <User className="h-4 w-4 text-blue-400" />
+            <User className="h-4 w-4 text-blue-400 flex-shrink-0" />
           ) : (
-            <Bot className="h-4 w-4 text-mauve-accent" />
+            <Bot className="h-4 w-4 text-mauve-accent flex-shrink-0" />
           )}
 
           <div className="min-w-0 flex-1">
@@ -129,26 +167,44 @@ export function ThreadNavigator({
                       setEditingTitle(null)
                     }
                   }}
+                  onClick={(e) => e.stopPropagation()}
                   autoFocus
                 />
               ) : (
-                <span className="truncate text-sm">
-                  {message.title || message.content.substring(0, 30)}
-                  {message.content.length > 30 && "..."}
+                <span className={`text-sm ${isMessageExpanded ? "" : "truncate"}`}>
+                  {displayContent}
                 </span>
               )}
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setEditingTitle(message.id)
-                }}
-              >
-                <Edit3 className="h-3 w-3" />
-              </Button>
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {needsTruncation && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 p-0"
+                    onClick={(e) => toggleMessageExpanded(message.id, e)}
+                    title={isMessageExpanded ? "Collapse" : "Expand"}
+                  >
+                    {isMessageExpanded ? (
+                      <Minimize2 className="h-3 w-3" />
+                    ) : (
+                      <Maximize2 className="h-3 w-3" />
+                    )}
+                  </Button>
+                )}
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setEditingTitle(message.id)
+                  }}
+                >
+                  <Edit3 className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
 
             <div className="mt-1 flex items-center gap-2">
@@ -177,12 +233,10 @@ export function ThreadNavigator({
   }
 
   const renderStandardView = () => {
-    // Keep the existing renderMessage logic here
     return <div className="space-y-2 pr-4">{messages.map((message) => renderMessage(message))}</div>
   }
 
   const renderTreeView = () => {
-    // Add the tree rendering logic here
     const branches = Array.isArray(conversationTree.branches)
       ? conversationTree.branches
       : Array.from(conversationTree.branches.values())
@@ -320,7 +374,7 @@ export function ThreadNavigator({
         {viewMode === "tree" && (
           <div className="px-4 py-2 border-b border-mauve-dark">
             <p className="text-xs text-mauve-subtle">
-              Branches represent conversation paths. Each branch starts with a user prompt.
+              Branches represent conversation paths. Each branch starts with a user prompt. Click messages to navigate.
             </p>
           </div>
         )}
