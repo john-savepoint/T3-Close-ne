@@ -31,6 +31,7 @@ import { useUIPreferences } from "@/hooks/use-ui-preferences"
 import { useCollapseState } from "@/hooks/use-collapse-state"
 import { Minimize2, Maximize2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { TempChatDebug } from "@/components/temp-chat-debug"
 
 export function MainContent() {
   const isMobile = useIsMobile()
@@ -274,6 +275,7 @@ export function MainContent() {
 
   return (
     <main className={`flex flex-1 ${isMobile ? "ml-0" : ""}`}>
+      <TempChatDebug />
       {/* Main chat area */}
       <div className="relative flex flex-1 flex-col">
         {/* Background and styling */}

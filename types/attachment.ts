@@ -3,7 +3,7 @@ import { Doc } from "@/convex/_generated/dataModel"
 // Use the generated Convex type as the base
 export type Attachment = Doc<"attachments"> & {
   // Generated URL from storage (computed field)
-  url?: string
+  url?: string | null
 
   // Legacy compatibility fields for existing hooks
   id?: string // For backward compatibility, maps to _id
@@ -17,8 +17,7 @@ export type Attachment = Doc<"attachments"> & {
   usageCount?: number // For backward compatibility
   lastUsedAt?: Date // For backward compatibility
   
-  // Mock attachment flag to identify non-persisted attachments
-  _isMockAttachment?: boolean
+  // Legacy fields - no longer needed with real implementation
 }
 
 export interface AttachmentUsage {

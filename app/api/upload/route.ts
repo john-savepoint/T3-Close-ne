@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { validateFile, sanitizeFilename } from "@/lib/file-validation"
+import { ConvexHttpClient } from "convex/browser"
+import { api } from "@/convex/_generated/api"
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +18,8 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     const file = formData.get("file") as File
+    const chatId = formData.get("chatId") as string | null
+    const description = formData.get("description") as string | null
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
@@ -27,32 +31,78 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 })
     }
 
-    // For development, we'll just return mock data
-    // In production, this would integrate with Convex file storage
-    const sanitizedFilename = sanitizeFilename(file.name)
-    const mockStorageId = `storage-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    // Initialize Convex client
+    const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 
-    // Simulate processing time
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      // Step 1: Generate upload URL
+      const uploadUrl = await convex.mutation(api.files.generateUploadUrl, {})
 
-    const fileData = {
-      id: `file-${Date.now()}`,
-      storageId: mockStorageId,
-      filename: sanitizedFilename,
-      originalFilename: file.name,
-      contentType: file.type,
-      size: file.size,
-      category: validation.category || "unknown",
-      uploadedAt: Date.now(),
-      status: "ready" as const,
-      // Mock URL for development
-      url: `/api/files/${mockStorageId}`,
+      // Step 2: Upload file to Convex storage
+      const uploadResult = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      })
+
+      if (!uploadResult.ok) {
+        throw new Error(`Storage upload failed: ${uploadResult.statusText}`)
+      }
+
+      const { storageId } = await uploadResult.json()
+
+      // Step 3: Save file metadata
+      function getFileCategory(mimeType: string): string {
+        if (mimeType.startsWith("image/")) return "images"
+        if (mimeType.startsWith("text/") || mimeType.includes("javascript") || mimeType.includes("typescript")) return "code"
+        if (mimeType.includes("pdf") || mimeType.includes("document") || mimeType.includes("presentation") || mimeType.includes("markdown")) return "documents"
+        if (mimeType.includes("spreadsheet") || mimeType.includes("csv") || mimeType.includes("json") || mimeType.includes("xml")) return "data"
+        return "other"
+      }
+
+      const sanitizedFilename = sanitizeFilename(file.name)
+      const category = getFileCategory(file.type)
+
+      const attachmentId = await convex.mutation(api.files.saveFile, {
+        storageId,
+        filename: sanitizedFilename,
+        originalFilename: file.name,
+        contentType: file.type || "application/octet-stream",
+        size: file.size,
+        category,
+        chatId: chatId ? chatId as any : undefined,
+        description: description || `Uploaded file: ${file.name}`,
+      })
+
+      // Step 4: Get file URL for response
+      const fileUrl = await convex.query(api.files.getFileUrl, { storageId })
+
+      const fileData = {
+        id: attachmentId,
+        storageId,
+        filename: sanitizedFilename,
+        originalFilename: file.name,
+        contentType: file.type,
+        size: file.size,
+        category,
+        uploadedAt: Date.now(),
+        status: "ready" as const,
+        url: fileUrl,
+      }
+
+      return NextResponse.json({
+        success: true,
+        file: fileData,
+      })
+
+    } catch (convexError) {
+      console.error("Convex upload error:", convexError)
+      return NextResponse.json({ 
+        error: "Failed to save file", 
+        details: convexError instanceof Error ? convexError.message : "Unknown error"
+      }, { status: 500 })
     }
 
-    return NextResponse.json({
-      success: true,
-      file: fileData,
-    })
   } catch (error) {
     console.error("Upload error:", error)
     return NextResponse.json({ error: "Upload failed" }, { status: 500 })

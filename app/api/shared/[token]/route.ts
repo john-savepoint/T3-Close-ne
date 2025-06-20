@@ -25,6 +25,14 @@ export async function GET(
       return NextResponse.json({ error: "Shared chat not found or no longer active" }, { status: 404 })
     }
 
+    // Increment view count (separate mutation)
+    try {
+      await convex.mutation(api.sharing.incrementViewCount, { token })
+    } catch (error) {
+      // Don't fail the request if view count increment fails
+      console.warn("Failed to increment view count:", error)
+    }
+
     return NextResponse.json(publicChat)
   } catch (error) {
     console.error("Error fetching shared chat:", error)

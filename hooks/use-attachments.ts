@@ -4,6 +4,7 @@ import { useState, useCallback } from "react"
 import { useQuery, useMutation } from "convex/react"
 import { useAuth } from "@/hooks/use-auth"
 import { api } from "@/convex/_generated/api"
+import { Id } from "@/convex/_generated/dataModel"
 import type {
   Attachment,
   AttachmentUsage,
@@ -12,106 +13,14 @@ import type {
   DirectoryUpload,
 } from "@/types/attachment"
 
-// Mock data for demonstration - temporarily any[] to avoid type conflicts during merge
-const mockAttachments: any[] = [
-  {
-    id: "att-1",
-    userId: "user-1",
-    filename: "CONTRIBUTING.md",
-    fileType: "text/markdown",
-    sizeBytes: 4096,
-    storagePath: "/uploads/contributing.md",
-    extractedText: "# Contributing Guide\n\nWelcome to our project! Here's how to contribute...",
-    createdAt: new Date("2024-01-10"),
-    updatedAt: new Date("2024-01-10"),
-    processingStatus: "completed",
-    usageCount: 5,
-    lastUsedAt: new Date("2024-01-18"),
-  },
-  {
-    id: "att-2",
-    userId: "user-1",
-    filename: "Q4_Financial_Report.xlsx",
-    fileType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    sizeBytes: 2048000,
-    storagePath: "/uploads/q4-report.xlsx",
-    extractedText: "Q4 Financial Report\nRevenue: $2.5M\nGrowth: 15% QoQ...",
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-15"),
-    processingStatus: "completed",
-    usageCount: 3,
-    lastUsedAt: new Date("2024-01-16"),
-  },
-  {
-    id: "att-3",
-    userId: "user-1",
-    filename: "UserProfile.tsx",
-    fileType: "text/typescript",
-    sizeBytes: 8192,
-    storagePath: "/uploads/userprofile.tsx",
-    extractedText:
-      "import React from 'react';\n\ninterface UserProfileProps {\n  user: User;\n}...",
-    createdAt: new Date("2024-01-12"),
-    updatedAt: new Date("2024-01-12"),
-    processingStatus: "completed",
-    usageCount: 8,
-    lastUsedAt: new Date("2024-01-20"),
-  },
-  {
-    id: "att-4",
-    userId: "user-1",
-    filename: "Project_Plan_v2.docx",
-    fileType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    sizeBytes: 512000,
-    storagePath: "/uploads/project-plan-v2.docx",
-    extractedText: "Project Alpha - Phase 2\n\nObjectives:\n1. Implement user authentication...",
-    createdAt: new Date("2024-01-18"),
-    updatedAt: new Date("2024-01-18"),
-    processingStatus: "completed",
-    usageCount: 2,
-    lastUsedAt: new Date("2024-01-19"),
-  },
-  {
-    id: "att-5",
-    userId: "user-1",
-    filename: "API_Documentation.pdf",
-    fileType: "application/pdf",
-    sizeBytes: 1024000,
-    storagePath: "/uploads/api-docs.pdf",
-    extractedTextPath: "/uploads/api-docs-extracted.txt",
-    createdAt: new Date("2024-01-08"),
-    updatedAt: new Date("2024-01-08"),
-    processingStatus: "pending",
-    usageCount: 0,
-  },
-]
-
-const mockUsages: AttachmentUsage[] = [
-  {
-    id: "usage-1",
-    attachmentId: "att-1",
-    projectId: "proj-1",
-    usageType: "project",
-    usedAt: new Date("2024-01-18"),
-    contextName: "WebApp-Frontend",
-  },
-  {
-    id: "usage-2",
-    attachmentId: "att-1",
-    chatId: "chat-5",
-    usageType: "chat",
-    usedAt: new Date("2024-01-17"),
-    contextName: "Code Review Discussion",
-  },
-  {
-    id: "usage-3",
-    attachmentId: "att-3",
-    projectId: "proj-1",
-    usageType: "project",
-    usedAt: new Date("2024-01-20"),
-    contextName: "WebApp-Frontend",
-  },
-]
+// Get file category from MIME type
+function getFileCategory(mimeType: string): string {
+  if (mimeType.startsWith("image/")) return "images"
+  if (mimeType.startsWith("text/") || mimeType.includes("javascript") || mimeType.includes("typescript")) return "code"
+  if (mimeType.includes("pdf") || mimeType.includes("document") || mimeType.includes("presentation") || mimeType.includes("markdown")) return "documents"
+  if (mimeType.includes("spreadsheet") || mimeType.includes("csv") || mimeType.includes("json") || mimeType.includes("xml")) return "data"
+  return "other"
+}
 
 // Supported file types with their categories
 export const SUPPORTED_FILE_TYPES = {
@@ -157,13 +66,18 @@ export const SUPPORTED_FILE_TYPES = {
 export function useAttachments() {
   const { user, isAuthenticated } = useAuth()
   
+  // Convex mutations
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl)
+  const saveFile = useMutation(api.files.saveFile)
+  const deleteFileMutation = useMutation(api.files.deleteFile)
+  const updateFileMutation = useMutation(api.files.updateFile)
+  
   // Only query for attachments if user is authenticated
-  const attachments = useQuery(
+  const attachments = (useQuery(
     api.files.getUserFiles,
     isAuthenticated && user ? {} : "skip"
-  ) || []
+  ) || []) as Attachment[]
   
-  const [usages, setUsages] = useState<AttachmentUsage[]>(mockUsages)
   const [uploadProgress, setUploadProgress] = useState<FileUploadProgress[]>([])
   const [loading, setLoading] = useState(false)
   const queryLoading = attachments === undefined && isAuthenticated
@@ -174,6 +88,10 @@ export function useAttachments() {
       targetId?: string,
       targetType?: "chat" | "project"
     ): Promise<Attachment[]> => {
+      if (!isAuthenticated) {
+        throw new Error("Authentication required for file uploads")
+      }
+
       setLoading(true)
 
       const progressItems: FileUploadProgress[] = files.map((file) => ({
@@ -186,58 +104,104 @@ export function useAttachments() {
       setUploadProgress(progressItems)
 
       try {
-        const uploadedAttachments: any[] = []
+        const uploadedAttachments: Attachment[] = []
 
         for (let i = 0; i < files.length; i++) {
           const file = files[i]
           const progressItem = progressItems[i]
 
-          // Simulate upload progress
-          for (let progress = 0; progress <= 100; progress += 20) {
-            await new Promise((resolve) => setTimeout(resolve, 200))
+          try {
+            // Step 1: Generate upload URL
             setUploadProgress((prev) =>
-              prev.map((item) => (item.id === progressItem.id ? { ...item, progress } : item))
+              prev.map((item) => 
+                item.id === progressItem.id ? { ...item, progress: 10, status: "uploading" } : item
+              )
             )
+
+            const uploadUrl = await generateUploadUrl()
+
+            // Step 2: Upload file to Convex storage
+            setUploadProgress((prev) =>
+              prev.map((item) => 
+                item.id === progressItem.id ? { ...item, progress: 30 } : item
+              )
+            )
+
+            const result = await fetch(uploadUrl, {
+              method: "POST",
+              headers: { "Content-Type": file.type },
+              body: file,
+            })
+
+            if (!result.ok) {
+              throw new Error(`Upload failed: ${result.statusText}`)
+            }
+
+            const { storageId } = await result.json()
+
+            setUploadProgress((prev) =>
+              prev.map((item) => 
+                item.id === progressItem.id ? { ...item, progress: 70, status: "processing" } : item
+              )
+            )
+
+            // Step 3: Save file metadata to database
+            const category = getFileCategory(file.type)
+            const attachmentId = await saveFile({
+              storageId: storageId as Id<"_storage">,
+              filename: file.name,
+              originalFilename: file.name,
+              contentType: file.type || "application/octet-stream",
+              size: file.size,
+              category,
+              chatId: targetType === "chat" && targetId ? targetId as Id<"chats"> : undefined,
+              description: `Uploaded file: ${file.name}`,
+            })
+
+            setUploadProgress((prev) =>
+              prev.map((item) => 
+                item.id === progressItem.id ? { ...item, progress: 100, status: "completed" } : item
+              )
+            )
+
+            // Create attachment object that matches our type  
+            const newAttachment: Attachment = {
+              _id: attachmentId,
+              _creationTime: Date.now(),
+              storageId,
+              filename: file.name,
+              originalFilename: file.name,
+              contentType: file.type || "application/octet-stream",
+              size: file.size,
+              category,
+              userId: user!._id,
+              uploadedAt: Date.now(),
+              createdAt: Date.now(),
+              chatId: targetType === "chat" && targetId ? targetId as any : undefined,
+              description: `Uploaded file: ${file.name}`,
+              isPublic: false,
+              status: "ready",
+              // Legacy compatibility fields
+              id: attachmentId,
+              fileType: file.type || "application/octet-stream",
+              sizeBytes: file.size,
+              url: null, // Will be set when URL is fetched
+            }
+
+            uploadedAttachments.push(newAttachment)
+
+          } catch (error) {
+            console.error(`Failed to upload ${file.name}:`, error)
+            setUploadProgress((prev) =>
+              prev.map((item) => 
+                item.id === progressItem.id 
+                  ? { ...item, status: "error", error: `Failed to upload ${file.name}` } 
+                  : item
+              )
+            )
+            throw error
           }
-
-          // Simulate processing
-          setUploadProgress((prev) =>
-            prev.map((item) =>
-              item.id === progressItem.id ? { ...item, status: "processing" } : item
-            )
-          )
-
-          await new Promise((resolve) => setTimeout(resolve, 1000))
-
-          // Create attachment record (MOCK - not saved to Convex yet)
-          // TODO: Replace with real Convex file upload using api.files.saveFile
-          const newAttachment: any = {
-            id: `att-${Date.now()}-${i}`, // Mock ID - not a valid Convex ID
-            userId: "user-1",
-            filename: file.name,
-            fileType: file.type || "application/octet-stream",
-            sizeBytes: file.size,
-            storagePath: `/uploads/${file.name.toLowerCase().replace(/\s+/g, "-")}`,
-            extractedText: await extractTextFromFile(file),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            processingStatus: "completed",
-            usageCount: 0,
-            _isMockAttachment: true, // Flag to identify mock attachments
-          }
-
-          uploadedAttachments.push(newAttachment)
-
-          setUploadProgress((prev) =>
-            prev.map((item) =>
-              item.id === progressItem.id ? { ...item, status: "completed", progress: 100 } : item
-            )
-          )
         }
-
-        // In a real implementation, we would update the server
-      // For now, just return the uploaded attachments
-      // setAttachments((prev) => [...prev, ...uploadedAttachments])
 
         // Clear progress after a delay
         setTimeout(() => {
@@ -259,18 +223,10 @@ export function useAttachments() {
         setLoading(false)
       }
     },
-    []
+    [isAuthenticated, user, generateUploadUrl, saveFile]
   )
 
-  const extractTextFromFile = async (file: File): Promise<string> => {
-    // Simulate text extraction based on file type
-    if (file.type.startsWith("text/") || file.name.endsWith(".md")) {
-      return await file.text()
-    }
-
-    // For other file types, return a mock extracted text
-    return `Extracted content from ${file.name}\n\nThis is simulated extracted text content...`
-  }
+  // Remove this function as text extraction will be handled server-side
 
   const uploadDirectory = useCallback(
     async (directoryUpload: DirectoryUpload): Promise<Attachment[]> => {
@@ -280,59 +236,57 @@ export function useAttachments() {
   )
 
   const deleteAttachment = useCallback(async (attachmentId: string): Promise<void> => {
+    if (!isAuthenticated) {
+      throw new Error("Authentication required")
+    }
+
     setLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // In a real implementation, would delete from server
-      // setAttachments((prev) => prev.filter((att) => att.id !== attachmentId))
-      setUsages((prev) => prev.filter((usage) => usage.attachmentId !== attachmentId))
+      await deleteFileMutation({ id: attachmentId as Id<"attachments"> })
+    } catch (error) {
+      console.error("Failed to delete attachment:", error)
+      throw error
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isAuthenticated, deleteFileMutation])
 
   const replaceAttachment = useCallback(
     async (attachmentId: string, newFile: File): Promise<Attachment> => {
+      if (!isAuthenticated) {
+        throw new Error("Authentication required")
+      }
+
       setLoading(true)
 
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-
-        const oldAttachment = attachments.find((att) => att.id === attachmentId)
+        const oldAttachment = attachments.find((att) => att._id === attachmentId)
         if (!oldAttachment) throw new Error("Attachment not found")
 
-        const updatedAttachment: Attachment = {
-          ...oldAttachment,
-          filename: newFile.name,
-          fileType: newFile.type,
-          sizeBytes: newFile.size,
-          extractedText: await extractTextFromFile(newFile),
-          updatedAt: new Date(),
-          processingStatus: "completed",
-        }
-
-        // In a real implementation, would update on server
-        // setAttachments((prev) =>
-        //   prev.map((att) => (att.id === attachmentId ? updatedAttachment : att))
-        // )
-
-        return updatedAttachment
+        // Upload new file first
+        const [newAttachment] = await uploadFiles([newFile])
+        
+        // Delete old attachment
+        await deleteAttachment(attachmentId)
+        
+        return newAttachment
+      } catch (error) {
+        console.error("Failed to replace attachment:", error)
+        throw error
       } finally {
         setLoading(false)
       }
     },
-    [attachments]
+    [isAuthenticated, attachments, uploadFiles, deleteAttachment]
   )
 
   const getAttachmentUsages = useCallback(
     (attachmentId: string): AttachmentUsage[] => {
-      return usages.filter((usage) => usage.attachmentId === attachmentId)
+      // TODO: Implement real usage tracking
+      return []
     },
-    [usages]
+    []
   )
 
   const addAttachmentToContext = useCallback(
@@ -342,30 +296,8 @@ export function useAttachments() {
       contextType: "chat" | "project",
       contextName: string
     ): Promise<void> => {
-      const newUsage: AttachmentUsage = {
-        id: `usage-${Date.now()}`,
-        attachmentId,
-        [contextType === "chat" ? "chatId" : "projectId"]: contextId,
-        usageType: contextType,
-        usedAt: new Date(),
-        contextName,
-      }
-
-      setUsages((prev) => [...prev, newUsage])
-
-      // Update usage count and last used date
-      // In a real implementation, would update on server
-      // setAttachments((prev) =>
-      //   prev.map((att) =>
-      //     att.id === attachmentId
-      //       ? {
-      //           ...att,
-      //           usageCount: att.usageCount + 1,
-      //           lastUsedAt: new Date(),
-      //         }
-      //       : att
-      //   )
-      // )
+      // TODO: Implement usage tracking in Convex schema and mutations
+      console.log(`Added attachment ${attachmentId} to ${contextType} ${contextId}`)
     },
     []
   )
@@ -380,21 +312,21 @@ export function useAttachments() {
         filtered = filtered.filter(
           (att) =>
             att.filename.toLowerCase().includes(searchLower) ||
-            att.extractedText?.toLowerCase().includes(searchLower)
+            att.description?.toLowerCase().includes(searchLower)
         )
       }
 
       // File type filter
       if (filters.fileType !== "all") {
-        const typeMap: Record<string, string[]> = {
-          documents: Object.keys(SUPPORTED_FILE_TYPES.documents),
-          code: Object.keys(SUPPORTED_FILE_TYPES.code),
-          data: Object.keys(SUPPORTED_FILE_TYPES.data),
-          images: Object.keys(SUPPORTED_FILE_TYPES.images),
+        const categoryMap: Record<string, string> = {
+          documents: "documents",
+          code: "code", 
+          data: "data",
+          images: "images",
         }
 
-        if (filters.fileType in typeMap) {
-          filtered = filtered.filter((att) => typeMap[filters.fileType]!.includes(att.fileType))
+        if (filters.fileType in categoryMap) {
+          filtered = filtered.filter((att) => att.category === categoryMap[filters.fileType])
         }
       }
 
@@ -408,16 +340,17 @@ export function useAttachments() {
             bValue = b.filename.toLowerCase()
             break
           case "date":
-            aValue = a.createdAt.getTime()
-            bValue = b.createdAt.getTime()
+            aValue = a.createdAt || a._creationTime
+            bValue = b.createdAt || b._creationTime
             break
           case "size":
-            aValue = a.sizeBytes
-            bValue = b.sizeBytes
+            aValue = a.size
+            bValue = b.size
             break
           case "usage":
-            aValue = a.usageCount
-            bValue = b.usageCount
+            // TODO: Implement usage count tracking
+            aValue = 0
+            bValue = 0
             break
           default:
             return 0

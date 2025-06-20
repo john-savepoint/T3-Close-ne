@@ -156,11 +156,6 @@ export const getPublicChatByToken = query({
       return null
     }
 
-    // Increment view count
-    await ctx.db.patch(sharedChat._id, {
-      viewCount: sharedChat.viewCount + 1,
-    })
-
     // Get the chat
     const chat = await ctx.db.get(sharedChat.chatId)
     if (!chat) return null
@@ -178,14 +173,38 @@ export const getPublicChatByToken = query({
       createdAt: chat.createdAt,
       messageCount: messages.length,
       isActive: true,
+      viewCount: sharedChat.viewCount,
       messages: messages.map((msg) => ({
         id: msg._id,
         type: msg.type,
         content: msg.content,
-        timestamp: msg.createdAt,
+        timestamp: msg._creationTime,
         model: msg.model,
       })),
     }
+  },
+})
+
+// Increment view count for a shared chat
+export const incrementViewCount = mutation({
+  args: {
+    token: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Find the shared chat by token
+    const sharedChat = await ctx.db
+      .query("sharedChats")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .unique()
+
+    if (!sharedChat || !sharedChat.isActive) {
+      return
+    }
+
+    // Increment view count
+    await ctx.db.patch(sharedChat._id, {
+      viewCount: sharedChat.viewCount + 1,
+    })
   },
 })
 
@@ -250,8 +269,7 @@ export const forkConversation = mutation({
         parentMessageId: msg.parentMessageId,
         isEdited: false,
         userId: msg.type === "user" ? user._id : undefined,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        timestamp: Date.now(),
       })
     }
 
