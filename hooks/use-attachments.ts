@@ -2,6 +2,8 @@
 
 import { useState, useCallback } from "react"
 import { useQuery, useMutation } from "convex/react"
+import { useAuth } from "@/hooks/use-auth"
+import { api } from "@/convex/_generated/api"
 import type {
   Attachment,
   AttachmentUsage,
@@ -153,11 +155,18 @@ export const SUPPORTED_FILE_TYPES = {
 }
 
 export function useAttachments() {
-  // Real Convex queries
-  const attachments = useQuery("files:getUserFiles" as any) || []
+  const { user, isAuthenticated } = useAuth()
+  
+  // Only query for attachments if user is authenticated
+  const attachments = useQuery(
+    api.files.getUserFiles,
+    isAuthenticated && user ? {} : "skip"
+  ) || []
+  
   const [usages, setUsages] = useState<AttachmentUsage[]>(mockUsages)
   const [uploadProgress, setUploadProgress] = useState<FileUploadProgress[]>([])
-  const loading = attachments === undefined
+  const [loading, setLoading] = useState(false)
+  const queryLoading = attachments === undefined && isAuthenticated
 
   const uploadFiles = useCallback(
     async (
@@ -224,7 +233,9 @@ export function useAttachments() {
           )
         }
 
-        setAttachments((prev) => [...prev, ...uploadedAttachments])
+        // In a real implementation, we would update the server
+      // For now, just return the uploaded attachments
+      // setAttachments((prev) => [...prev, ...uploadedAttachments])
 
         // Clear progress after a delay
         setTimeout(() => {
@@ -273,7 +284,8 @@ export function useAttachments() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500))
 
-      setAttachments((prev) => prev.filter((att) => att.id !== attachmentId))
+      // In a real implementation, would delete from server
+      // setAttachments((prev) => prev.filter((att) => att.id !== attachmentId))
       setUsages((prev) => prev.filter((usage) => usage.attachmentId !== attachmentId))
     } finally {
       setLoading(false)
@@ -301,9 +313,10 @@ export function useAttachments() {
           processingStatus: "completed",
         }
 
-        setAttachments((prev) =>
-          prev.map((att) => (att.id === attachmentId ? updatedAttachment : att))
-        )
+        // In a real implementation, would update on server
+        // setAttachments((prev) =>
+        //   prev.map((att) => (att.id === attachmentId ? updatedAttachment : att))
+        // )
 
         return updatedAttachment
       } finally {
@@ -339,17 +352,18 @@ export function useAttachments() {
       setUsages((prev) => [...prev, newUsage])
 
       // Update usage count and last used date
-      setAttachments((prev) =>
-        prev.map((att) =>
-          att.id === attachmentId
-            ? {
-                ...att,
-                usageCount: att.usageCount + 1,
-                lastUsedAt: new Date(),
-              }
-            : att
-        )
-      )
+      // In a real implementation, would update on server
+      // setAttachments((prev) =>
+      //   prev.map((att) =>
+      //     att.id === attachmentId
+      //       ? {
+      //           ...att,
+      //           usageCount: att.usageCount + 1,
+      //           lastUsedAt: new Date(),
+      //         }
+      //       : att
+      //   )
+      // )
     },
     []
   )
@@ -432,7 +446,7 @@ export function useAttachments() {
   return {
     attachments,
     uploadProgress,
-    loading,
+    loading: loading || queryLoading,
     uploadFiles,
     uploadDirectory,
     deleteAttachment,

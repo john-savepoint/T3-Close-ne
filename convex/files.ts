@@ -109,8 +109,11 @@ export const getUserFiles = query({
     category: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Get current authenticated user
-    const user = await requireAuth(ctx)
+    // Get current authenticated user - return empty if not authenticated
+    const user = await getCurrentUser(ctx)
+    if (!user) {
+      return []
+    }
 
     let query = ctx.db.query("attachments").withIndex("by_user", (q) => q.eq("userId", user._id))
 
@@ -138,11 +141,14 @@ export const getChatFiles = query({
   args: { chatId: v.id("chats") },
   handler: async (ctx, args) => {
     // Verify user has access to this chat
-    const user = await requireAuth(ctx)
-    const chat = await ctx.db.get(args.chatId)
+    const user = await getCurrentUser(ctx)
+    if (!user) {
+      return []
+    }
     
+    const chat = await ctx.db.get(args.chatId)
     if (!chat || chat.userId !== user._id) {
-      throw new Error("Access denied")
+      return []
     }
 
     const attachments = await ctx.db
@@ -193,8 +199,11 @@ export const searchFiles = query({
     category: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Filter by current user
-    const user = await requireAuth(ctx)
+    // Filter by current user - return empty if not authenticated
+    const user = await getCurrentUser(ctx)
+    if (!user) {
+      return []
+    }
     
     let searchQuery = ctx.db
       .query("attachments")
