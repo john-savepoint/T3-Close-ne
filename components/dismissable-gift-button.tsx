@@ -5,6 +5,7 @@ import { Gift, X } from "lucide-react"
 import { GiftPurchaseModal } from "@/components/gift-purchase-modal"
 import { useUIPreferences } from "@/hooks/use-ui-preferences"
 import { useState } from "react"
+import { toast } from "sonner"
 
 export function DismissableGiftButton() {
   const { dismissElement } = useUIPreferences()
@@ -13,6 +14,7 @@ export function DismissableGiftButton() {
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation()
     dismissElement("giftProButton")
+    toast.info("This won't show in the sidebar anymore but can be accessed through the billing section of settings.")
   }
 
   return (

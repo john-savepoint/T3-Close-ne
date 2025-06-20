@@ -22,6 +22,7 @@ import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { Textarea } from "@/components/ui/textarea"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 
 interface ChatMessageStreamProps {
   id: string
@@ -282,8 +283,8 @@ export function ChatMessageStream({
             {blocks.map((block, index) => (
               <div key={index}>
                 {block.type === "text" ? (
-                  <div className="whitespace-pre-wrap text-sm text-foreground">
-                    {block.content}
+                  <div>
+                    <MarkdownRenderer content={block.content} />
                     {isStreaming && type === "assistant" && index === blocks.length - 1 && (
                       <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-mauve-bright" />
                     )}

@@ -24,6 +24,7 @@ import type { Attachment } from "@/types/attachment"
 import dynamic from "next/dynamic"
 import { sanitizeSVG } from "@/lib/content-sanitizer"
 import { CodeCanvas } from "@/components/code-canvas"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 
 // Dynamic import for Mermaid to avoid SSR issues
 const Mermaid = dynamic(() => import("@/components/ui/mermaid"), { ssr: false })
@@ -290,7 +291,7 @@ export function ChatMessage({
             {blocks.map((block, index) => (
               <div key={index}>
                 {block.type === "text" ? (
-                  <div className="whitespace-pre-wrap text-sm text-foreground">{block.content}</div>
+                  <MarkdownRenderer content={block.content} />
                 ) : block.type === "mermaid" ? (
                   <div className="my-4 overflow-x-auto rounded-lg border border-mauve-dark/50 bg-mauve-dark/20 p-4">
                     <Mermaid code={block.content} className="min-w-0" />

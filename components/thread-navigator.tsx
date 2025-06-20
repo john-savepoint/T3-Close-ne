@@ -1,5 +1,22 @@
 "use client"
 
+/**
+ * Thread Navigator Component
+ * 
+ * BRANCHING STRUCTURE DESIGN:
+ * - Branch 1: Label is the first user prompt, content shows the initial chat exchange
+ * - Branch 2: Label is the second user prompt, content shows that conversation branch
+ * - Branch 3+: Labels are subsequent user prompts, content shows those exchanges
+ * 
+ * Each branch represents a different conversation path from a specific point.
+ * Within each branch, AI responses can have multiple variations (not yet implemented).
+ * 
+ * TODO: Implement multiple AI response variations within each branch
+ * - Each AI response could have alternative generations
+ * - User can switch between different AI responses
+ * - This creates a true conversation tree with multiple paths
+ */
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -270,26 +287,46 @@ export function ThreadNavigator({
           <MessageSquare className="h-4 w-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-80 border-mauve-dark bg-mauve-surface">
-        <SheetHeader>
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-foreground">Thread Navigator</SheetTitle>
+      <SheetContent side="right" className="w-80 border-mauve-dark bg-mauve-surface flex flex-col">
+        <SheetHeader className="pb-2">
+          <SheetTitle className="text-foreground">Thread Navigator</SheetTitle>
+        </SheetHeader>
+
+        {/* View Mode Toggle - Moved below header with proper spacing from close button */}
+        <div className="border-t border-mauve-dark pt-4 pb-2">
+          <div className="px-1">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setViewMode(viewMode === "standard" ? "tree" : "standard")}
+              className="w-full justify-center gap-2"
             >
               {viewMode === "standard" ? (
-                <GitBranch className="h-4 w-4" />
+                <>
+                  <GitBranch className="h-4 w-4" />
+                  Switch to Tree View
+                </>
               ) : (
-                <MessageSquare className="h-4 w-4" />
+                <>
+                  <MessageSquare className="h-4 w-4" />
+                  Switch to Standard View
+                </>
               )}
-              {viewMode === "standard" ? "Tree" : "Standard"}
             </Button>
           </div>
-        </SheetHeader>
+        </div>
 
-        <ScrollArea className="mt-4 h-full">
+        {/* Help text for tree view */}
+        {viewMode === "tree" && (
+          <div className="px-4 py-2 border-b border-mauve-dark">
+            <p className="text-xs text-mauve-subtle">
+              Branches represent conversation paths. Each branch starts with a user prompt.
+            </p>
+          </div>
+        )}
+
+        {/* Scrollable content area */}
+        <ScrollArea className="flex-1 mt-2">
           {viewMode === "standard" ? renderStandardView() : renderTreeView()}
         </ScrollArea>
       </SheetContent>

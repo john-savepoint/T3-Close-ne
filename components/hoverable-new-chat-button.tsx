@@ -23,7 +23,7 @@ export function HoverableNewChatButton({
 
   return (
     <div
-      className="relative"
+      className="relative flex items-center"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -43,6 +43,11 @@ export function HoverableNewChatButton({
         className={`absolute top-0 left-full ml-2 transition-all duration-300 ${
           isHovered ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none"
         }`}
+        style={{ 
+          // Extend the hover area slightly to prevent flickering
+          paddingLeft: isHovered ? '8px' : '0px',
+          marginLeft: isHovered ? '-8px' : '8px'
+        }}
       >
         <Button
           variant="outline"

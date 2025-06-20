@@ -98,10 +98,10 @@ export function QuickModelSelector({
   }
 
   return (
-    <div ref={dropdownRef} className={cn("relative", className)}>
+    <div ref={dropdownRef} className={cn("relative z-10", className)}>
       {/* Dropdown options - rendered above the button when open */}
       {isOpen && (
-        <div className="absolute bottom-full left-0 mb-1 flex flex-col gap-1 rounded-md border border-border bg-popover p-1 shadow-lg">
+        <div className="absolute bottom-full left-0 mb-1 min-w-[120px] flex flex-col gap-1 rounded-md border border-border bg-popover p-1 shadow-lg z-50">
           {availableOptions.map((type) => {
             const config = modelConfig[type]
             const Icon = config.icon

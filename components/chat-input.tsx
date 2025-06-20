@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Send, Palette, Globe, StopCircle, EyeOff } from "lucide-react"
+import { Send, Palette, Globe, StopCircle, EyeOff, Keyboard } from "lucide-react"
 import { useRef, useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
@@ -19,6 +19,7 @@ import type { Attachment } from "@/types/attachment"
 import { DEFAULT_MODEL_ID } from "@/lib/default-models"
 import { estimateTokens } from "@/lib/token-utils"
 import { useWebSearch } from "@/hooks/use-web-search"
+import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 
 interface ChatInputProps {
   onSendMessage?: (content: string, attachments?: Attachment[]) => void
@@ -52,6 +53,8 @@ export function ChatInput({
   const isMobile = useIsMobile()
   const { selectedModel: modelsSelectedModel, setSelectedModel, getModelById } = useModels()
   const { search, isLoading: isSearching, error: searchError } = useWebSearch()
+  const { startTemporaryChat, isTemporaryMode: currentlyInTempMode } = useTemporaryChat()
+  const [isHoveringSubmit, setIsHoveringSubmit] = useState(false)
 
   // Use prop selectedModel if provided, otherwise fall back to models hook
   const currentSelectedModel = selectedModel || modelsSelectedModel?.id || "openai/gpt-4o-mini"
@@ -120,6 +123,12 @@ export function ChatInput({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
+    }
+    
+    // Ctrl/Cmd + Shift + T for temporary chat
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "T") {
+      e.preventDefault()
+      startTemporaryChat()
     }
   }
 
@@ -215,11 +224,20 @@ export function ChatInput({
                     ? "border-orange-500/50 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
                     : "border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
                 }`}
+                title="Temporary Chat (Ctrl+Shift+T)"
               >
                 <EyeOff className="mr-1 h-3 w-3 md:mr-2" />
                 <span className="hidden sm:inline">Temporary</span>
                 <span className="sm:hidden">Temp</span>
               </Button>
+            )}
+            
+            {/* Keyboard Shortcut Hint - only show when not in temp mode and no toggle available */}
+            {!onToggleTemporaryMode && !isTemporaryMode && !currentlyInTempMode && (
+              <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground/50">
+                <Keyboard className="h-3 w-3" />
+                <span>Ctrl+Shift+T for temp chat</span>
+              </div>
             )}
             <EnhancedModelSwitcher
               selectedModel={modelsSelectedModel}
@@ -279,14 +297,34 @@ export function ChatInput({
               <StopCircle className="h-4 w-4" />
             </Button>
           ) : (
-            <Button
-              size="icon"
-              onClick={handleSendMessage}
-              disabled={(!message.trim() && attachedFiles.length === 0) || disabled}
-              className="h-9 w-9 bg-mauve-accent/20 text-mauve-bright hover:bg-mauve-accent/30 disabled:opacity-50"
+            <div 
+              className="relative"
+              onMouseEnter={() => setIsHoveringSubmit(true)}
+              onMouseLeave={() => setIsHoveringSubmit(false)}
             >
-              <Send className="h-4 w-4" />
-            </Button>
+              <Button
+                size="icon"
+                onClick={handleSendMessage}
+                disabled={(!message.trim() && attachedFiles.length === 0) || disabled}
+                className="h-9 w-9 bg-mauve-accent/20 text-mauve-bright hover:bg-mauve-accent/30 disabled:opacity-50"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+              
+              {/* Temporary Chat Flyout */}
+              {isHoveringSubmit && !isTemporaryMode && (
+                <div className="absolute bottom-full right-0 mb-2 transition-all duration-200">
+                  <Button
+                    size="icon"
+                    onClick={startTemporaryChat}
+                    className="h-8 w-8 border-orange-500/50 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
+                    title="Start Temporary Chat"
+                  >
+                    <EyeOff className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
