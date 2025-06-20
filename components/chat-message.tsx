@@ -220,7 +220,7 @@ export function ChatMessage({
       className={cn(
         "group flex gap-4 rounded-lg p-4 transition-all",
         type === "user" 
-          ? "ml-12 bg-mauve-surface/30 flex-row-reverse" 
+          ? "ml-[25%] bg-mauve-surface/50 flex-row-reverse" 
           : "bg-mauve-dark/20",
         isCollapsed && "opacity-90"
       )}

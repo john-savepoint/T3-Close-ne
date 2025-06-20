@@ -1,5 +1,417 @@
 # z6chat
 
+## 0.4.0
+
+### Minor Changes
+
+- 4c83995: feat: Add advanced generation controls and rich content rendering
+
+  - **Temperature Controls**: Added temperature slider (0-2 range) to model switcher for fine-tuning AI output creativity vs determinism
+  - **Mermaid Diagrams**: Automatic rendering of mermaid code blocks into visual diagrams with dark theme support
+  - **SVG Rendering**: Safe rendering of SVG code blocks with DOMPurify sanitization to prevent XSS attacks
+  - **Code Canvas**: Interactive code preview component supporting HTML, CSS, and JavaScript with sandboxed execution
+  - **Security Enhancements**: Added comprehensive CSP headers, strict iframe sandboxing, and content sanitization
+  - **Test Page**: Created `/test-rendering` route to demonstrate all advanced rendering capabilities
+
+  This feature set transforms T3Chat into a dynamic canvas for creation, enabling users to see diagrams, SVGs, and interactive code previews directly in the chat interface.
+
+- 490e24a: Implement complete BYOK (Bring Your Own Key) system for easy judge testing
+
+  This adds comprehensive API key management functionality allowing users to securely store and validate their own API keys from OpenRouter, OpenAI, and Anthropic. Key features include:
+
+  - Secure localStorage-based key storage with validation caching
+  - Real-time API key validation with provider-specific testing
+  - Comprehensive API key manager component with show/hide functionality
+  - Format validation for each provider's key patterns
+  - Clear setup instructions with direct links to provider dashboards
+  - Priority provider selection logic (OpenRouter first)
+  - Integration with main settings page via new API Keys tab
+  - Support for key testing, removal, and bulk operations
+
+  This enables judges to easily test Z6Chat with their own API keys without requiring our credentials, significantly improving the competition demo experience.
+
+- b7a07f4: feat: Implement comprehensive chat persistence with real-time updates
+
+  This major feature implementation replaces all dummy data with real Convex database persistence while maintaining perfect UI consistency. Key improvements include:
+
+  **Core Features:**
+
+  - Real-time chat creation and management with database persistence
+  - Message persistence between sessions with live synchronization
+  - Enhanced sidebar with dynamic chat lists and time-based grouping
+  - Chat lifecycle operations: archive, trash, restore, delete permanently
+  - Live badge counts for archive/trash with automatic updates
+  - Search integration working with persisted chat data
+  - Professional loading and empty states
+
+  **Technical Implementation:**
+
+  - Complete Convex CRUD operations for messages and enhanced chat management
+  - New use-chats.ts hook providing comprehensive persistence with optimistic updates
+  - Real-time UI synchronization via Convex live queries
+  - Full TypeScript integration with Convex schema
+  - Comprehensive error handling and performance optimization
+
+  **UI/UX Improvements:**
+
+  - Removed all dummy/mock data from chat interface
+  - Maintained perfect consistency with existing mauve design system
+  - Added proper loading states and user-friendly empty state messaging
+  - Implemented optimistic updates for immediate user feedback
+
+  This establishes the foundation for a production-ready real-time chat system with persistent data storage.
+
+- 44f712a: feat(projects): complete projects feature implementation with real backend
+
+  - Add complete convex/projects.ts backend with all CRUD operations
+  - Update use-projects.ts hook to use real Convex queries instead of mock data
+  - Add project context injection to chat API route
+  - Integrate projects hook in main-content.tsx to pass active project context
+  - Add getByClerkId query to users.ts for proper user lookup
+  - Fix type error in clerk.ts by removing patch operation from query context
+  - Fix type errors in app/api/logs/route.ts with proper Node.js imports
+  - Fix sessionInfo reference in logs page for lightweight logger
+  - Add PR merge guidelines to CLAUDE.md to prevent future partial merges
+
+  This completes the projects feature implementation, allowing users to:
+
+  - Create, update, and delete projects with real persistence
+  - Attach files to projects
+  - Associate chats with projects
+  - Inject project context into AI conversations
+  - Fork existing projects
+
+- bf20ed7: feat: enhance Thread Navigator and add collapsible message functionality
+
+  - Add navigation functionality to Thread Navigator - clicking messages scrolls to them in the main view
+  - Add expand/collapse icons to Thread Navigator for better content preview
+  - Implement individual collapse/expand buttons for each chat message
+  - Add global expand/collapse all button in top-left of content area
+  - Add smart state management that remembers individual collapse states
+  - Update user messages to use profile avatar and right-align for better visual distinction
+  - Add collapsed preview showing first 2-3 lines when messages are collapsed
+  - Persist collapse states in localStorage per chat session
+  - Add visual highlight when navigating to messages from Thread Navigator
+
+- 28b7df9: feat(navigation): implement comprehensive enhanced chat navigation with backend integration
+
+  - **Edit AI Messages**: Full backend integration with Convex mutations
+    - Inline editing with auto-resizing textarea
+    - Loading states during save operations
+    - Keyboard shortcuts (Cmd+Enter to save, Esc to cancel)
+    - Edit timestamps and visual indicators
+  - **Delete Messages**: Complete cascading delete functionality
+    - Confirmation dialog with loading states
+    - Recursive deletion of child messages
+    - Backend persistence via Convex mutations
+  - **Keyboard Navigation**:
+    - `Cmd/Ctrl + K` opens model switcher instantly
+    - `j/k` keys navigate between messages with smooth scrolling
+    - `Ctrl+N/P` for Vim-style navigation
+    - Visual focus indicators with animations
+    - Accessibility support with proper focus management
+  - **Conversation Tree View**: Performance-optimized hierarchical navigation
+    - Memoized components for large conversation handling
+    - Click any node to jump to that message
+    - Rename prompts for better organization
+    - Active path highlighting with visual indicators
+    - Branching point indicators and branch counts
+    - Full accessibility with ARIA labels and keyboard navigation
+  - **Breadcrumb Navigation**: Shows path from root to current message
+  - **Branch Indicators**: Visual indicators on messages with multiple response branches
+  - **Backend Integration**: Complete Convex mutations for data persistence
+    - User authentication and ownership verification
+    - Optimistic updates with error handling
+    - Real-time updates via Convex live queries
+
+  This implementation provides production-ready enhanced navigation with full backend support, optimized performance, and comprehensive accessibility features for power users.
+
+- 2142319: Implement enhanced model management UI with real OpenRouter integration and advanced filtering
+
+  - Added comprehensive model management hook with real-time OpenRouter API integration (50+ models)
+  - Created enhanced model switcher component with advanced filtering by provider, price, context length, and vision capabilities
+  - Implemented dynamic cost calculation and real-time pricing display
+  - Added mid-conversation model switching capability without losing chat context
+  - Enhanced TypeScript coverage with comprehensive OpenRouter API types and model metadata
+  - Removed dummy data and ensured visual consistency with ShadCN design system
+  - Added professional UX with tabbed interface, search functionality, and model comparison features
+  - Integrated cost transparency features helping users make informed model selection decisions
+
+- da3b994: feat: implement full markdown rendering for AI responses
+
+  - Add react-markdown with GitHub-flavored markdown support
+  - Implement comprehensive markdown formatting including:
+    - Bold, italic, strikethrough text
+    - Headers (h1-h6) with proper styling
+    - Ordered and unordered lists with nesting
+    - Blockquotes with distinctive styling
+    - Tables with theme-matching design
+    - Inline code with background highlighting
+    - Links that open in new tabs
+    - Horizontal rules
+  - Integrate with existing code block extraction system
+  - Preserve special handling for Mermaid diagrams and SVG
+  - Add test page at /test-markdown to demonstrate all features
+  - Maintain backward compatibility with existing messages
+
+- 7a9e1ce: Add comprehensive OpenAI image generation with DALL-E 3 and GPT-Image-1 support
+
+  - Add `/api/generate-image` endpoint with multi-model support (DALL-E 3, DALL-E 2, GPT-Image-1)
+  - Implement DALL-E 3 as default model for immediate high-quality image generation
+  - Add comprehensive utility library with TypeScript safety and error handling
+  - Include model-specific parameter validation and conditional logic
+  - Support all OpenAI image generation parameters (size, quality, style)
+  - Context7 verified implementation ensures 100% API compliance
+  - Ready for UI component integration and chat interface
+
+- 053862c: feat: add comprehensive UI/UX improvements for better user experience
+
+  - Add permanently dismissable "Start a Temporary Chat" section with localStorage persistence
+  - Implement comprehensive chat pinning functionality with database schema updates
+  - Add dedicated pinned chats section that sorts by pin date
+  - Fix share functionality in chat thread dropdown menus with proper alert integration
+  - Create dismissable "Gift T3Chat Pro" button with hover-to-dismiss functionality
+  - Implement sliding temporary chat button that appears on hover of "New Chat" button
+  - Add UI preferences management hook for persistent user interface customizations
+  - Update Convex schema to support chat pinning with isPinned and pinnedAt fields
+  - Create reusable components for better code organization and maintainability
+
+- 8ee4523: feat(tools): implement complete mission control tools system
+
+  - **Prompt Engineering Service**: Created comprehensive prompt templates with variable substitution for all tools
+  - **Real AI Integration**: Connected all tools to OpenRouter API for actual AI-generated responses
+  - **Enhanced Email Responder**: Professional email generation with tone controls and context awareness
+  - **Social Media Generator**: Platform-specific content creation with audience targeting and hashtag optimization
+  - **Smart Summarizer**: Content condensation with length and format options
+  - **Diagrammer Tool**: New Mermaid.js integration for flowcharts, sequence diagrams, class diagrams, and ER diagrams
+  - **Seamless Chat Flow**: Tool results integrate smoothly into chat conversations with proper formatting
+  - **Enhanced UI/UX**: Improved tool cards with hover animations, better loading states, and error handling
+  - **Real-time Feedback**: Toast notifications and error messages for all tool operations
+  - **Professional Styling**: Consistent mauve theme integration with gradient animations and micro-interactions
+
+  This transforms the New Chat screen from basic prompt suggestions into a powerful mission control center for specialized AI tasks, significantly improving user productivity and showcasing advanced features that differentiate Z6Chat in the competition.
+
+- 44f712a: feat: implement real projects backend with Convex integration
+
+  - Add complete projects backend implementation with convex/projects.ts
+  - Update use-projects hook to use real Convex queries instead of mock data
+  - Add project context support to chat hooks and streaming
+  - Add getByClerkId query to users.ts for proper user lookup
+  - Fix type error in clerk.ts by removing patch operation from query context
+  - Enable project-based chat context injection for AI responses
+
+- 780471d: feat(chat): implement real-time chat interface with OpenRouter API integration
+
+  - Created unified use-chat hook for real API integration with streaming responses
+  - Connected ChatInput component to send real messages and handle loading states
+  - Updated MainContent to use real chat functionality instead of dummy data
+  - Added functional temperature control for AI creativity settings
+  - Implemented proper error handling and loading indicators
+  - Removed all dummy data from chat interface components
+  - Added stop generation functionality during streaming
+  - Made quick start prompts functional to send real messages
+  - Integrated file attachment support with chat messages
+  - Added keyboard shortcuts (Enter to send, Shift+Enter for new line)
+
+- 1b5b449: Add resumable streams feature with Upstash Redis persistence
+
+  This major feature addition provides Z6Chat with a killer differentiator - true resumable streams that survive page refreshes, network interruptions, and allow multi-device access. The implementation includes:
+
+  - Redis-based stream persistence with Upstash
+  - Background LLM generation independent of client connections
+  - Automatic reconnection with exponential backoff
+  - Multi-device stream access via session IDs
+  - Comprehensive error handling and progress indicators
+  - React hook and UI components for seamless integration
+
+  This gives Z6Chat a significant competitive advantage as no other chat application in the competition offers this level of reliability and user experience.
+
+- 7858f67: feat(syntax): implement enhanced syntax highlighting with dynamic language registration
+
+  This adds comprehensive syntax highlighting capabilities to Z6Chat code blocks:
+
+  - Enhanced CodeBlockEnhanced component with VS Code Dark+ theme
+  - Advanced language detection supporting 15+ programming languages
+  - Dynamic language registration to prevent SSR issues
+  - Copy to clipboard and download functionality with browser fallbacks
+  - Line highlighting and numbering support
+  - Professional UI consistent with Z6Chat's dark theme
+  - Performance optimized with Light build and dynamic imports
+  - Comprehensive test suite with multiple language examples
+
+  The implementation significantly improves the developer experience for code sharing and enhances Z6Chat's competitive position in the T3Chat competition.
+
+- 2142319: Implement provider-specific token estimation with research-based ratios
+
+  - Add comprehensive token counting documentation for all major LLM providers
+  - Implement provider-specific character-to-token ratios based on extensive research:
+    - OpenAI: 4.0 chars/token (tiktoken)
+    - Anthropic: 2.5 chars/token (proprietary)
+    - Google: 4.0 chars/token (sentencepiece)
+    - DeepSeek: 4.0 chars/token (1.67 for Chinese text)
+    - xAI: 3.75 chars/token (sentencepiece)
+    - Meta/Llama: 4.0 chars/token (tiktoken)
+    - Mistral: 4.0 chars/token (tiktoken)
+  - Add special CJK text detection for DeepSeek models
+  - Display tokenizer information in cost estimation UI
+  - Add utility functions to get token estimation metadata
+  - Include comprehensive test suite for token estimation
+
+### Patch Changes
+
+- 4bab25c: fix: improve authentication resilience and add demo mode support
+
+  - Enhanced auth sync error handling with exponential backoff and retry limits
+  - Added demo mode support when Clerk is not configured
+  - Improved auth state management to prevent UI fragmentation
+  - Added visual indicators for auth sync issues
+  - Updated Convex schema to support demo plan type
+  - Made ConvexClientProvider work without Clerk configuration
+  - Added auth wrapper component for graceful degradation
+
+- 053862c: feat: consolidate model selector quick buttons into single dropdown
+
+  - Replace three separate Fast/Balanced/Heavy buttons with single dropdown
+  - Implement vertical dropdown that expands upward when clicked
+  - Preserve space in chat input area to prevent submit button wrapping
+  - Show current selection as the visible button label
+  - Maintain same model switching functionality with improved UI
+
+- cabe4a4: Fix authentication and CI/CD issues
+
+  - Simplified Password provider configuration to remove email verification dependency
+  - Added proper permissions to Release workflow for automatic changeset processing
+  - Fixed GitHub Actions permissions for creating Release PRs
+  - Deployed clean auth configuration to Convex production
+  - Removed unused ResendOTP import to prevent errors
+
+- 65429e7: fix: resolve Mermaid rendering and copy/export functionality issues
+
+  - Fix Mermaid diagram rendering error by ensuring IDs always start with a letter
+  - Enhance copy functionality with toast notifications and fallback handling
+  - Improve export functionality by ensuring all required message fields are present
+  - Add proper error handling and user feedback for clipboard operations
+  - Add tooltips to copy and download buttons for better UX
+
+- da3b994: fix: resolve UI interaction issues and enhance temporary chat accessibility
+
+  - Fix Gift T3Chat Pro close button functionality with proper toast notification
+  - Improve temporary chat button hover behavior to prevent disappearing when moving cursor
+  - Add temporary chat flyout icon to submit button with matching orange color scheme
+  - Implement keyboard shortcut (Ctrl+Shift+T) for accessing temporary chat
+  - Add keyboard shortcut hints and improved tooltips for better user experience
+  - Enhance hover areas and padding to prevent UI flickering
+
+- 937efda: fix: handle unauthenticated queries gracefully to prevent errors on sign out
+
+  - Updated file queries to return empty arrays instead of throwing errors when user is not authenticated
+  - Fixed getUserFiles, getChatFiles, and searchFiles to use getCurrentUser instead of requireAuth
+  - Improved useAttachments hook to skip queries when user is not authenticated
+  - This prevents "Unauthorized - please sign in" errors when signing out
+
+- da3b994: fix: improve Thread Navigator layout and document branching structure
+
+  - Move view mode toggle button away from close button with proper spacing
+  - Add visual separator (border) between header and controls
+  - Make toggle button full width for better clickability
+  - Add help text explaining branch structure in tree view
+  - Document intended branching design in code comments:
+    - Branches labeled by user prompts
+    - Content shows conversation exchanges
+    - Future: Multiple AI response variations per branch
+  - Improve overall layout with flex container for better spacing
+
+- 8befcae: fix: resolve merge conflicts and TypeScript errors
+
+  - Fixed merge conflicts in tools-grid.tsx and use-keyboard-navigation.ts
+  - Removed duplicate code and unused component imports
+  - Fixed authentication-related imports in layout.tsx
+  - Resolved TypeScript errors for missing components and duplicate declarations
+  - Enhanced chat navigation system with edit/delete message functionality
+  - Added missing UI components (tooltip.tsx)
+  - Cleaned up project structure for competition readiness
+
+- 2b5ebab: docs: restore comprehensive CLAUDE.md content based on user feedback
+
+  - Restored all development patterns including state management and styling conventions
+  - Added comprehensive directory structure with detailed explanations
+  - Included special changeset instructions for AI agents (manual creation required)
+  - Restored project history and milestones section
+  - Brought back complete ClaudeSquad task creation workflow
+  - Strengthened Context7 MCP requirements throughout the document
+  - Maintained supporting documents structure (AUTHENTICATION.md, COMPLETED_FEATURES.md)
+  - Increased from 235 to 477 lines for better comprehensiveness
+
+- 2142319: Implement code review improvements for model management UI
+
+  - Add improved token estimation with word-based algorithm
+  - Implement cache invalidation with 5-minute TTL for model data
+  - Add input sanitization for XSS protection on search queries
+  - Optimize filter performance with single-pass approach
+  - Add loading skeleton for better UX during model fetching
+  - Improve error messages with HTTP status details
+  - Add cache version management for invalidating stale data
+
+- 7858f67: feat(syntax): enhance security, accessibility, and language support based on Context7 review
+
+  This patch implements comprehensive improvements to the syntax highlighting system:
+
+  **Security Enhancements:**
+
+  - Enhanced clipboard operations with secure context validation
+  - Added filename sanitization to prevent directory traversal attacks
+  - Implemented blob size validation for download security (50MB limit)
+  - Added proper security attributes for file downloads
+  - Enhanced error handling with secure fallback mechanisms
+
+  **Accessibility Improvements:**
+
+  - Added ARIA labels and role attributes to code blocks
+  - Enhanced keyboard navigation support with tabIndex
+  - Improved screen reader compatibility
+  - Added proper focus management for interactive elements
+
+  **Language Support Expansion:**
+
+  - Added support for Go, Rust, PHP, Ruby, Swift, Kotlin
+  - Enhanced language detection patterns for modern programming languages
+  - Improved TypeScript and React detection accuracy
+  - Extended file extension mappings for better auto-detection
+
+  **Performance & Reliability:**
+
+  - Enhanced language registration with module validation
+  - Improved error handling for failed language module loads
+  - Better memory management for object URLs with cleanup
+  - Optimized import patterns for reduced bundle size
+
+  These improvements ensure Z6Chat's syntax highlighting meets modern security standards, accessibility guidelines, and developer expectations while maintaining excellent performance.
+
+- 7858f67: fix(syntax): resolve TypeScript variable declaration order in use-code-actions
+
+  Fixed function declaration order issue that was causing TypeScript compilation errors. This ensures clean builds and proper type checking for the syntax highlighting system.
+
+- 84eee94: docs: restructure CLAUDE.md for production focus and reduced complexity
+
+  - Reduced CLAUDE.md from 1,168 to 216 lines (81% reduction)
+  - Removed outdated competition context and historical implementation details
+  - Created separate supporting documents for authentication and features
+  - Updated technology stack to reflect current versions
+  - Simplified Git workflow to essential commands only
+  - Focused on production standards and professional development
+  - Added clear links to supporting documentation
+  - Maintained critical MCP requirements and quality standards
+
+- bf20ed7: chore: update all T3Chat references to Z6Chat
+
+  - Replace all front-facing "T3Chat" references with "Z6Chat"
+  - Update "T3Chat Pro" to "Z6Chat Pro" throughout the UI
+  - Update storage key from "t3chat_temporary_session" to "z6chat_temporary_session"
+  - Ensure consistent branding across all user-facing components
+  - No changes to documentation or development files
+
+- 1bb316c: Replace T3 logo with Z6Chat brand image and fix missing noise texture. Updated T3Logo component to use Next.js Image component with the new Z6Chat logo PNG. Replaced missing noise.png references with CSS-generated noise pattern using radial gradients.
+
 ## 0.3.1
 
 ### Patch Changes
