@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { FileText, Brain, EyeOff, ExternalLink, Users, Gift, Key, GitCommit, CreditCard, Keyboard, User } from "lucide-react"
+import { FileText, Brain, EyeOff, ExternalLink, Users, Gift, Key, GitCommit, CreditCard, Keyboard, User, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export default function SettingsPage() {
@@ -17,11 +17,19 @@ export default function SettingsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-            <p className="text-mauve-subtle/70">
-              Manage your T3Chat preferences and privacy settings
-            </p>
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="text-mauve-subtle hover:text-foreground">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Chat
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+              <p className="text-mauve-subtle/70">
+                Manage your Z6Chat preferences and privacy settings
+              </p>
+            </div>
           </div>
           <div className="flex gap-2">
             <Link href="/changelog">
