@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!chat?.isActive) {
     return {
-      title: "Shared Chat Not Found - T3Chat",
+      title: "Shared Chat Not Found - Z6Chat",
       description: "This shared chat link is no longer active.",
     }
   }
@@ -67,13 +67,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     firstUserMessage.length > 150 ? firstUserMessage.substring(0, 150) + "..." : firstUserMessage
 
   return {
-    title: `${chat.title} - Shared on T3Chat`,
-    description: preview || "View this AI conversation shared on T3Chat",
+    title: `${chat.title} - Shared on Z6Chat`,
+    description: preview || "View this AI conversation shared on Z6Chat",
     openGraph: {
       title: chat.title,
       description: preview,
       type: "article",
-      siteName: "T3Chat",
+      siteName: "Z6Chat",
     },
     twitter: {
       card: "summary",

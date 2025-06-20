@@ -25,6 +25,7 @@ import {
 import { useProjects } from "@/hooks/use-projects"
 import { CreateProjectModal } from "@/components/create-project-modal"
 import { ProjectSettingsModal } from "@/components/project-settings-modal"
+import { DroppableProject } from "@/components/droppable-project"
 
 interface ProjectListProps {
   onChatSelect?: (chatId: string, projectId: string) => void
@@ -99,17 +100,18 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
               No projects yet. Create your first project to get started.
             </div>
           ) : (
-            projects.map((project) => (
-              <div key={project.id} className="space-y-1">
-                {/* Project Item */}
-                <div
-                  className={`group flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${
-                    activeProjectId === project.id
-                      ? "bg-mauve-accent/20 text-mauve-bright"
-                      : "text-mauve-subtle hover:bg-white/5"
-                  }`}
-                  onClick={() => handleProjectClick(project.id)}
-                >
+            projects.map((project: any) => (
+              <DroppableProject key={project.id} projectId={project.id} isExpanded={expandedProjects.has(project.id)}>
+                <div className="space-y-1">
+                  {/* Project Item */}
+                  <div
+                    className={`group flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${
+                      activeProjectId === project.id
+                        ? "bg-mauve-accent/20 text-mauve-bright"
+                        : "text-mauve-subtle hover:bg-white/5"
+                    }`}
+                    onClick={() => handleProjectClick(project.id)}
+                  >
                   <Button
                     variant="ghost"
                     size="icon"
@@ -184,7 +186,7 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
                         No chats in this project
                       </div>
                     ) : (
-                      project.chats.map((chat) => (
+                      project.chats.map((chat: any) => (
                         <div
                           key={chat.id}
                           className="group flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/5"
@@ -203,6 +205,7 @@ export function ProjectList({ onChatSelect }: ProjectListProps) {
                   </div>
                 )}
               </div>
+              </DroppableProject>
             ))
           )}
         </CollapsibleContent>

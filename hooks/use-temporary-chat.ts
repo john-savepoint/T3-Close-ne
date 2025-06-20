@@ -8,7 +8,7 @@ import type {
   TemporaryChatSettings,
 } from "@/types/temporary-chat"
 
-const TEMP_CHAT_STORAGE_KEY = "t3chat_temporary_session"
+const TEMP_CHAT_STORAGE_KEY = "z6chat_temporary_session"
 
 // Mock settings
 const defaultSettings: TemporaryChatSettings = {

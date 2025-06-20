@@ -76,13 +76,13 @@ export default function RedeemGiftPage() {
                 <Sparkles className="h-4 w-4 text-green-400" />
                 <AlertDescription className="text-green-300">
                   <strong>Congratulations!</strong> You've received {redeemedGift.durationMonths}{" "}
-                  months of T3Chat Pro access.
+                  months of Z6Chat Pro access.
                 </AlertDescription>
               </Alert>
 
               <div className="space-y-2">
                 <p className="text-sm text-mauve-subtle/70">
-                  Your account has been upgraded to <strong>T3Chat Pro</strong>
+                  Your account has been upgraded to <strong>Z6Chat Pro</strong>
                 </p>
                 <p className="text-xs text-mauve-subtle/60">
                   Plan: {redeemedGift.planName} • Duration: {redeemedGift.durationMonths} months
@@ -92,7 +92,7 @@ export default function RedeemGiftPage() {
               <div className="flex flex-col gap-3">
                 <Link href="/">
                   <Button className="w-full bg-mauve-accent/20 hover:bg-mauve-accent/30">
-                    Start Using T3Chat Pro
+                    Start Using Z6Chat Pro
                   </Button>
                 </Link>
                 <Link href="/settings">
@@ -110,9 +110,9 @@ export default function RedeemGiftPage() {
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-pink-500/20">
                 <Gift className="h-8 w-8 text-pink-400" />
               </div>
-              <CardTitle className="text-foreground">Redeem Your T3Chat Gift</CardTitle>
+              <CardTitle className="text-foreground">Redeem Your Z6Chat Gift</CardTitle>
               <p className="text-sm text-mauve-subtle/70">
-                Enter your gift code below to activate your T3Chat Pro subscription
+                Enter your gift code below to activate your Z6Chat Pro subscription
               </p>
             </CardHeader>
             <CardContent>

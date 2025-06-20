@@ -85,7 +85,7 @@ export function GiftPurchaseModal({ trigger }: GiftPurchaseModalProps) {
         {trigger || (
           <Button className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
             <Gift className="mr-2 h-4 w-4" />
-            Gift T3Chat Pro
+            Gift Z6Chat Pro
           </Button>
         )}
       </DialogTrigger>
@@ -93,7 +93,7 @@ export function GiftPurchaseModal({ trigger }: GiftPurchaseModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <Gift className="h-5 w-5 text-pink-400" />
-            Gift T3Chat Pro
+            Gift Z6Chat Pro
           </DialogTitle>
         </DialogHeader>
 
@@ -268,7 +268,7 @@ export function GiftPurchaseModal({ trigger }: GiftPurchaseModalProps) {
                     <br />
                     <span className="text-sm">
                       Your recipient will receive{" "}
-                      {selectedPlan.id.includes("yearly") ? "12 months" : "1 month"} of T3Chat Pro
+                      {selectedPlan.id.includes("yearly") ? "12 months" : "1 month"} of Z6Chat Pro
                       access.
                     </span>
                   </AlertDescription>

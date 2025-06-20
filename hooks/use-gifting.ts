@@ -13,7 +13,7 @@ const mockPlans: SubscriptionPlan[] = [
   {
     id: "pro_monthly",
     name: "Pro Monthly",
-    description: "Full access to T3Chat Pro features",
+    description: "Full access to Z6Chat Pro features",
     monthlyPrice: 20,
     yearlyPrice: 200,
     features: ["Unlimited chats", "Advanced AI models", "Priority support", "Export features"],
@@ -22,7 +22,7 @@ const mockPlans: SubscriptionPlan[] = [
   {
     id: "pro_yearly",
     name: "Pro Yearly",
-    description: "Full access to T3Chat Pro features (12 months)",
+    description: "Full access to Z6Chat Pro features (12 months)",
     monthlyPrice: 20,
     yearlyPrice: 200,
     features: [

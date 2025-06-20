@@ -27,6 +27,11 @@ import { useChatPinning } from "@/hooks/use-chat-pinning"
 import { ShareChatModal } from "@/components/share-chat-modal"
 import { useNavigationState } from "@/hooks/use-navigation-state"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
+import { DndProvider } from "@/components/providers/dnd-provider"
+import { DraggableChatItem } from "@/components/draggable-chat-item"
+import { DroppableProject } from "@/components/droppable-project"
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { DragEndEvent, DragOverEvent } from "@dnd-kit/core"
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp: number): string => {
@@ -91,7 +96,7 @@ interface ThreadItemProps {
   isActive?: boolean
 }
 
-// Thread Item Component
+// Thread Item Component - Now just a wrapper for DraggableChatItem
 const ThreadItem = ({
   chat,
   parent = false,
@@ -139,29 +144,22 @@ const ThreadItem = ({
     router.push(`/?chatId=${chat._id}`)
   }
 
-  const handleRename = (newTitle: string) => {
+  const handleRename = async (newTitle: string) => {
     if (newTitle && newTitle.trim() !== chat.title) {
-      onRename(ensureStringId(chat._id), newTitle.trim())
+      await onRename(ensureStringId(chat._id), newTitle.trim())
     }
   }
 
   return (
-    <EnhancedChatItem
-      chat={{
-        ...chat,
-        id: chat._id,
-        timestamp: formatTimestamp(chat.lastActivity || chat.updatedAt),
-      }}
+    <DraggableChatItem
+      chat={chat}
       isActive={isActive}
-      onClick={handleChatClick}
       onMoveToTrash={handleMoveToTrash}
       onMoveToArchive={handleMoveToArchive}
       onRename={handleRename}
-      onRestore={handleRestore}
-      onDeletePermanently={handleDeletePermanent}
-      onPin={handleTogglePin}
+      onTogglePin={handleTogglePin}
       onShare={handleShare}
-      showParentIcon={parent}
+      onClick={handleChatClick}
     />
   )
 }
@@ -184,11 +182,12 @@ export function Sidebar() {
   const router = useRouter()
   const { isDismissed } = useUIPreferences()
   const { togglePin } = useChatPinning()
-  const { activeProject } = useProjects()
+  const { activeProject, projects } = useProjects()
   const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
   const { archivedChats, trashedChats } = useChatLifecycle()
   const { user, clerkUser, isAuthenticated, isAuthenticating, syncError } = useAuth()
   const { currentView, navigateToView, isCurrentView } = useNavigationState()
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
 
   // Get archived and trashed chat counts
   const { chats: archivedChatsData } = useChats({
@@ -338,6 +337,48 @@ export function Sidebar() {
     }
   }
 
+  // Handle drag end event
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    
+    if (!over) return
+    
+    const activeData = active.data.current
+    const overData = over.data.current
+    
+    // Check if we're dropping a chat onto a project
+    if (activeData?.type === "chat" && overData?.type === "project") {
+      const chatId = active.id as string
+      const projectId = overData.projectId as string
+      
+      try {
+        // Update the chat to move it to the project
+        await updateChat(toChatId(chatId), { projectId: toProjectId(projectId) })
+        console.log(`Moved chat ${chatId} to project ${projectId}`)
+      } catch (error) {
+        console.error("Failed to move chat to project:", error)
+      }
+    }
+  }
+
+  // Handle drag over event (for visual feedback)
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event
+    
+    if (!over) return
+    
+    const activeData = active.data.current
+    const overData = over.data.current
+    
+    // Auto-expand project when dragging over it
+    if (activeData?.type === "chat" && overData?.type === "project") {
+      const projectId = overData.projectId as string
+      if (!expandedProjects.has(projectId)) {
+        setExpandedProjects(prev => new Set(prev).add(projectId))
+      }
+    }
+  }
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "k") {
@@ -348,7 +389,7 @@ export function Sidebar() {
         e.preventDefault()
         // Quick model switch
       }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "T") {
+      if ((e.metaKey || e.ctrlKey) && e.key === "e") {
         e.preventDefault()
         startTemporaryChat()
       }
@@ -407,13 +448,38 @@ export function Sidebar() {
           </div>
 
           {/* Content */}
-          <ScrollArea className="-mr-2 flex-1 pr-2">
-            <nav className="flex flex-col gap-1 py-2">
+          <DndProvider onDragEnd={handleDragEnd} onDragOver={handleDragOver} renderDragOverlay={(active) => {
+            const chat = active.data?.current?.chat
+            if (!chat) return null
+            return (
+              <div className="opacity-80">
+                <EnhancedChatItem
+                  chat={{
+                    ...chat,
+                    id: chat._id,
+                    timestamp: formatTimestamp(chat.lastActivity || chat.updatedAt),
+                  }}
+                  isActive={false}
+                  onClick={() => {}}
+                  onMoveToTrash={async () => {}}
+                  onMoveToArchive={async () => {}}
+                  onRename={() => {}}
+                  onRestore={() => {}}
+                  onDeletePermanently={() => {}}
+                  onPin={async () => {}}
+                  onShare={() => {}}
+                  showParentIcon={false}
+                />
+              </div>
+            )
+          }}>
+            <ScrollArea className="-mr-2 flex-1 pr-2">
+              <nav className="flex flex-col gap-1 py-2">
               {/* Projects Section - Only show on home view */}
               {currentView === "home" && (
                 <ProjectList
                   onChatSelect={(chatId, projectId) => {
-                    console.log("Selected chat:", chatId, "in project:", projectId)
+                    router.push(`/?chatId=${chatId}`)
                   }}
                 />
               )}
@@ -422,7 +488,7 @@ export function Sidebar() {
               {currentView === "projects" && (
                 <ProjectList
                   onChatSelect={(chatId, projectId) => {
-                    console.log("Selected chat:", chatId, "in project:", projectId)
+                    router.push(`/?chatId=${chatId}`)
                   }}
                 />
               )}
@@ -446,100 +512,125 @@ export function Sidebar() {
                     {filteredChatGroups.pinnedThreads.length > 0 && (
                       <>
                         <GroupLabel label="Pinned" />
-                        {filteredChatGroups.pinnedThreads.map((thread) => {
-                          const handlers = getItemHandlers(ensureStringId(thread._id))
-                          return (
-                            <ThreadItem
-                              key={thread._id}
-                              chat={thread}
-                              onMoveToTrash={handlers.onMoveToTrash}
-                              onMoveToArchive={handlers.onMoveToArchive}
-                              onRename={handleRenameChat}
-                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                              onShare={handleShareChat}
-                            />
-                          )
-                        })}
+                        <SortableContext 
+                          items={filteredChatGroups.pinnedThreads.map(t => t._id)} 
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {filteredChatGroups.pinnedThreads.map((thread) => {
+                            const handlers = getItemHandlers(ensureStringId(thread._id))
+                            return (
+                              <ThreadItem
+                                key={thread._id}
+                                chat={thread}
+                                onMoveToTrash={handlers.onMoveToTrash}
+                                onMoveToArchive={handlers.onMoveToArchive}
+                                onRename={handleRenameChat}
+                                onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                                onShare={handleShareChat}
+                              />
+                            )
+                          })}
+                        </SortableContext>
                       </>
                     )}
 
                     {filteredChatGroups.todayThreads.length > 0 && (
                       <>
                         <GroupLabel label="Today" />
-                        {filteredChatGroups.todayThreads.map((thread) => {
-                          const handlers = getItemHandlers(ensureStringId(thread._id))
-                          return (
-                            <ThreadItem
-                              key={thread._id}
-                              chat={thread}
-                              onMoveToTrash={handlers.onMoveToTrash}
-                              onMoveToArchive={handlers.onMoveToArchive}
-                              onRename={handleRenameChat}
-                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                              onShare={handleShareChat}
-                            />
-                          )
-                        })}
+                        <SortableContext 
+                          items={filteredChatGroups.todayThreads.map(t => t._id)} 
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {filteredChatGroups.todayThreads.map((thread) => {
+                            const handlers = getItemHandlers(ensureStringId(thread._id))
+                            return (
+                              <ThreadItem
+                                key={thread._id}
+                                chat={thread}
+                                onMoveToTrash={handlers.onMoveToTrash}
+                                onMoveToArchive={handlers.onMoveToArchive}
+                                onRename={handleRenameChat}
+                                onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                                onShare={handleShareChat}
+                              />
+                            )
+                          })}
+                        </SortableContext>
                       </>
                     )}
 
                     {filteredChatGroups.yesterdayThreads.length > 0 && (
                       <>
                         <GroupLabel label="Yesterday" />
-                        {filteredChatGroups.yesterdayThreads.map((thread) => {
-                          const handlers = getItemHandlers(ensureStringId(thread._id))
-                          return (
-                            <ThreadItem
-                              key={thread._id}
-                              chat={thread}
-                              onMoveToTrash={handlers.onMoveToTrash}
-                              onMoveToArchive={handlers.onMoveToArchive}
-                              onRename={handleRenameChat}
-                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                              onShare={handleShareChat}
-                            />
-                          )
-                        })}
+                        <SortableContext 
+                          items={filteredChatGroups.yesterdayThreads.map(t => t._id)} 
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {filteredChatGroups.yesterdayThreads.map((thread) => {
+                            const handlers = getItemHandlers(ensureStringId(thread._id))
+                            return (
+                              <ThreadItem
+                                key={thread._id}
+                                chat={thread}
+                                onMoveToTrash={handlers.onMoveToTrash}
+                                onMoveToArchive={handlers.onMoveToArchive}
+                                onRename={handleRenameChat}
+                                onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                                onShare={handleShareChat}
+                              />
+                            )
+                          })}
+                        </SortableContext>
                       </>
                     )}
 
                     {filteredChatGroups.thisWeekThreads.length > 0 && (
                       <>
                         <GroupLabel label="This Week" />
-                        {filteredChatGroups.thisWeekThreads.map((thread) => {
-                          const handlers = getItemHandlers(ensureStringId(thread._id))
-                          return (
-                            <ThreadItem
-                              key={thread._id}
-                              chat={thread}
-                              onMoveToTrash={handlers.onMoveToTrash}
-                              onMoveToArchive={handlers.onMoveToArchive}
-                              onRename={handleRenameChat}
-                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                              onShare={handleShareChat}
-                            />
-                          )
-                        })}
+                        <SortableContext 
+                          items={filteredChatGroups.thisWeekThreads.map(t => t._id)} 
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {filteredChatGroups.thisWeekThreads.map((thread) => {
+                            const handlers = getItemHandlers(ensureStringId(thread._id))
+                            return (
+                              <ThreadItem
+                                key={thread._id}
+                                chat={thread}
+                                onMoveToTrash={handlers.onMoveToTrash}
+                                onMoveToArchive={handlers.onMoveToArchive}
+                                onRename={handleRenameChat}
+                                onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                                onShare={handleShareChat}
+                              />
+                            )
+                          })}
+                        </SortableContext>
                       </>
                     )}
 
                     {filteredChatGroups.olderThreads.length > 0 && (
                       <>
                         <GroupLabel label="Older" />
-                        {filteredChatGroups.olderThreads.map((thread) => {
-                          const handlers = getItemHandlers(ensureStringId(thread._id))
-                          return (
-                            <ThreadItem
-                              key={thread._id}
-                              chat={thread}
-                              onMoveToTrash={handlers.onMoveToTrash}
-                              onMoveToArchive={handlers.onMoveToArchive}
-                              onRename={handleRenameChat}
-                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                              onShare={handleShareChat}
-                            />
-                          )
-                        })}
+                        <SortableContext 
+                          items={filteredChatGroups.olderThreads.map(t => t._id)} 
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {filteredChatGroups.olderThreads.map((thread) => {
+                            const handlers = getItemHandlers(ensureStringId(thread._id))
+                            return (
+                              <ThreadItem
+                                key={thread._id}
+                                chat={thread}
+                                onMoveToTrash={handlers.onMoveToTrash}
+                                onMoveToArchive={handlers.onMoveToArchive}
+                                onRename={handleRenameChat}
+                                onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                                onShare={handleShareChat}
+                              />
+                            )
+                          })}
+                        </SortableContext>
                       </>
                     )}
 
@@ -586,6 +677,7 @@ export function Sidebar() {
               </div>
             </nav>
           </ScrollArea>
+          </DndProvider>
 
           {/* Bottom Navigation */}
           <div className="mt-auto">

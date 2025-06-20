@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useProjects } from "@/hooks/use-projects"
+import type { Project } from "@/types/project"
 import {
   Loader2,
   Save,
@@ -40,7 +41,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
     removeAttachmentFromProject,
     loading,
   } = useProjects()
-  const project = projects.find((p) => p.id === projectId)
+  const project = projects.find((p: Project) => p.id === projectId)
 
   const [formData, setFormData] = useState({
     name: "",
@@ -54,7 +55,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
         systemPrompt: project.systemPrompt || "",
       })
     }
-  }, [project])
+  }, [project]) // Update when project changes
 
   const handleSave = async () => {
     if (!project || !formData.name.trim()) return
@@ -207,7 +208,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {project.attachments.map((attachment) => {
+                    {project.attachments.map((attachment: any) => {
                       const Icon = getFileIcon(attachment.type)
                       return (
                         <div

@@ -30,7 +30,7 @@ export function DismissableGiftButton() {
             className="w-full justify-center border-pink-500/50 bg-gradient-to-r from-pink-500/10 to-purple-600/10 text-pink-400 hover:from-pink-500/20 hover:to-purple-600/20 relative"
           >
             <Gift className="mr-2 h-4 w-4" />
-            Gift T3Chat Pro
+            Gift Z6Chat Pro
           </Button>
         }
       />

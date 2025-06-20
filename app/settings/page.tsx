@@ -154,7 +154,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-mauve-subtle/70">
-                  Share the power of T3Chat with friends, family, and colleagues through gift
+                  Share the power of Z6Chat with friends, family, and colleagues through gift
                   subscriptions.
                 </p>
 
@@ -351,6 +351,13 @@ export default function SettingsPage() {
                       <div className="flex gap-1">
                         <Badge variant="outline" className="font-mono text-xs">⌘N</Badge>
                         <Badge variant="outline" className="font-mono text-xs">Ctrl+N</Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border border-mauve-dark bg-mauve-dark/30 px-3 py-2">
+                      <span className="text-sm text-mauve-subtle/90">Start Temporary Chat</span>
+                      <div className="flex gap-1">
+                        <Badge variant="outline" className="font-mono text-xs">⌘E</Badge>
+                        <Badge variant="outline" className="font-mono text-xs">Ctrl+E</Badge>
                       </div>
                     </div>
                   </div>

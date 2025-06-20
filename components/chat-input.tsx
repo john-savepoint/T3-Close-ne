@@ -124,8 +124,8 @@ export function ChatInput({
       handleSendMessage()
     }
     
-    // Ctrl/Cmd + Shift + T for temporary chat
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "T") {
+    // Ctrl/Cmd + E for temporary chat
+    if ((e.ctrlKey || e.metaKey) && e.key === "e") {
       e.preventDefault()
       startTemporaryChat()
     }
@@ -217,7 +217,7 @@ export function ChatInput({
             {!onToggleTemporaryMode && !isTemporaryMode && !currentlyInTempMode && (
               <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground/50">
                 <Keyboard className="h-3 w-3" />
-                <span>Ctrl+Shift+T for temp chat</span>
+                <span>Ctrl+E for temp chat</span>
               </div>
             )}
             <EnhancedModelSwitcher

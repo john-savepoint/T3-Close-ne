@@ -45,7 +45,7 @@ export default function NewChatPage() {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold">T3Chat Tools</h1>
+        <h1 className="mb-2 text-3xl font-bold">Z6Chat Tools</h1>
         <p className="mx-auto max-w-2xl text-mauve-subtle/70">
           Choose a specialized tool to help you accomplish specific tasks, or start a general
           conversation.

@@ -28,6 +28,9 @@ import { useAuth } from "@/hooks/use-auth"
 import { DEFAULT_MODEL_ID } from "@/lib/default-models"
 import { useProjects } from "@/hooks/use-projects"
 import { useUIPreferences } from "@/hooks/use-ui-preferences"
+import { useCollapseState } from "@/hooks/use-collapse-state"
+import { Minimize2, Maximize2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export function MainContent() {
   const isMobile = useIsMobile()
@@ -52,6 +55,15 @@ export function MainContent() {
   const { user, isLoading: authLoading, isAuthenticating, syncError } = useAuth()
   const { activeProject } = useProjects()
   const { isDismissed } = useUIPreferences()
+  
+  // Collapse state management
+  const {
+    isCollapsed,
+    toggleCollapse,
+    collapseAll,
+    expandAll,
+    hasCollapsedMessages,
+  } = useCollapseState(`chat-collapse-${chatId || 'default'}`)
 
   // Memoize projectId to prevent infinite re-renders
   const projectId = useMemo(() => activeProject?.id, [activeProject?.id])
@@ -271,6 +283,28 @@ export function MainContent() {
         {isTemporaryMode ? <TemporaryChatBanner /> : <ProjectContextIndicator />}
         {!isTemporaryMode && <MemoryContextIndicator />}
 
+        {/* Global collapse/expand button - only show when there are messages */}
+        {displayMessages.length > 0 && (
+          <div className="absolute left-4 top-4 z-10">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={hasCollapsedMessages() ? expandAll : collapseAll}
+              className={cn(
+                "h-9 w-9 border-mauve-accent/50 bg-mauve-dark/80 backdrop-blur-sm",
+                hasCollapsedMessages() && "ring-2 ring-mauve-accent/50"
+              )}
+              title={hasCollapsedMessages() ? "Expand all messages" : "Collapse all messages"}
+            >
+              {hasCollapsedMessages() ? (
+                <Maximize2 className="h-4 w-4" />
+              ) : (
+                <Minimize2 className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        )}
+
         {/* Content wrapper */}
         <div className="relative flex flex-1 flex-col overflow-y-auto">
           <div className="flex-1" />
@@ -342,6 +376,8 @@ export function MainContent() {
                           console.error('Failed to copy:', err)
                         })
                       }}
+                      isCollapsed={isCollapsed(message.id)}
+                      onToggleCollapse={toggleCollapse}
                     />
                   </div>
                 ))}
@@ -393,9 +429,12 @@ export function MainContent() {
             messageCount={displayMessages.length}
           />
           <ThreadNavigator
-            messages={displayMessages}
+            messages={displayMessages.map((msg) => ({
+              ...msg,
+              timestamp: new Date(msg.timestamp),
+            }))}
             currentMessageId={currentMessageId || undefined}
-            onMessageSelect={(messageId: string) => setCurrentMessageId(messageId)}
+            onMessageSelect={handleMessageSelect}
             onBranchSelect={handleBranchSelect}
             onBranchRename={renameBranch}
           />

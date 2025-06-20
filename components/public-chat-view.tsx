@@ -192,7 +192,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
           <Alert className="mt-6 border-mauve-accent/20 bg-mauve-accent/10">
             <Sparkles className="h-4 w-4 text-mauve-accent" />
             <AlertDescription className="text-mauve-subtle">
-              <strong>Want to continue this conversation?</strong> Fork it to your T3Chat account
+              <strong>Want to continue this conversation?</strong> Fork it to your Z6Chat account
               and keep the discussion going with AI.
               <Button
                 onClick={handleForkConversation}
@@ -287,7 +287,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
             <T3Logo className="h-8 text-foreground" />
             <h3 className="text-lg font-semibold text-foreground">Continue the conversation</h3>
             <p className="max-w-md text-sm text-mauve-subtle/70">
-              Fork this conversation to your own T3Chat account and keep exploring with AI.
+              Fork this conversation to your own Z6Chat account and keep exploring with AI.
             </p>
             <div className="flex gap-3">
               <Button
@@ -312,7 +312,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
           <p>
             Powered by{" "}
             <Link href="/" className="text-mauve-accent transition-colors hover:text-mauve-bright">
-              T3Chat
+              Z6Chat
             </Link>{" "}
             • Build better with AI
           </p>

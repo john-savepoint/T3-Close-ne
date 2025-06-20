@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import * as React from "react"
 import { useQuery, useMutation } from "convex/react"
 import { Id } from "@/convex/_generated/dataModel"
 import { useAuth } from "@/hooks/use-auth"
@@ -17,15 +18,19 @@ export function useProjects() {
   )
   
   // Convert number timestamps to Date objects to match frontend types
-  const projects = (projectsData || []).map((project: any) => ({
-    ...project,
-    createdAt: new Date(project.createdAt),
-    updatedAt: new Date(project.updatedAt),
-    chats: project.chats.map((chat: any) => ({
-      ...chat,
-      updatedAt: new Date(chat.updatedAt),
-    })),
-  }))
+  const projects = React.useMemo(() => {
+    if (!projectsData) return []
+    
+    return projectsData.map((project: any) => ({
+      ...project,
+      createdAt: new Date(project.createdAt),
+      updatedAt: new Date(project.updatedAt),
+      chats: project.chats.map((chat: any) => ({
+        ...chat,
+        updatedAt: new Date(chat.updatedAt),
+      })),
+    }))
+  }, [projectsData])
 
   // Convex mutations
   const createProjectMutation = useMutation("projects:create" as any)
@@ -35,7 +40,7 @@ export function useProjects() {
   const removeAttachmentMutation = useMutation("projects:removeAttachment" as any)
   const forkProjectMutation = useMutation("projects:fork" as any)
 
-  const activeProject = projects.find((p) => p.id === activeProjectId)
+  const activeProject = projects.find((p: Project) => p.id === activeProjectId)
   const loading = projectsData === undefined
 
   const createProject = async (data: CreateProjectData): Promise<Project> => {

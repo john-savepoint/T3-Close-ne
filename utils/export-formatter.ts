@@ -34,7 +34,7 @@ export function formatAsMarkdown(
   }
 
   // Add export metadata
-  markdown += `*Exported from T3Chat on ${new Date().toLocaleDateString()}*\n\n`
+  markdown += `*Exported from Z6Chat on ${new Date().toLocaleDateString()}*\n\n`
   markdown += "---\n\n"
 
   messages.forEach((message, index) => {
@@ -78,7 +78,7 @@ export function formatAsPlainText(
   }
 
   // Add export metadata
-  text += `Exported from T3Chat on ${new Date().toLocaleDateString()}\n\n`
+  text += `Exported from Z6Chat on ${new Date().toLocaleDateString()}\n\n`
   text += "-".repeat(50) + "\n\n"
 
   messages.forEach((message, index) => {
@@ -119,7 +119,7 @@ export function formatAsJSON(
   const exportData = {
     title: title || "Untitled Chat",
     exportedAt: new Date().toISOString(),
-    exportedFrom: "T3Chat",
+    exportedFrom: "Z6Chat",
     options,
     messageCount: messages.length,
     messages: messages.map((message) => ({
