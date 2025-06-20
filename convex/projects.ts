@@ -81,7 +81,7 @@ export const list = query({
               projectId: project._id,
               title: chat.title,
               lastMessage: messages[0]?.content || "",
-              updatedAt: new Date(chat.updatedAt),
+              updatedAt: chat.updatedAt,
               messageCount,
             }
           })
@@ -92,8 +92,8 @@ export const list = query({
           name: project.name,
           systemPrompt: project.systemPrompt || "",
           parentProjectId: project.parentProjectId,
-          createdAt: new Date(project.createdAt),
-          updatedAt: new Date(project.updatedAt),
+          createdAt: project.createdAt,
+          updatedAt: project.updatedAt,
           attachments: attachments.map((att) => ({
             id: att._id,
             projectId: project._id,

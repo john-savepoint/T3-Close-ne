@@ -2,32 +2,38 @@
 
 import { useState } from "react"
 import { useQuery, useMutation } from "convex/react"
-import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
-import { useUser } from "@clerk/nextjs"
+import { useAuth } from "@/hooks/use-auth"
 import type { Project, CreateProjectData, ProjectAttachment } from "@/types/project"
 
 export function useProjects() {
-  const { user } = useUser()
+  const { user: convexUser } = useAuth()
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
-
-  // Get user's Convex ID
-  const convexUser = useQuery(api.users.getByClerkId, user?.id ? { clerkId: user.id } : "skip")
 
   // Fetch projects from Convex
   const projectsData = useQuery(
-    api.projects.list,
+    "projects:list" as any,
     convexUser?._id ? { userId: convexUser._id } : "skip"
   )
-  const projects = projectsData || []
+  
+  // Convert number timestamps to Date objects to match frontend types
+  const projects = (projectsData || []).map((project: any) => ({
+    ...project,
+    createdAt: new Date(project.createdAt),
+    updatedAt: new Date(project.updatedAt),
+    chats: project.chats.map((chat: any) => ({
+      ...chat,
+      updatedAt: new Date(chat.updatedAt),
+    })),
+  }))
 
   // Convex mutations
-  const createProjectMutation = useMutation(api.projects.create)
-  const updateProjectMutation = useMutation(api.projects.update)
-  const deleteProjectMutation = useMutation(api.projects.deleteProject)
-  const addAttachmentMutation = useMutation(api.projects.addAttachment)
-  const removeAttachmentMutation = useMutation(api.projects.removeAttachment)
-  const forkProjectMutation = useMutation(api.projects.fork)
+  const createProjectMutation = useMutation("projects:create" as any)
+  const updateProjectMutation = useMutation("projects:update" as any)
+  const deleteProjectMutation = useMutation("projects:deleteProject" as any)
+  const addAttachmentMutation = useMutation("projects:addAttachment" as any)
+  const removeAttachmentMutation = useMutation("projects:removeAttachment" as any)
+  const forkProjectMutation = useMutation("projects:fork" as any)
 
   const activeProject = projects.find((p) => p.id === activeProjectId)
   const loading = projectsData === undefined
