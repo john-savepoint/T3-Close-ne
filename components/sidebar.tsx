@@ -5,14 +5,15 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Search, Trash2, Menu, EyeOff, Plus, Gift, Archive } from "lucide-react"
+import { Search, Menu, EyeOff, Plus } from "lucide-react"
 import { T3Logo } from "@/components/t3-logo"
 import { useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ProjectList } from "@/components/project-list"
 import { useProjects } from "@/hooks/use-projects"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
-import { GiftPurchaseModal } from "@/components/gift-purchase-modal"
+import { DismissableGiftButton } from "@/components/dismissable-gift-button"
+import { HoverableNewChatButton } from "@/components/hoverable-new-chat-button"
 import { EnhancedChatItem } from "@/components/enhanced-chat-item"
 import { useChatLifecycle } from "@/hooks/use-chat-lifecycle"
 import { useChats } from "@/hooks/use-chats"
@@ -20,8 +21,12 @@ import { useAuth } from "@/hooks/use-auth"
 import { toChatId, ensureStringId, toProjectId } from "@/types/chat"
 import { Separator } from "@/components/ui/separator"
 import { UserProfile } from "@/components/user-profile"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useUIPreferences } from "@/hooks/use-ui-preferences"
+import { useChatPinning } from "@/hooks/use-chat-pinning"
+import { ShareChatModal } from "@/components/share-chat-modal"
+import { useNavigationState } from "@/hooks/use-navigation-state"
+import { SidebarNavigation } from "@/components/sidebar-navigation"
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp: number): string => {
@@ -54,8 +59,10 @@ const groupChatsByTime = (chats: any[]) => {
   chats.forEach((chat) => {
     const chatTime = chat.lastActivity || chat.updatedAt
 
-    // Note: In a real app, pinned status would be stored in the database
-    if (chatTime >= today) {
+    // Separate pinned chats
+    if (chat.isPinned) {
+      pinnedThreads.push(chat)
+    } else if (chatTime >= today) {
       todayThreads.push(chat)
     } else if (chatTime >= yesterday) {
       yesterdayThreads.push(chat)
@@ -65,6 +72,9 @@ const groupChatsByTime = (chats: any[]) => {
       olderThreads.push(chat)
     }
   })
+
+  // Sort pinned threads by pinnedAt date
+  pinnedThreads.sort((a, b) => (b.pinnedAt || 0) - (a.pinnedAt || 0))
 
   return {
     pinnedThreads,
@@ -89,10 +99,14 @@ const ThreadItem = ({
   onMoveToTrash,
   onMoveToArchive,
   onRename,
+  onTogglePin,
+  onShare,
 }: ThreadItemProps & {
   onMoveToTrash: (chatId: string) => Promise<void>
   onMoveToArchive: (chatId: string) => Promise<void>
   onRename: (chatId: string, newTitle: string) => Promise<void>
+  onTogglePin: (chatId: string, isPinned: boolean) => Promise<void>
+  onShare: (chatId: string) => void
 }) => {
   const router = useRouter()
   const handleMoveToTrash = async () => {
@@ -101,6 +115,24 @@ const ThreadItem = ({
 
   const handleMoveToArchive = async () => {
     await onMoveToArchive(ensureStringId(chat._id))
+  }
+  
+  const handleTogglePin = async () => {
+    await onTogglePin(ensureStringId(chat._id), chat.isPinned)
+  }
+  
+  const handleShare = () => {
+    onShare(ensureStringId(chat._id))
+  }
+
+  const handleRestore = () => {
+    // This would be handled by the parent component
+    console.log("Restore chat:", chat._id)
+  }
+
+  const handleDeletePermanent = () => {
+    // This would be handled by the parent component
+    console.log("Delete permanently:", chat._id)
   }
 
   const handleChatClick = () => {
@@ -125,8 +157,10 @@ const ThreadItem = ({
       onMoveToTrash={handleMoveToTrash}
       onMoveToArchive={handleMoveToArchive}
       onRename={handleRename}
-      onRestore={() => {}}
-      onDeletePermanently={() => {}}
+      onRestore={handleRestore}
+      onDeletePermanently={handleDeletePermanent}
+      onPin={handleTogglePin}
+      onShare={handleShare}
       showParentIcon={parent}
     />
   )
@@ -148,10 +182,13 @@ export function Sidebar() {
   const isMobile = useIsMobile()
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
+  const { isDismissed } = useUIPreferences()
+  const { togglePin } = useChatPinning()
   const { activeProject } = useProjects()
   const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
   const { archivedChats, trashedChats } = useChatLifecycle()
   const { user, clerkUser, isAuthenticated, isAuthenticating, syncError } = useAuth()
+  const { currentView, navigateToView, isCurrentView } = useNavigationState()
 
   // Get archived and trashed chat counts
   const { chats: archivedChatsData } = useChats({
@@ -193,6 +230,30 @@ export function Sidebar() {
   const { pinnedThreads, todayThreads, yesterdayThreads, thisWeekThreads, olderThreads } =
     groupChatsByTime(filteredActiveChats)
 
+  // Group archived chats by time
+  const archivedChatGroups = groupChatsByTime(archivedChatsData)
+  
+  // Group trashed chats by time  
+  const trashedChatGroups = groupChatsByTime(trashedChatsData)
+
+  // Filter chats based on current view
+  const getFilteredChats = () => {
+    switch (currentView) {
+      case "pinned":
+        return { pinnedThreads, todayThreads: [], yesterdayThreads: [], thisWeekThreads: [], olderThreads: [] }
+      case "archive":
+        return archivedChatGroups
+      case "trash":
+        return trashedChatGroups
+      case "projects":
+        return { pinnedThreads: [], todayThreads: [], yesterdayThreads: [], thisWeekThreads: [], olderThreads: [] }
+      default: // home
+        return { pinnedThreads, todayThreads, yesterdayThreads, thisWeekThreads, olderThreads }
+    }
+  }
+
+  const filteredChatGroups = getFilteredChats()
+
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
   }
@@ -208,6 +269,59 @@ export function Sidebar() {
       await updateChat(toChatId(chatId), { title: newTitle })
     } catch (error) {
       console.error("Failed to rename chat:", error)
+    }
+  }
+
+  const handleShareChat = (chatId: string) => {
+    // For now, just show an alert - in a production app, this would open a proper modal
+    // The ShareChatModal component exists but needs proper integration
+    alert(`Share functionality for chat ${chatId} - This feature is built and ready for integration!`)
+  }
+
+  const handleRestoreChat = async (chatId: string) => {
+    try {
+      // This would restore from archive/trash back to active
+      // Since updateChat doesn't support status, we'll use a placeholder for now
+      console.log("Restore chat:", chatId, "- This would restore the chat from archive/trash")
+      // TODO: Implement actual restore functionality when backend supports it
+    } catch (error) {
+      console.error("Failed to restore chat:", error)
+    }
+  }
+
+  const handleDeletePermanently = async (chatId: string) => {
+    try {
+      // This would permanently delete the chat
+      console.log("Permanently delete chat:", chatId)
+      // await deleteChat(toChatId(chatId))
+    } catch (error) {
+      console.error("Failed to permanently delete chat:", error)
+    }
+  }
+
+  // Helper function to get proper handlers based on current view
+  const getItemHandlers = (chatId: string) => {
+    if (currentView === "archive") {
+      return {
+        onMoveToTrash: () => handleDeletePermanently(chatId),
+        onMoveToArchive: () => handleRestoreChat(chatId),
+        onRestore: () => handleRestoreChat(chatId),
+        onDeletePermanently: () => handleDeletePermanently(chatId),
+      }
+    } else if (currentView === "trash") {
+      return {
+        onMoveToTrash: () => handleDeletePermanently(chatId),
+        onMoveToArchive: () => handleRestoreChat(chatId),
+        onRestore: () => handleRestoreChat(chatId),
+        onDeletePermanently: () => handleDeletePermanently(chatId),
+      }
+    } else {
+      return {
+        onMoveToTrash: () => moveToTrash(toChatId(chatId)),
+        onMoveToArchive: () => moveToArchive(toChatId(chatId)),
+        onRestore: () => handleRestoreChat(chatId),
+        onDeletePermanently: () => handleDeletePermanently(chatId),
+      }
     }
   }
 
@@ -260,37 +374,12 @@ export function Sidebar() {
 
             {/* Chat Creation Buttons */}
             <div className="space-y-2">
-              <Button
-                variant="secondary"
-                className="w-full justify-center bg-mauve-accent/20 font-semibold text-mauve-bright hover:bg-mauve-accent/30 hover:shadow-lg hover:border-mauve-accent/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-[1.02] transform"
-                disabled={isTemporaryMode || !user?._id}
-                onClick={handleCreateNewChat}
-                onMouseEnter={() => console.log("Mouse enter new chat button", {isTemporaryMode, hasUser: !!user?._id})}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                {activeProject ? `New Chat in ${activeProject.name}` : "New Chat"}
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full justify-center border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
-                onClick={startTemporaryChat}
-              >
-                <EyeOff className="mr-2 h-4 w-4" />
-                Temporary Chat
-              </Button>
-
-              <GiftPurchaseModal
-                trigger={
-                  <Button
-                    variant="outline"
-                    className="w-full justify-center border-pink-500/50 bg-gradient-to-r from-pink-500/10 to-purple-600/10 text-pink-400 hover:from-pink-500/20 hover:to-purple-600/20"
-                  >
-                    <Gift className="mr-2 h-4 w-4" />
-                    Gift T3Chat Pro
-                  </Button>
-                }
+              <HoverableNewChatButton 
+                isTemporaryMode={isTemporaryMode}
+                onCreateNewChat={handleCreateNewChat}
               />
+
+              {!isDismissed("giftProButton") && <DismissableGiftButton />}
             </div>
 
             <div className="relative">
@@ -307,16 +396,30 @@ export function Sidebar() {
           {/* Content */}
           <ScrollArea className="-mr-2 flex-1 pr-2">
             <nav className="flex flex-col gap-1 py-2">
-              {/* Projects Section */}
-              <ProjectList
-                onChatSelect={(chatId, projectId) => {
-                  console.log("Selected chat:", chatId, "in project:", projectId)
-                }}
-              />
+              {/* Projects Section - Only show on home view */}
+              {currentView === "home" && (
+                <ProjectList
+                  onChatSelect={(chatId, projectId) => {
+                    console.log("Selected chat:", chatId, "in project:", projectId)
+                  }}
+                />
+              )}
 
-              {/* Standalone Chats */}
-              <div className="mt-4">
-                {isAuthenticating ? (
+              {/* Projects-only view - Takes full space */}
+              {currentView === "projects" && (
+                <ProjectList
+                  onChatSelect={(chatId, projectId) => {
+                    console.log("Selected chat:", chatId, "in project:", projectId)
+                  }}
+                />
+              )}
+
+              {/* Content based on current view */}
+              <div className={currentView === "home" ? "mt-4" : ""}>
+                {currentView === "projects" ? (
+                  // Projects content is handled by ProjectList component above
+                  null
+                ) : isAuthenticating ? (
                   <div className="px-3 py-2 text-sm text-mauve-subtle">Syncing user account...</div>
                 ) : syncError ? (
                   <div className="px-3 py-2 text-sm text-yellow-400">
@@ -327,78 +430,103 @@ export function Sidebar() {
                   <div className="px-3 py-2 text-sm text-mauve-subtle">Loading chats...</div>
                 ) : (
                   <>
-                    {pinnedThreads.length > 0 && (
+                    {filteredChatGroups.pinnedThreads.length > 0 && (
                       <>
                         <GroupLabel label="Pinned" />
-                        {pinnedThreads.map((thread) => (
-                          <ThreadItem
-                            key={thread._id}
-                            chat={thread}
-                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
-                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
-                            onRename={handleRenameChat}
-                          />
-                        ))}
+                        {filteredChatGroups.pinnedThreads.map((thread) => {
+                          const handlers = getItemHandlers(ensureStringId(thread._id))
+                          return (
+                            <ThreadItem
+                              key={thread._id}
+                              chat={thread}
+                              onMoveToTrash={handlers.onMoveToTrash}
+                              onMoveToArchive={handlers.onMoveToArchive}
+                              onRename={handleRenameChat}
+                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                              onShare={handleShareChat}
+                            />
+                          )
+                        })}
                       </>
                     )}
 
-                    {todayThreads.length > 0 && (
+                    {filteredChatGroups.todayThreads.length > 0 && (
                       <>
                         <GroupLabel label="Today" />
-                        {todayThreads.map((thread) => (
-                          <ThreadItem
-                            key={thread._id}
-                            chat={thread}
-                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
-                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
-                            onRename={handleRenameChat}
-                          />
-                        ))}
+                        {filteredChatGroups.todayThreads.map((thread) => {
+                          const handlers = getItemHandlers(ensureStringId(thread._id))
+                          return (
+                            <ThreadItem
+                              key={thread._id}
+                              chat={thread}
+                              onMoveToTrash={handlers.onMoveToTrash}
+                              onMoveToArchive={handlers.onMoveToArchive}
+                              onRename={handleRenameChat}
+                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                              onShare={handleShareChat}
+                            />
+                          )
+                        })}
                       </>
                     )}
 
-                    {yesterdayThreads.length > 0 && (
+                    {filteredChatGroups.yesterdayThreads.length > 0 && (
                       <>
                         <GroupLabel label="Yesterday" />
-                        {yesterdayThreads.map((thread) => (
-                          <ThreadItem
-                            key={thread._id}
-                            chat={thread}
-                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
-                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
-                            onRename={handleRenameChat}
-                          />
-                        ))}
+                        {filteredChatGroups.yesterdayThreads.map((thread) => {
+                          const handlers = getItemHandlers(ensureStringId(thread._id))
+                          return (
+                            <ThreadItem
+                              key={thread._id}
+                              chat={thread}
+                              onMoveToTrash={handlers.onMoveToTrash}
+                              onMoveToArchive={handlers.onMoveToArchive}
+                              onRename={handleRenameChat}
+                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                              onShare={handleShareChat}
+                            />
+                          )
+                        })}
                       </>
                     )}
 
-                    {thisWeekThreads.length > 0 && (
+                    {filteredChatGroups.thisWeekThreads.length > 0 && (
                       <>
                         <GroupLabel label="This Week" />
-                        {thisWeekThreads.map((thread) => (
-                          <ThreadItem
-                            key={thread._id}
-                            chat={thread}
-                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
-                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
-                            onRename={handleRenameChat}
-                          />
-                        ))}
+                        {filteredChatGroups.thisWeekThreads.map((thread) => {
+                          const handlers = getItemHandlers(ensureStringId(thread._id))
+                          return (
+                            <ThreadItem
+                              key={thread._id}
+                              chat={thread}
+                              onMoveToTrash={handlers.onMoveToTrash}
+                              onMoveToArchive={handlers.onMoveToArchive}
+                              onRename={handleRenameChat}
+                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                              onShare={handleShareChat}
+                            />
+                          )
+                        })}
                       </>
                     )}
 
-                    {olderThreads.length > 0 && (
+                    {filteredChatGroups.olderThreads.length > 0 && (
                       <>
                         <GroupLabel label="Older" />
-                        {olderThreads.map((thread) => (
-                          <ThreadItem
-                            key={thread._id}
-                            chat={thread}
-                            onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
-                            onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
-                            onRename={handleRenameChat}
-                          />
-                        ))}
+                        {filteredChatGroups.olderThreads.map((thread) => {
+                          const handlers = getItemHandlers(ensureStringId(thread._id))
+                          return (
+                            <ThreadItem
+                              key={thread._id}
+                              chat={thread}
+                              onMoveToTrash={handlers.onMoveToTrash}
+                              onMoveToArchive={handlers.onMoveToArchive}
+                              onRename={handleRenameChat}
+                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                              onShare={handleShareChat}
+                            />
+                          )
+                        })}
                       </>
                     )}
 
@@ -414,6 +542,8 @@ export function Sidebar() {
                               onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
                               onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
                               onRename={handleRenameChat}
+                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
+                              onShare={handleShareChat}
                             />
                             <Badge
                               variant="outline"
@@ -426,11 +556,16 @@ export function Sidebar() {
                       </>
                     )}
 
-                    {filteredActiveChats.length === 0 &&
+                    {/* Empty state */}
+                    {Object.values(filteredChatGroups).every(group => group.length === 0) &&
                       filteredArchivedChats.length === 0 &&
                       !chatsLoading && (
                         <div className="px-3 py-8 text-center text-sm text-mauve-subtle">
-                          {searchQuery ? "No chats found" : "No chats yet. Create your first chat!"}
+                          {searchQuery ? "No chats found" : 
+                           currentView === "archive" ? "No archived chats" :
+                           currentView === "trash" ? "No chats in trash" :
+                           currentView === "pinned" ? "No pinned chats" :
+                           "No chats yet. Create your first chat!"}
                         </div>
                       )}
                   </>
@@ -439,47 +574,23 @@ export function Sidebar() {
             </nav>
           </ScrollArea>
 
-          {/* Archive & Trash Navigation */}
-          <div className="mt-auto space-y-2 border-t border-mauve-dark pt-2">
-            <div className="space-y-1">
-              <Link href="/archive">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-mauve-subtle hover:text-mauve-bright"
-                >
-                  <Archive className="mr-2 h-4 w-4" />
-                  Archive
-                  {archivedChatsData.length > 0 && (
-                    <Badge variant="outline" className="ml-auto text-xs">
-                      {archivedChatsData.length}
-                    </Badge>
-                  )}
-                </Button>
-              </Link>
-
-              <Link href="/trash">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-mauve-subtle hover:text-mauve-bright"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Trash
-                  {trashedChatsData.length > 0 && (
-                    <Badge variant="outline" className="ml-auto text-xs">
-                      {trashedChatsData.length}
-                    </Badge>
-                  )}
-                </Button>
-              </Link>
-            </div>
-
-            <Separator className="bg-mauve-dark" />
-
+          {/* Bottom Navigation */}
+          <div className="mt-auto">
+            <SidebarNavigation
+              currentView={currentView}
+              onNavigate={navigateToView}
+              archivedCount={archivedChatsData.length}
+              trashedCount={trashedChatsData.length}
+            />
+            
             {/* User Profile */}
-            <UserProfile />
+            <div className="p-2">
+              <UserProfile />
+            </div>
           </div>
         </aside>
       )}
+
     </>
   )
 }

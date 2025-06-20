@@ -452,3 +452,53 @@ export const autoPurgeTrashedChats = internalMutation({
     }
   },
 })
+
+// Pin a chat
+export const pinChat = mutation({
+  args: { chatId: v.id("chats") },
+  handler: async (ctx, args) => {
+    const user = await requireAuth(ctx)
+    const chat = await ctx.db.get(args.chatId)
+    
+    if (!chat) {
+      throw new Error("Chat not found")
+    }
+    
+    if (chat.userId !== user._id) {
+      throw new Error("Access denied")
+    }
+    
+    await ctx.db.patch(args.chatId, {
+      isPinned: true,
+      pinnedAt: Date.now(),
+      updatedAt: Date.now(),
+    })
+    
+    return { success: true }
+  },
+})
+
+// Unpin a chat
+export const unpinChat = mutation({
+  args: { chatId: v.id("chats") },
+  handler: async (ctx, args) => {
+    const user = await requireAuth(ctx)
+    const chat = await ctx.db.get(args.chatId)
+    
+    if (!chat) {
+      throw new Error("Chat not found")
+    }
+    
+    if (chat.userId !== user._id) {
+      throw new Error("Access denied")
+    }
+    
+    await ctx.db.patch(args.chatId, {
+      isPinned: false,
+      pinnedAt: undefined,
+      updatedAt: Date.now(),
+    })
+    
+    return { success: true }
+  },
+})

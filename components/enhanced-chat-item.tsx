@@ -137,7 +137,7 @@ export function EnhancedChatItem({
       <>
         <DropdownMenuItem onClick={onPin}>
           <Pin className="mr-2 h-4 w-4" />
-          Pin
+          {chat.isPinned ? "Unpin" : "Pin"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onMoveToArchive}>

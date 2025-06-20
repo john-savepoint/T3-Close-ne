@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChevronDown, Zap, Brain, Gauge } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import { useModels } from "@/hooks/use-models"
 import { ChatModel } from "@/types/models"
 import { getModelCategory, MODEL_UI_CONSTANTS } from "@/lib/model-utils"
@@ -26,6 +26,7 @@ import { ModelGrid } from "@/components/model-switcher/model-grid"
 import { ModelComparison } from "@/components/model-switcher/model-comparison"
 import { CostEstimation } from "@/components/model-switcher/cost-estimation"
 import { PopularModelsGrid } from "@/components/model-switcher/popular-models-grid"
+import { QuickModelSelector } from "@/components/model-switcher/quick-model-selector"
 import { estimateTokens } from "@/lib/token-utils"
 import { filterAndSortModels } from "@/lib/filter-utils"
 import { getPopularModels } from "@/lib/popular-models"
@@ -131,41 +132,10 @@ export function EnhancedModelSwitcher({
   }, [models])
 
   if (loading) {
-    // Show default quick select buttons even while loading
+    // Show loading state
     return (
       <ModelErrorBoundary>
         <div className="flex items-center gap-2">
-          {/* Quick Select Buttons (default while loading) */}
-          <div className="hidden items-center gap-1 md:flex">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs opacity-50"
-              disabled
-            >
-              <Zap className="mr-1 h-3 w-3" />
-              Fast
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs opacity-50"
-              disabled
-            >
-              <Gauge className="mr-1 h-3 w-3" />
-              Balanced
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs opacity-50"
-              disabled
-            >
-              <Brain className="mr-1 h-3 w-3" />
-              Heavy
-            </Button>
-          </div>
-          
           {/* Loading Model Selector */}
           <div className="h-8 w-48 animate-pulse rounded bg-muted" />
         </div>
@@ -182,41 +152,13 @@ export function EnhancedModelSwitcher({
   return (
     <ModelErrorBoundary>
       <div className="flex items-center gap-2">
-        {/* Quick Select Buttons */}
-        <div className="hidden items-center gap-1 md:flex">
-          {quickSelectModels.fast && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`text-xs ${quickSelectModels.fast.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
-              onClick={() => handleModelChange(quickSelectModels.fast!)}
-            >
-              <Zap className="mr-1 h-3 w-3" />
-              Fast
-            </Button>
-          )}
-          {quickSelectModels.balanced && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`text-xs ${quickSelectModels.balanced.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
-              onClick={() => handleModelChange(quickSelectModels.balanced!)}
-            >
-              <Gauge className="mr-1 h-3 w-3" />
-              Balanced
-            </Button>
-          )}
-          {quickSelectModels.heavy && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`text-xs ${quickSelectModels.heavy.id === currentModel?.id ? "bg-primary/20 text-primary" : ""}`}
-              onClick={() => handleModelChange(quickSelectModels.heavy!)}
-            >
-              <Brain className="mr-1 h-3 w-3" />
-              Heavy
-            </Button>
-          )}
+        {/* Quick Model Selector */}
+        <div className="hidden md:block">
+          <QuickModelSelector
+            quickSelectModels={quickSelectModels}
+            currentModel={currentModel}
+            onModelSelect={handleModelChange}
+          />
         </div>
 
         {/* Enhanced Model Selector Dialog */}

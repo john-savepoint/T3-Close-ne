@@ -3,27 +3,46 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { EyeOff, Zap, Shield, MessageSquare, Keyboard } from "lucide-react"
+import { EyeOff, Zap, Shield, MessageSquare, Keyboard, X } from "lucide-react"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
+import { useUIPreferences } from "@/hooks/use-ui-preferences"
 
 interface TemporaryChatStarterProps {
   onStart?: () => void
+  onDismiss?: () => void
 }
 
-export function TemporaryChatStarter({ onStart }: TemporaryChatStarterProps) {
+export function TemporaryChatStarter({ onStart, onDismiss }: TemporaryChatStarterProps) {
   const { startTemporaryChat } = useTemporaryChat()
+  const { dismissElement } = useUIPreferences()
 
   const handleStart = () => {
     startTemporaryChat()
     onStart?.()
   }
 
+  const handleDismiss = () => {
+    dismissElement("temporaryChatStarter")
+    onDismiss?.()
+  }
+
   return (
-    <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-red-500/10">
+    <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-red-500/10 relative group">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-          <EyeOff className="h-5 w-5 text-orange-400" />
-          Start a Temporary Chat
+        <CardTitle className="flex items-center justify-between gap-2 text-lg font-semibold">
+          <div className="flex items-center gap-2">
+            <EyeOff className="h-5 w-5 text-orange-400" />
+            Start a Temporary Chat
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={handleDismiss}
+            aria-label="Dismiss temporary chat starter"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

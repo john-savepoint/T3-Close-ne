@@ -48,6 +48,9 @@ const schema = defineSchema({
     isPublic: v.optional(v.boolean()),
     model: v.optional(v.string()),
     systemPrompt: v.optional(v.string()),
+    // Pinning support
+    isPinned: v.optional(v.boolean()),
+    pinnedAt: v.optional(v.number()),
     // Common fields
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -55,7 +58,8 @@ const schema = defineSchema({
     .index("by_user", ["userId"])
     .index("by_project", ["projectId"])
     .index("by_status", ["status"])
-    .index("by_user_status", ["userId", "status"]),
+    .index("by_user_status", ["userId", "status"])
+    .index("by_user_pinned", ["userId", "isPinned"]),
 
   // Messages table - merged from both PRs
   messages: defineTable({

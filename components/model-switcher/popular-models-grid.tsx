@@ -1,11 +1,13 @@
 "use client"
 
 import { useMemo } from "react"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { ChatModel } from "@/types/models"
 import { ModelCard } from "./model-card"
 import { ModelGridSkeleton } from "./model-grid-skeleton"
 import { getPopularModelsByProvider, getProviderDisplayName } from "@/lib/popular-models"
 import { Badge } from "@/components/ui/badge"
+import { MODEL_UI_CONSTANTS } from "@/lib/model-utils"
 import { Star, TrendingUp } from "lucide-react"
 
 interface PopularModelsGridProps {
@@ -68,47 +70,54 @@ export function PopularModelsGrid({
     })
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Star className="h-4 w-4 fill-current text-yellow-500" />
-        <span>Showing {totalPopularModels} popular models across {Object.keys(popularModelsByProvider).length} providers</span>
-      </div>
-
-      {/* Popular Models by Provider */}
-      {sortedProviders.map(([provider, providerModels]) => (
-        <div key={provider} className="space-y-3">
-          {/* Provider Header */}
-          <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold text-foreground">
-              {getProviderDisplayName(provider)}
-            </h3>
-            <Badge variant="secondary" className="text-xs">
-              {providerModels.length} model{providerModels.length !== 1 ? 's' : ''}
-            </Badge>
+    <div className="space-y-4">
+      <ScrollArea
+        className="pr-4"
+        style={{ height: MODEL_UI_CONSTANTS.SCROLL_AREA_HEIGHT }}
+      >
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Star className="h-4 w-4 fill-current text-yellow-500" />
+            <span>Showing {totalPopularModels} popular models across {Object.keys(popularModelsByProvider).length} providers</span>
           </div>
 
-          {/* Provider Models Grid */}
-          <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {providerModels.map((model) => (
-              <ModelCard
-                key={model.id}
-                model={model}
-                isSelected={selectedModelId === model.id}
-                onSelect={() => onModelSelect(model)}
-                onToggleFavorite={() => onToggleFavorite(model.id)}
-                isFavorite={isFavorite(model.id)}
-                isComparing={isComparing}
-                onToggleCompare={onToggleCompare ? () => onToggleCompare(model.id) : undefined}
-                isInComparison={isInComparison ? isInComparison(model.id) : false}
-                showCost={showCost}
-                estimatedTokens={estimatedTokens}
-                showPopularBadge={true}
-              />
-            ))}
-          </div>
+          {/* Popular Models by Provider */}
+          {sortedProviders.map(([provider, providerModels]) => (
+            <div key={provider} className="space-y-3">
+              {/* Provider Header */}
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-semibold text-foreground">
+                  {getProviderDisplayName(provider)}
+                </h3>
+                <Badge variant="secondary" className="text-xs">
+                  {providerModels.length} model{providerModels.length !== 1 ? 's' : ''}
+                </Badge>
+              </div>
+
+              {/* Provider Models Grid */}
+              <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                {providerModels.map((model) => (
+                  <ModelCard
+                    key={model.id}
+                    model={model}
+                    isSelected={selectedModelId === model.id}
+                    onSelect={() => onModelSelect(model)}
+                    onToggleFavorite={() => onToggleFavorite(model.id)}
+                    isFavorite={isFavorite(model.id)}
+                    isComparing={isComparing}
+                    onToggleCompare={onToggleCompare ? () => onToggleCompare(model.id) : undefined}
+                    isInComparison={isInComparison ? isInComparison(model.id) : false}
+                    showCost={showCost}
+                    estimatedTokens={estimatedTokens}
+                    showPopularBadge={true}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+      </ScrollArea>
     </div>
   )
 }

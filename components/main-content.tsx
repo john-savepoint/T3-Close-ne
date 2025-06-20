@@ -27,6 +27,7 @@ import { useConversationTree } from "@/hooks/use-conversation-tree"
 import { useAuth } from "@/hooks/use-auth"
 import { DEFAULT_MODEL_ID } from "@/lib/default-models"
 import { useProjects } from "@/hooks/use-projects"
+import { useUIPreferences } from "@/hooks/use-ui-preferences"
 
 export function MainContent() {
   const isMobile = useIsMobile()
@@ -50,6 +51,7 @@ export function MainContent() {
   } = useTemporaryChat()
   const { user, isLoading: authLoading, isAuthenticating, syncError } = useAuth()
   const { activeProject } = useProjects()
+  const { isDismissed } = useUIPreferences()
 
   // Memoize projectId to prevent infinite re-renders
   const projectId = useMemo(() => activeProject?.id, [activeProject?.id])
@@ -289,8 +291,8 @@ export function MainContent() {
                 <ToolsGrid onToolSelect={handleToolSelect} />
               </div>
 
-              {/* Temporary Chat Starter - only show when not in temporary mode */}
-              {!isTemporaryMode && (
+              {/* Temporary Chat Starter - only show when not in temporary mode and not dismissed */}
+              {!isTemporaryMode && !isDismissed("temporaryChatStarter") && (
                 <div className="w-full max-w-md">
                   <TemporaryChatStarter />
                 </div>
