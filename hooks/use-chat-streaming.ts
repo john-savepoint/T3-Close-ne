@@ -8,6 +8,7 @@ interface UseChatStreamingOptions {
   initialModel?: SupportedModel
   apiKey?: string
   chatId?: string
+  projectId?: string
   onResponse?: (response: Response) => void
   onFinish?: (message: any) => void
   onError?: (error: Error) => void
@@ -36,6 +37,7 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
     body: {
       model: options.initialModel || "openai/gpt-4o-mini",
       apiKey: options.apiKey,
+      projectId: options.projectId,
     },
     onResponse: (response) => {
       console.log("Stream response started:", response.status)
@@ -85,6 +87,7 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
               temperature: messageOptions?.temperature || 0.7,
               maxTokens: messageOptions?.maxTokens || 4096,
               topP: messageOptions?.topP || 1,
+              projectId: options.projectId,
             },
           }
         )

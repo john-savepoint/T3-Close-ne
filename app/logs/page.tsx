@@ -13,11 +13,13 @@ export default function LogsPage() {
   const [sessionInfo, setSessionInfo] = useState<any>(null)
 
   useEffect(() => {
-    // Get session info from logger
-    import("@/lib/logger").then(({ sessionInfo }) => {
-      setSessionInfo(sessionInfo)
-      setCurrentLogFile(sessionInfo.logFile)
+    // Session info is no longer available in lightweight logger
+    // Set default values
+    setSessionInfo({
+      logFile: "Unknown",
+      sessionId: "Unknown",
     })
+    setCurrentLogFile("Unknown")
   }, [])
 
   const refreshLogs = async () => {

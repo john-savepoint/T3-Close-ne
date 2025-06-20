@@ -12,19 +12,19 @@ export async function POST(req: NextRequest) {
     const { userId } = await auth()
     if (!userId) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Authentication required',
-          message: 'Please sign in to use the chat feature',
-          code: 'AUTH_REQUIRED'
-        }), 
-        { 
+        JSON.stringify({
+          error: "Authentication required",
+          message: "Please sign in to use the chat feature",
+          code: "AUTH_REQUIRED",
+        }),
+        {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" },
         }
       )
     }
 
-    const { messages, model, apiKey, memoryContext, ...options } = await req.json()
+    const { messages, model, apiKey, memoryContext, projectId, ...options } = await req.json()
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 })
@@ -100,6 +100,32 @@ export async function POST(req: NextRequest) {
       } catch (error) {
         console.error("Failed to inject memory context:", error)
         // Continue without memory context if injection fails
+      }
+    }
+
+    // Inject project context if provided
+    if (projectId) {
+      try {
+        // Note: In a production setup, you would fetch the project from Convex here
+        // For now, we'll just add a placeholder that indicates project context is active
+        const projectPrompt = `--- Project Context ---\nProject ID: ${projectId}\n--- End Project Context ---\n\n`
+
+        // Find or create system message
+        const systemMessageIndex = enhancedMessages.findIndex((msg) => msg.role === "system")
+
+        if (systemMessageIndex >= 0) {
+          // Append to existing system message
+          enhancedMessages[systemMessageIndex].content += "\n\n" + projectPrompt
+        } else {
+          // Add new system message at the beginning
+          enhancedMessages.unshift({
+            role: "system",
+            content: projectPrompt,
+          })
+        }
+      } catch (error) {
+        console.error("Failed to inject project context:", error)
+        // Continue without project context if injection fails
       }
     }
 

@@ -1,12 +1,31 @@
 import { query, mutation } from "./_generated/server"
 import { v } from "convex/values"
-import { getCurrentUser, requireAuth, getClerkUserId } from "./clerk"
+import { getCurrentUser as getClerkUser, requireAuth, getClerkUserId } from "./clerk"
 
 // Get current user from Clerk
 export const current = query({
   args: {},
   handler: async (ctx) => {
-    return await getCurrentUser(ctx)
+    return await getClerkUser(ctx)
+  },
+})
+
+// Alias for backward compatibility
+export const getCurrentUser = query({
+  args: {},
+  handler: async (ctx) => {
+    return await getClerkUser(ctx)
+  },
+})
+
+// Get user by Clerk ID
+export const getByClerkId = query({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first()
   },
 })
 
@@ -23,9 +42,9 @@ export const syncUser = mutation({
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
       .first()
-      
+
     const now = Date.now()
-    
+
     if (existing) {
       // Update existing user
       return await ctx.db.patch(existing._id, {
@@ -62,7 +81,7 @@ export const updateUserProfile = mutation({
     const user = await requireAuth(ctx)
 
     const updateData: { name?: string; image?: string; updatedAt: number } = {
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     }
     if (args.name !== undefined) updateData.name = args.name
     if (args.image !== undefined) updateData.image = args.image

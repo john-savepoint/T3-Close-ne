@@ -25,6 +25,7 @@ import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { useConversationTree } from "@/hooks/use-conversation-tree"
 import { useAuth } from "@/hooks/use-auth"
 import { DEFAULT_MODEL_ID } from "@/lib/default-models"
+import { useProjects } from "@/hooks/use-projects"
 
 export function MainContent() {
   const isMobile = useIsMobile()
@@ -44,6 +45,7 @@ export function MainContent() {
     setIsStreaming,
   } = useTemporaryChat()
   const { user } = useAuth()
+  const { activeProject } = useProjects()
 
   // Cleanup on unmount
   useEffect(() => {
@@ -72,6 +74,7 @@ export function MainContent() {
     setTemperature,
   } = useChat({
     initialModel: "openai/gpt-4o-mini",
+    projectId: activeProject?.id,
   })
 
   // Keyboard navigation
@@ -137,6 +140,7 @@ export function MainContent() {
             temperature,
             // Don't include memory/context if setting is disabled
             includeMemory: settings.includeMemoryInTempChats,
+            projectId: activeProject?.id,
           }),
           signal: abortController.signal,
         })

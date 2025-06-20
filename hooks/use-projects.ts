@@ -1,219 +1,138 @@
 "use client"
 
 import { useState } from "react"
+import { useQuery, useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { Id } from "@/convex/_generated/dataModel"
+import { useUser } from "@clerk/nextjs"
 import type { Project, CreateProjectData, ProjectAttachment } from "@/types/project"
 
-// Mock data for demonstration
-const mockProjects: Project[] = [
-  {
-    id: "proj-1",
-    name: "WebApp-Frontend",
-    systemPrompt:
-      "You are a TypeScript expert specializing in Next.js and Tailwind CSS. All code must be written in TypeScript and follow our linting rules.",
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-20"),
-    attachments: [
-      {
-        id: "att-1",
-        projectId: "proj-1",
-        attachmentId: "file-1",
-        name: "tailwind.config.js",
-        type: "application/javascript",
-        size: 2048,
-        content:
-          "module.exports = { content: ['./src/**/*.{js,ts,jsx,tsx}'], theme: { extend: {} } }",
-      },
-      {
-        id: "att-2",
-        projectId: "proj-1",
-        attachmentId: "file-2",
-        name: "package.json",
-        type: "application/json",
-        size: 1024,
-        content:
-          '{ "name": "webapp-frontend", "dependencies": { "next": "^14.0.0", "react": "^18.0.0" } }',
-      },
-    ],
-    chats: [
-      {
-        id: "chat-1",
-        projectId: "proj-1",
-        title: "Component Architecture Discussion",
-        lastMessage: "Let's implement the user dashboard component",
-        updatedAt: new Date("2024-01-20"),
-        messageCount: 15,
-      },
-      {
-        id: "chat-2",
-        projectId: "proj-1",
-        title: "Styling System Setup",
-        lastMessage: "How should we organize our CSS modules?",
-        updatedAt: new Date("2024-01-19"),
-        messageCount: 8,
-      },
-    ],
-  },
-  {
-    id: "proj-2",
-    name: "API-Backend",
-    systemPrompt:
-      "You are a Python expert specializing in FastAPI and SQLAlchemy. Provide type-hinted, PEP 8 compliant code.",
-    createdAt: new Date("2024-01-10"),
-    updatedAt: new Date("2024-01-18"),
-    attachments: [
-      {
-        id: "att-3",
-        projectId: "proj-2",
-        attachmentId: "file-3",
-        name: "requirements.txt",
-        type: "text/plain",
-        size: 512,
-        content: "fastapi==0.104.1\nsqlalchemy==2.0.23\npydantic==2.5.0",
-      },
-    ],
-    chats: [
-      {
-        id: "chat-3",
-        projectId: "proj-2",
-        title: "Database Schema Design",
-        lastMessage: "Let's define the user authentication models",
-        updatedAt: new Date("2024-01-18"),
-        messageCount: 12,
-      },
-    ],
-  },
-  {
-    id: "proj-3",
-    name: "Climate Change Research",
-    systemPrompt:
-      "Summarize, analyze, and cross-reference the attached papers. Adopt a formal, academic tone and provide citations by filename.",
-    createdAt: new Date("2024-01-05"),
-    updatedAt: new Date("2024-01-15"),
-    attachments: [
-      {
-        id: "att-4",
-        projectId: "proj-3",
-        attachmentId: "file-4",
-        name: "ipcc-report-2023.pdf",
-        type: "application/pdf",
-        size: 5242880,
-        content: "IPCC Climate Change Report 2023 - Executive Summary...",
-      },
-      {
-        id: "att-5",
-        projectId: "proj-3",
-        attachmentId: "file-5",
-        name: "carbon-emissions-study.pdf",
-        type: "application/pdf",
-        size: 3145728,
-        content: "Carbon Emissions Analysis - Global Trends 2020-2023...",
-      },
-    ],
-    chats: [
-      {
-        id: "chat-4",
-        projectId: "proj-3",
-        title: "IPCC Report Analysis",
-        lastMessage: "What are the key findings about temperature rise?",
-        updatedAt: new Date("2024-01-15"),
-        messageCount: 25,
-      },
-    ],
-  },
-]
-
 export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>(mockProjects)
+  const { user } = useUser()
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+
+  // Get user's Convex ID
+  const convexUser = useQuery(api.users.getByClerkId, user?.id ? { clerkId: user.id } : "skip")
+
+  // Fetch projects from Convex
+  const projectsData = useQuery(
+    api.projects.list,
+    convexUser?._id ? { userId: convexUser._id } : "skip"
+  )
+  const projects = projectsData || []
+
+  // Convex mutations
+  const createProjectMutation = useMutation(api.projects.create)
+  const updateProjectMutation = useMutation(api.projects.update)
+  const deleteProjectMutation = useMutation(api.projects.deleteProject)
+  const addAttachmentMutation = useMutation(api.projects.addAttachment)
+  const removeAttachmentMutation = useMutation(api.projects.removeAttachment)
+  const forkProjectMutation = useMutation(api.projects.fork)
 
   const activeProject = projects.find((p) => p.id === activeProjectId)
+  const loading = projectsData === undefined
 
   const createProject = async (data: CreateProjectData): Promise<Project> => {
-    setLoading(true)
+    if (!convexUser) throw new Error("User not found")
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    try {
+      const projectId = await createProjectMutation({
+        name: data.name,
+        systemPrompt: data.systemPrompt,
+        parentProjectId: data.parentProjectId as Id<"projects"> | undefined,
+      })
 
-    const newProject: Project = {
-      id: `proj-${Date.now()}`,
-      name: data.name,
-      systemPrompt: data.systemPrompt,
-      parentProjectId: data.parentProjectId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      attachments: [],
-      chats: [],
+      // Return a placeholder project object
+      // The real project will be updated via live queries
+      return {
+        id: projectId,
+        name: data.name,
+        systemPrompt: data.systemPrompt || "",
+        parentProjectId: data.parentProjectId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        attachments: [],
+        chats: [],
+      }
+    } catch (error) {
+      console.error("Failed to create project:", error)
+      throw error
     }
-
-    setProjects((prev) => [...prev, newProject])
-    setLoading(false)
-
-    return newProject
   }
 
   const updateProject = async (id: string, updates: Partial<Project>): Promise<void> => {
-    setLoading(true)
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 300))
-
-    setProjects((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates, updatedAt: new Date() } : p))
-    )
-
-    setLoading(false)
+    try {
+      await updateProjectMutation({
+        projectId: id as Id<"projects">,
+        name: updates.name,
+        systemPrompt: updates.systemPrompt,
+      })
+    } catch (error) {
+      console.error("Failed to update project:", error)
+      throw error
+    }
   }
 
   const deleteProject = async (id: string): Promise<void> => {
-    setLoading(true)
+    try {
+      await deleteProjectMutation({
+        projectId: id as Id<"projects">,
+      })
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 300))
-
-    setProjects((prev) => prev.filter((p) => p.id !== id))
-
-    if (activeProjectId === id) {
-      setActiveProjectId(null)
+      if (activeProjectId === id) {
+        setActiveProjectId(null)
+      }
+    } catch (error) {
+      console.error("Failed to delete project:", error)
+      throw error
     }
-
-    setLoading(false)
   }
 
   const addAttachmentToProject = async (
     projectId: string,
     attachment: Omit<ProjectAttachment, "id" | "projectId">
   ): Promise<void> => {
-    const newAttachment: ProjectAttachment = {
-      id: `att-${Date.now()}`,
-      projectId,
-      ...attachment,
+    try {
+      await addAttachmentMutation({
+        projectId: projectId as Id<"projects">,
+        attachmentId: attachment.attachmentId as Id<"attachments">,
+        name: attachment.name,
+        type: attachment.type,
+        size: attachment.size,
+        content: attachment.content,
+      })
+    } catch (error) {
+      console.error("Failed to add attachment:", error)
+      throw error
     }
-
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === projectId
-          ? { ...p, attachments: [...p.attachments, newAttachment], updatedAt: new Date() }
-          : p
-      )
-    )
   }
 
   const removeAttachmentFromProject = async (
     projectId: string,
     attachmentId: string
   ): Promise<void> => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === projectId
-          ? {
-              ...p,
-              attachments: p.attachments.filter((a) => a.id !== attachmentId),
-              updatedAt: new Date(),
-            }
-          : p
-      )
-    )
+    try {
+      await removeAttachmentMutation({
+        projectId: projectId as Id<"projects">,
+        attachmentId: attachmentId as Id<"projectAttachments">,
+      })
+    } catch (error) {
+      console.error("Failed to remove attachment:", error)
+      throw error
+    }
+  }
+
+  const forkProject = async (projectId: string, newName: string): Promise<string> => {
+    try {
+      const newProjectId = await forkProjectMutation({
+        projectId: projectId as Id<"projects">,
+        newName,
+      })
+      return newProjectId
+    } catch (error) {
+      console.error("Failed to fork project:", error)
+      throw error
+    }
   }
 
   return {
@@ -227,5 +146,6 @@ export function useProjects() {
     deleteProject,
     addAttachmentToProject,
     removeAttachmentFromProject,
+    forkProject,
   }
 }

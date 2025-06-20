@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
+import * as fs from "node:fs"
+import * as path from "node:path"
+
+// This route needs Node.js runtime for file system access
+export const runtime = "nodejs"
 
 export async function GET() {
   try {
@@ -14,13 +17,13 @@ export async function GET() {
     // Get all log files, sorted by creation time (newest first)
     const logFiles = fs
       .readdirSync(logsDir)
-      .filter((file) => file.startsWith("dev-") && file.endsWith(".log"))
-      .map((file) => ({
+      .filter((file: string) => file.startsWith("dev-") && file.endsWith(".log"))
+      .map((file: string) => ({
         name: file,
         path: path.join(logsDir, file),
         stats: fs.statSync(path.join(logsDir, file)),
       }))
-      .sort((a, b) => b.stats.mtime.getTime() - a.stats.mtime.getTime())
+      .sort((a: any, b: any) => b.stats.mtime.getTime() - a.stats.mtime.getTime())
 
     if (logFiles.length === 0) {
       return NextResponse.json({ logs: [], message: "No log files found" })
@@ -33,7 +36,7 @@ export async function GET() {
     // Split into individual log entries and filter out empty lines
     const logs = logContent
       .split("\n\n")
-      .filter((log) => log.trim() !== "")
+      .filter((log: string) => log.trim() !== "")
       .reverse() // Show newest first
 
     return NextResponse.json({

@@ -236,6 +236,43 @@ test:     Test additions
 chore:    Maintenance tasks
 ```
 
+### **Pull Request Guidelines (CRITICAL)**
+
+**🚨 IMPORTANT: Preventing Partial Merges**
+
+To avoid partial merge issues like the projects feature incident:
+
+1. **Before Merging Any PR:**
+
+   - Run `gh pr diff <PR-NUMBER> --name-only` to see ALL files
+   - Verify the file list matches expectations
+   - Check CI status: `gh pr checks <PR-NUMBER>`
+
+2. **Merge Process:**
+
+   ```bash
+   # Always use GitHub CLI for merging
+   gh pr merge <PR-NUMBER> --merge  # Creates merge commit
+   # OR
+   gh pr merge <PR-NUMBER> --squash  # Squashes commits
+
+   # NEVER use partial cherry-picks or manual merges
+   ```
+
+3. **Post-Merge Verification:**
+
+   ```bash
+   # Verify all files were merged
+   git pull origin main
+   gh pr diff <PR-NUMBER> --name-only | xargs -I {} ls {} 2>/dev/null | wc -l
+   # This count should match the PR file count
+   ```
+
+4. **If CI Checks Fail:**
+   - DO NOT attempt partial merges
+   - Fix issues in the PR branch
+   - If urgent, implement directly in main with proper testing
+
 ### **Changesets (MANDATORY)**
 
 **🚨 CRITICAL FOR AI AGENTS: Manual changeset creation required due to interactive prompts**

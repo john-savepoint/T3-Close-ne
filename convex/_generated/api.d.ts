@@ -17,6 +17,8 @@ import type * as gifts from "../gifts.js"
 import type * as http from "../http.js"
 import type * as memories from "../memories.js"
 import type * as messages from "../messages.js"
+import type * as migrations from "../migrations.js"
+import type * as projects from "../projects.js"
 import type * as teams from "../teams.js"
 import type * as users from "../users.js"
 
@@ -37,6 +39,8 @@ declare const fullApi: ApiFromModules<{
   http: typeof http
   memories: typeof memories
   messages: typeof messages
+  migrations: typeof migrations
+  projects: typeof projects
   teams: typeof teams
   users: typeof users
 }>
