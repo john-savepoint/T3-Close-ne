@@ -4,6 +4,7 @@ import "./globals.css"
 import { ConvexClientProvider } from "@/components/convex-client-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { GlobalErrorBoundary } from "@/components/global-error-boundary"
+import { TemporaryChatProvider } from "@/contexts/temporary-chat-context"
 
 export const metadata: Metadata = {
   title: "Z6Chat - AI-Powered Conversations",
@@ -28,9 +29,11 @@ export default function RootLayout({
         >
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <ConvexClientProvider>
-              <GlobalErrorBoundary>
-                {children}
-              </GlobalErrorBoundary>
+              <TemporaryChatProvider>
+                <GlobalErrorBoundary>
+                  {children}
+                </GlobalErrorBoundary>
+              </TemporaryChatProvider>
             </ConvexClientProvider>
           </ThemeProvider>
         </ClerkProvider>

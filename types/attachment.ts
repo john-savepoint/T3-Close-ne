@@ -16,6 +16,9 @@ export type Attachment = Doc<"attachments"> & {
   processingStatus?: "pending" | "completed" | "failed" // For backward compatibility
   usageCount?: number // For backward compatibility
   lastUsedAt?: Date // For backward compatibility
+  
+  // Mock attachment flag to identify non-persisted attachments
+  _isMockAttachment?: boolean
 }
 
 export interface AttachmentUsage {

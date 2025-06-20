@@ -209,9 +209,10 @@ export function useAttachments() {
 
           await new Promise((resolve) => setTimeout(resolve, 1000))
 
-          // Create attachment record
+          // Create attachment record (MOCK - not saved to Convex yet)
+          // TODO: Replace with real Convex file upload using api.files.saveFile
           const newAttachment: any = {
-            id: `att-${Date.now()}-${i}`,
+            id: `att-${Date.now()}-${i}`, // Mock ID - not a valid Convex ID
             userId: "user-1",
             filename: file.name,
             fileType: file.type || "application/octet-stream",
@@ -222,6 +223,7 @@ export function useAttachments() {
             updatedAt: new Date(),
             processingStatus: "completed",
             usageCount: 0,
+            _isMockAttachment: true, // Flag to identify mock attachments
           }
 
           uploadedAttachments.push(newAttachment)

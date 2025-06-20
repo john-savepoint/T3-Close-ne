@@ -260,6 +260,21 @@ const schema = defineSchema({
     .index("by_to_email", ["toEmail"])
     .index("by_claim_token", ["claimToken"])
     .index("by_status", ["status"]),
+
+  // Chat sharing system
+  sharedChats: defineTable({
+    chatId: v.id("chats"),
+    ownerUserId: v.id("users"),
+    token: v.string(),
+    isActive: v.boolean(),
+    viewCount: v.number(),
+    createdAt: v.number(),
+    expiresAt: v.optional(v.number()),
+  })
+    .index("by_chat", ["chatId"])
+    .index("by_owner", ["ownerUserId"])
+    .index("by_token", ["token"])
+    .index("by_active", ["isActive"]),
 })
 
 export default schema

@@ -52,6 +52,7 @@ export function MainContent() {
     isStreaming,
     setIsStreaming,
   } = useTemporaryChat()
+
   const { user, isLoading: authLoading, isAuthenticating, syncError } = useAuth()
   const { activeProject } = useProjects()
   const { isDismissed } = useUIPreferences()

@@ -35,6 +35,8 @@ interface ShareChatModalProps {
   chatTitle?: string
   messageCount?: number
   trigger?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 export function ShareChatModal({
@@ -42,10 +44,16 @@ export function ShareChatModal({
   chatTitle,
   messageCount = 0,
   trigger,
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
 }: ShareChatModalProps) {
   const { createSharedLink, revokeSharedLink, getSharedLinkForChat, loading } = useChatSharing()
-  const [isOpen, setIsOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+
+  // Use external state if provided, otherwise use internal state
+  const isOpen = externalOpen !== undefined ? externalOpen : internalOpen
+  const setIsOpen = externalOnOpenChange || setInternalOpen
 
   const existingShare = getSharedLinkForChat(chatId)
   const shareUrl = existingShare ? `${window.location.origin}/s/${existingShare.token}` : null

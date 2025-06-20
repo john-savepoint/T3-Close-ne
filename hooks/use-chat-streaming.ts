@@ -201,13 +201,25 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
 
       try {
         // Save user message to database first
+        // Filter out mock attachments (those with string IDs that start with "att-" or have _isMockAttachment flag)
+        // as they aren't real Convex IDs yet
+        const validAttachments = attachments?.filter(att => {
+          const id = att.id || att._id
+          // Skip mock attachments
+          if (att._isMockAttachment || (typeof id === 'string' && id.startsWith("att-"))) {
+            console.log("Skipping mock attachment:", att.filename)
+            return false
+          }
+          return id && id.length > 10
+        })
+        
         await createMessage(
           chatId,
           content,
           "user",
           {
             userId: user._id,
-            attachments: attachments?.map(att => att.id as Id<"attachments">),
+            attachments: validAttachments?.map(att => (att.id || att._id) as Id<"attachments">),
           }
         )
 

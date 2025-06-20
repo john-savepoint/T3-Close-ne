@@ -5,49 +5,31 @@ interface PageProps {
   params: Promise<{ token: string }>
 }
 
-// This would normally fetch from your API
+// Fetch shared chat data from API
 async function getSharedChat(token: string) {
-  // Simulate API call - in real implementation, this would be a server-side call
-  // to your tRPC endpoint or direct database query
-  await new Promise((resolve) => setTimeout(resolve, 100))
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/shared/${token}`, {
+      cache: 'no-store', // Don't cache since view counts need to be accurate
+    })
 
-  return {
-    token,
-    title: "CSS Flexbox Debugging Session",
-    createdAt: new Date("2024-01-20"),
-    messageCount: 4,
-    isActive: true,
-    messages: [
-      {
-        id: "msg-1",
-        type: "user" as const,
-        content: "I'm having trouble with flexbox alignment. My items aren't centering properly.",
-        timestamp: new Date("2024-01-20T10:00:00Z"),
-      },
-      {
-        id: "msg-2",
-        type: "assistant" as const,
-        content:
-          "I'd be happy to help you with flexbox alignment! The most common approach for centering items is to use `justify-content: center` for horizontal centering and `align-items: center` for vertical centering.\n\nHere's a basic example:\n\n```css\n.flex-container {\n  display: flex;\n  justify-content: center; /* Centers horizontally */\n  align-items: center;     /* Centers vertically */\n  height: 100vh;          /* Give it some height */\n}\n```\n\nCould you share your current CSS so I can help identify what might be causing the issue?",
-        timestamp: new Date("2024-01-20T10:01:00Z"),
-        model: "gpt-4o",
-      },
-      {
-        id: "msg-3",
-        type: "user" as const,
-        content:
-          "Here's my CSS:\n\n```css\n.container {\n  display: flex;\n  width: 100%;\n  height: 400px;\n  background: #f0f0f0;\n}\n\n.item {\n  width: 200px;\n  height: 100px;\n  background: #007bff;\n  color: white;\n  padding: 20px;\n}\n```\n\nThe items are just lined up on the left side.",
-        timestamp: new Date("2024-01-20T10:02:00Z"),
-      },
-      {
-        id: "msg-4",
-        type: "assistant" as const,
-        content:
-          "I see the issue! You're missing the centering properties. Your flex container needs `justify-content` and `align-items` to center the items. Here's the corrected CSS:\n\n```css\n.container {\n  display: flex;\n  justify-content: center; /* This centers horizontally */\n  align-items: center;     /* This centers vertically */\n  width: 100%;\n  height: 400px;\n  background: #f0f0f0;\n}\n\n.item {\n  width: 200px;\n  height: 100px;\n  background: #007bff;\n  color: white;\n  padding: 20px;\n  box-sizing: border-box; /* Include padding in width/height */\n}\n```\n\nI also added `box-sizing: border-box` to prevent the padding from increasing the total size of your items.",
-        timestamp: new Date("2024-01-20T10:03:00Z"),
-        model: "gpt-4o",
-      },
-    ],
+    if (!response.ok) {
+      return null
+    }
+
+    const data = await response.json()
+    
+    // Convert timestamps back to Date objects
+    return {
+      ...data,
+      createdAt: new Date(data.createdAt),
+      messages: data.messages.map((msg: any) => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp),
+      })),
+    }
+  } catch (error) {
+    console.error("Failed to fetch shared chat:", error)
+    return null
   }
 }
 

@@ -7,17 +7,15 @@ import { useAuth } from "@/hooks/use-auth"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
 
 interface NewChatButtonGroupProps {
-  isTemporaryMode: boolean
   onCreateNewChat: () => void
 }
 
 export function NewChatButtonGroup({
-  isTemporaryMode,
   onCreateNewChat,
 }: NewChatButtonGroupProps) {
   const { activeProject } = useProjects()
   const { user } = useAuth()
-  const { startTemporaryChat } = useTemporaryChat()
+  const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
 
   return (
     <div className="flex gap-1">

@@ -284,10 +284,10 @@ export function Sidebar() {
     }
   }
 
+  const [shareModalChatId, setShareModalChatId] = useState<string | null>(null)
+
   const handleShareChat = (chatId: string) => {
-    // For now, just show an alert - in a production app, this would open a proper modal
-    // The ShareChatModal component exists but needs proper integration
-    alert(`Share functionality for chat ${chatId} - This feature is built and ready for integration!`)
+    setShareModalChatId(chatId)
   }
 
   const handleRestoreChat = async (chatId: string) => {
@@ -429,7 +429,6 @@ export function Sidebar() {
             {/* Chat Creation Buttons */}
             <div className="space-y-2">
               <NewChatButtonGroup 
-                isTemporaryMode={isTemporaryMode}
                 onCreateNewChat={handleCreateNewChat}
               />
 
@@ -695,6 +694,25 @@ export function Sidebar() {
           </div>
         </aside>
       )}
+
+      {/* Share Modal */}
+      <ShareChatModal
+        chatId={shareModalChatId || ""}
+        chatTitle={
+          shareModalChatId
+            ? [...pinnedThreads, ...todayThreads, ...yesterdayThreads, ...thisWeekThreads, ...olderThreads]
+                .find(chat => chat._id === shareModalChatId)?.title || "Untitled Chat"
+            : ""
+        }
+        messageCount={
+          shareModalChatId
+            ? [...pinnedThreads, ...todayThreads, ...yesterdayThreads, ...thisWeekThreads, ...olderThreads]
+                .find(chat => chat._id === shareModalChatId)?.messageCount || 0
+            : 0
+        }
+        open={!!shareModalChatId}
+        onOpenChange={(open) => !open && setShareModalChatId(null)}
+      />
 
     </>
   )

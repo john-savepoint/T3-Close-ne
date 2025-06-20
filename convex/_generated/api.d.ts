@@ -23,6 +23,7 @@ import type * as memories from "../memories.js";
 import type * as messages from "../messages.js";
 import type * as migrations from "../migrations.js";
 import type * as projects from "../projects.js";
+import type * as sharing from "../sharing.js";
 import type * as teams from "../teams.js";
 import type * as users from "../users.js";
 
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   messages: typeof messages;
   migrations: typeof migrations;
   projects: typeof projects;
+  sharing: typeof sharing;
   teams: typeof teams;
   users: typeof users;
 }>;
