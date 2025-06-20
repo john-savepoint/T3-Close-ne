@@ -10,7 +10,7 @@ import { MemorySuggestionBanner } from "@/components/memory-suggestion-banner"
 import { TemporaryChatBanner } from "@/components/temporary-chat-banner"
 import { TemporaryChatStarter } from "@/components/temporary-chat-starter"
 import { ToolsGrid } from "@/components/tools-grid"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { useChat } from "@/hooks/use-chat"
 import { useMemory } from "@/hooks/use-memory"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
@@ -47,6 +47,9 @@ export function MainContent() {
   const { user } = useAuth()
   const { activeProject } = useProjects()
 
+  // Memoize projectId to prevent infinite re-renders
+  const projectId = useMemo(() => activeProject?.id, [activeProject?.id])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -74,7 +77,7 @@ export function MainContent() {
     setTemperature,
   } = useChat({
     initialModel: "openai/gpt-4o-mini",
-    projectId: activeProject?.id,
+    projectId,
   })
 
   // Keyboard navigation
@@ -140,7 +143,7 @@ export function MainContent() {
             temperature,
             // Don't include memory/context if setting is disabled
             includeMemory: settings.includeMemoryInTempChats,
-            projectId: activeProject?.id,
+            projectId,
           }),
           signal: abortController.signal,
         })

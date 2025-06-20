@@ -102,7 +102,7 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
         abortControllerRef.current = null
       }
     },
-    [append, options.initialModel, options.apiKey]
+    [append, options.initialModel, options.apiKey, options.projectId]
   )
 
   // Model switching
