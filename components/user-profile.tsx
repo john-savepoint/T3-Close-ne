@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser, useClerk } from "@clerk/nextjs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,17 +13,17 @@ import {
 import { LogOut, Settings, User } from "lucide-react"
 import Link from "next/link"
 import { UserProfileSkeleton } from "@/components/skeletons/user-profile-skeleton"
+import { useAuth } from "@/hooks/use-auth"
 
 export function UserProfile() {
-  const { isLoaded, isSignedIn, user } = useUser()
-  const { signOut } = useClerk()
+  const { user: convexUser, clerkUser, isAuthenticated, isLoading, signOut } = useAuth()
 
-  // Show skeleton loading state while Clerk is loading
-  if (!isLoaded) {
+  // Show skeleton loading state while authentication is in progress
+  if (isLoading) {
     return <UserProfileSkeleton />
   }
 
-  if (!isSignedIn || !user) {
+  if (!isAuthenticated || !clerkUser) {
     return (
       <div className="flex flex-col gap-2 p-2">
         <Link href="/sign-in">
@@ -45,8 +44,8 @@ export function UserProfile() {
     )
   }
 
-  const userName = user.fullName || user.firstName
-  const userEmail = user.primaryEmailAddress?.emailAddress
+  const userName = clerkUser.fullName || clerkUser.firstName
+  const userEmail = clerkUser.primaryEmailAddress?.emailAddress
 
   const userInitials = userName
     ? userName
@@ -70,7 +69,7 @@ export function UserProfile() {
         <Button variant="ghost" className="h-auto w-full justify-start p-2">
           <div className="flex w-full items-center gap-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.imageUrl} alt={userName || "User"} />
+              <AvatarImage src={clerkUser.imageUrl} alt={userName || "User"} />
               <AvatarFallback className="bg-mauve-accent text-mauve-bright">
                 {userInitials}
               </AvatarFallback>
