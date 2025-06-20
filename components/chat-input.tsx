@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
 import { useModels } from "@/hooks/use-models"
 import { EnhancedFileUpload } from "@/components/enhanced-file-upload"
+import { VoiceInput } from "@/components/voice-input"
 import { Badge } from "@/components/ui/badge"
 import type { Attachment } from "@/types/attachment"
 import { DEFAULT_MODEL_ID } from "@/lib/default-models"
@@ -117,6 +118,19 @@ export function ChatInput({
     }
   }
 
+  const handleVoiceTranscription = (text: string) => {
+    // Append transcribed text to existing message
+    setMessage((prev) => {
+      const separator = prev.trim() ? " " : ""
+      return prev + separator + text
+    })
+
+    // Focus textarea after transcription
+    setTimeout(() => {
+      textareaRef.current?.focus()
+    }, 100)
+  }
+
   return (
     <div className="mx-auto w-full max-w-3xl rounded-2xl border border-b-black/20 border-l-white/10 border-r-black/20 border-t-white/10 bg-mauve-surface/40 p-2 shadow-2xl shadow-black/30 backdrop-blur-xl">
       <div className="flex flex-col">
@@ -199,6 +213,11 @@ export function ChatInput({
               </Button>
             )}
             <EnhancedFileUpload onFilesAttached={handleFilesAttached} maxFiles={10} />
+            <VoiceInput
+              onTranscription={handleVoiceTranscription}
+              disabled={disabled || isLoading}
+              size="sm"
+            />
           </div>
           {isLoading ? (
             <Button
