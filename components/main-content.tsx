@@ -5,6 +5,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { ChatMessage } from "@/components/chat-message"
 import { ThreadNavigator } from "@/components/thread-navigator"
 import { ProjectContextIndicator } from "@/components/project-context-indicator"
+import { Menu } from "lucide-react"
 import { MemoryContextIndicator } from "@/components/memory-context-indicator"
 import { MemorySuggestionBanner } from "@/components/memory-suggestion-banner"
 import { TemporaryChatBanner } from "@/components/temporary-chat-banner"
@@ -15,6 +16,7 @@ import { useSearchParams } from "next/navigation"
 import { useChat } from "@/hooks/use-chat"
 import { useMemory } from "@/hooks/use-memory"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
+import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
 import { useModels } from "@/hooks/use-models"
@@ -30,8 +32,14 @@ import { useUIPreferences } from "@/hooks/use-ui-preferences"
 import { useCollapseState } from "@/hooks/use-collapse-state"
 import { Minimize2, Maximize2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { copyToClipboard } from "@/lib/clipboard"
 
-export function MainContent() {
+interface MainContentProps {
+  isSidebarOpen?: boolean
+  onToggleSidebar?: () => void
+}
+
+export function MainContent({ isSidebarOpen = true, onToggleSidebar }: MainContentProps) {
   const isMobile = useIsMobile()
   const searchParams = useSearchParams()
   const chatId = searchParams.get("chatId")
@@ -54,7 +62,7 @@ export function MainContent() {
 
   const { user, isLoading: authLoading, isAuthenticating, syncError } = useAuth()
   const { activeProject } = useProjects()
-  const { isDismissed } = useUIPreferences()
+  const { isDismissed, isLoaded } = useUIPreferences()
   
   // Collapse state management
   const {
@@ -285,10 +293,29 @@ export function MainContent() {
           {!isTemporaryMode && <MemoryContextIndicator />}
         </div>
 
+        {/* Sidebar toggle button */}
+        {(isMobile || !isSidebarOpen) && (
+          <div className={cn(
+            "absolute left-4 z-10",
+            isTemporaryMode ? "top-20" : "top-4"
+          )}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onToggleSidebar}
+              className="h-9 w-9 border-mauve-accent/50 bg-mauve-dark/80 backdrop-blur-sm"
+              title="Toggle sidebar"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         {/* Global collapse/expand button - position depends on banner presence */}
         {displayMessages.length > 0 && (
           <div className={cn(
-            "absolute left-4 z-10",
+            "absolute z-10",
+            isMobile || !isSidebarOpen ? "left-16" : "left-4", // On mobile or closed sidebar, position to the right of menu toggle
             isTemporaryMode ? "top-20" : "top-4"
           )}>
             <Button
@@ -315,7 +342,7 @@ export function MainContent() {
           <div className="flex-1" />
           {displayMessages.length === 0 ? (
             // Welcome screen with tools
-            <div className="flex flex-col items-center justify-center space-y-8 p-4 text-center md:p-8">
+            <div className="flex flex-col items-center justify-center space-y-8 p-4 pt-20 text-center sm:pt-16 md:p-8 md:pt-8">
               <div>
                 <h2 className="text-3xl font-bold text-foreground md:text-4xl">
                   How can I help you, {userName}?
@@ -331,7 +358,7 @@ export function MainContent() {
               </div>
 
               {/* Temporary Chat Starter - only show when not in temporary mode and not dismissed */}
-              {!isTemporaryMode && !isDismissed("temporaryChatStarter") && (
+              {!isTemporaryMode && isLoaded && !isDismissed("temporaryChatStarter") && (
                 <div className="w-full max-w-md">
                   <TemporaryChatStarter />
                 </div>
@@ -374,12 +401,11 @@ export function MainContent() {
                       onEdit={handleEditMessage}
                       onDelete={handleDeleteMessage}
                       onRegenerate={regenerateResponse}
-                      onCopy={(content) => {
-                        navigator.clipboard.writeText(content).then(() => {
-                          // Success is handled in the component itself
-                        }).catch(err => {
-                          console.error('Failed to copy:', err)
-                        })
+                      onCopy={async (content) => {
+                        const success = await copyToClipboard(content)
+                        if (!success) {
+                          console.error('Failed to copy to clipboard')
+                        }
                       }}
                       isCollapsed={isCollapsed(message.id)}
                       onToggleCollapse={toggleCollapse}
@@ -428,6 +454,13 @@ export function MainContent() {
             chatTitle={
               displayMessages.length > 0 ? `Chat ${new Date().toLocaleDateString()}` : "New Chat"
             }
+          />
+          <ShareChatModal
+            chatId={chatId || ""}
+            chatTitle={
+              displayMessages.length > 0 ? `Chat ${new Date().toLocaleDateString()}` : "New Chat"
+            }
+            messageCount={displayMessages.length}
           />
           <ThreadNavigator
             messages={displayMessages.map((msg) => ({

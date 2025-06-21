@@ -23,7 +23,6 @@ import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { Textarea } from "@/components/ui/textarea"
 import type { Attachment } from "@/types/attachment"
-import dynamic from "next/dynamic"
 import { sanitizeSVG } from "@/lib/content-sanitizer"
 import { CodeCanvas } from "@/components/code-canvas"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
@@ -31,8 +30,54 @@ import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
-// Dynamic import for Mermaid to avoid SSR issues
-const Mermaid = dynamic(() => import("@/components/ui/mermaid"), { ssr: false })
+// Mermaid component with safe loading
+function MermaidWrapper({ code, className }: { code: string; className?: string }) {
+  const [MermaidComponent, setMermaidComponent] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    
+    const loadMermaid = async () => {
+      try {
+        const { default: Mermaid } = await import("@/components/ui/mermaid")
+        if (mounted) {
+          setMermaidComponent(() => Mermaid)
+          setIsLoading(false)
+        }
+      } catch (error) {
+        console.error("Failed to load Mermaid component:", error)
+        if (mounted) {
+          setHasError(true)
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadMermaid()
+    
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  if (isLoading) {
+    return <div className="flex justify-center p-4 text-sm text-muted-foreground">Loading diagram...</div>
+  }
+
+  if (hasError || !MermaidComponent) {
+    return (
+      <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 text-yellow-400">
+        <p className="font-medium">Mermaid Diagram</p>
+        <pre className="mt-2 text-xs opacity-70">{code}</pre>
+        <p className="mt-2 text-xs">Diagram rendering unavailable</p>
+      </div>
+    )
+  }
+
+  return <MermaidComponent code={code} className={className} />
+}
 
 interface ChatMessageProps {
   id: string
@@ -353,7 +398,7 @@ export function ChatMessage({
                   <MarkdownRenderer content={block.content} />
                 ) : block.type === "mermaid" ? (
                   <div className="my-4 overflow-x-auto rounded-lg border border-mauve-dark/50 bg-mauve-dark/20 p-4">
-                    <Mermaid code={block.content} className="min-w-0" />
+                    <MermaidWrapper code={block.content} className="min-w-0" />
                   </div>
                 ) : block.type === "svg" ? (
                   <div className="my-4 overflow-x-auto rounded-lg border border-mauve-dark/50 bg-mauve-dark/20 p-4">
