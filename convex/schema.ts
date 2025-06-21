@@ -11,6 +11,8 @@ const schema = defineSchema({
     email: v.string(),
     name: v.optional(v.string()),
     image: v.optional(v.string()),
+    // Email verification tracking
+    emailVerificationTime: v.optional(v.number()),
     // Storage tracking from PR #3
     storageUsed: v.optional(v.number()), // bytes
     storageLimit: v.optional(v.number()), // bytes
@@ -288,8 +290,7 @@ const schema = defineSchema({
     // Additional preferences can be added here in the future
     createdAt: v.number(),
     updatedAt: v.number(),
-  })
-    .index("by_user", ["userId"]),
+  }).index("by_user", ["userId"]),
 })
 
 export default schema

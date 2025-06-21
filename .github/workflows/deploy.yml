@@ -32,6 +32,12 @@ jobs:
           pnpm lint
           pnpm build:ci
 
+      - name: Deploy Convex Schema
+        run: pnpm convex:deploy
+        env:
+          CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
+        continue-on-error: true
+
       - name: Deploy to Vercel Production
         uses: amondnet/vercel-action@v25
         with:
