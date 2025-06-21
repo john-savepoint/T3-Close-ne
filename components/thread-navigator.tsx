@@ -17,11 +17,12 @@
  * - This creates a true conversation tree with multiple paths
  */
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetPortal, SheetOverlay } from "@/components/ui/sheet"
+import * as SheetPrimitive from "@radix-ui/react-dialog"
 import {
   MessageSquare,
   User,
@@ -33,6 +34,7 @@ import {
   ChevronDown,
   Maximize2,
   Minimize2,
+  X,
 } from "lucide-react"
 
 import { useConversationTree } from "@/hooks/use-conversation-tree"
@@ -66,10 +68,43 @@ export function ThreadNavigator({
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set())
   const [editingTitle, setEditingTitle] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"standard" | "tree">("standard")
+  const [isOpen, setIsOpen] = useState(false)
+  const [hasManuallyClosedOnUltraWide, setHasManuallyClosedOnUltraWide] = useState(false)
+  
   const { conversationTree, renameBranch } = useConversationTree({
     messages,
     activeLeafId: currentMessageId,
   })
+
+  // Auto-open on ultra-wide screens (>= 1920px) only when there are messages
+  useEffect(() => {
+    const checkUltraWide = () => {
+      const isUltraWide = window.innerWidth >= 1920
+      const hasMessages = messages && messages.length > 0
+      if (isUltraWide && hasMessages && !hasManuallyClosedOnUltraWide && !isOpen) {
+        setIsOpen(true)
+      }
+    }
+    
+    checkUltraWide()
+    window.addEventListener('resize', checkUltraWide)
+    return () => window.removeEventListener('resize', checkUltraWide)
+  }, [hasManuallyClosedOnUltraWide, isOpen, messages])
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open)
+    // Track if user manually closed on ultra-wide screen
+    if (!open && window.innerWidth >= 1920) {
+      setHasManuallyClosedOnUltraWide(true)
+    }
+  }
+
+  // Reset manual close preference when navigating to home (no messages)
+  useEffect(() => {
+    if (!messages || messages.length === 0) {
+      setHasManuallyClosedOnUltraWide(false)
+    }
+  }, [messages])
 
   const toggleBranch = (messageId: string) => {
     const newExpanded = new Set(expandedBranches)
@@ -125,7 +160,7 @@ export function ThreadNavigator({
       <div key={message.id} className="space-y-1">
         <div
           className={`group flex cursor-pointer items-center gap-2 rounded-lg p-2 transition-all ${
-            isActive ? "bg-mauve-accent/20 ring-1 ring-mauve-accent/50" : "hover:bg-mauve-dark/30"
+            isActive ? "bg-mauve-accent/10 ring-1 ring-mauve-accent/30" : "hover:bg-white/5"
           }`}
           style={{ marginLeft: `${depth * 16}px` }}
           onClick={() => handleMessageClick(message.id)}
@@ -160,7 +195,7 @@ export function ThreadNavigator({
                 <input
                   type="text"
                   defaultValue={message.title || message.content.substring(0, 30)}
-                  className="flex-1 rounded border border-mauve-dark bg-mauve-dark/50 px-2 py-1 text-xs"
+                  className="flex-1 rounded border border-mauve-dark bg-black/50 px-2 py-1 text-xs"
                   onBlur={() => setEditingTitle(null)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -214,7 +249,7 @@ export function ThreadNavigator({
               </span>
 
               {hasBranches && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs border-mauve-dark/50 bg-black/20">
                   <GitBranch className="mr-1 h-3 w-3" />
                   {message.branches!.length}
                 </Badge>
@@ -253,8 +288,8 @@ export function ThreadNavigator({
         <div
           className={`flex cursor-pointer items-center gap-2 rounded-lg p-2 transition-colors ${
             branch.isActive
-              ? "border border-mauve-accent/50 bg-mauve-accent/20"
-              : "hover:bg-mauve-dark/30"
+              ? "border border-mauve-accent/30 bg-mauve-accent/10"
+              : "hover:bg-white/5"
           }`}
           style={{ marginLeft: `${branch.depth * 16}px` }}
         >
@@ -334,26 +369,44 @@ export function ThreadNavigator({
     )
   }
 
+  // Custom Sheet content without dark overlay
+  const CustomSheetContent = ({ children, ...props }: any) => (
+    <SheetPortal>
+      {/* Transparent overlay that doesn't darken the background */}
+      <SheetPrimitive.Overlay className="fixed inset-0 z-40 bg-transparent" />
+      <SheetPrimitive.Content 
+        className="fixed inset-y-0 right-0 z-50 h-full w-80 border-l border-mauve-dark bg-black/30 backdrop-blur-sm shadow-xl transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right flex flex-col"
+        {...props}
+      >
+        {children}
+        <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </SheetPrimitive.Close>
+      </SheetPrimitive.Content>
+    </SheetPortal>
+  )
+
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="h-8 w-8 text-mauve-subtle">
           <MessageSquare className="h-4 w-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-80 border-mauve-dark bg-mauve-surface flex flex-col">
-        <SheetHeader className="pb-2">
+      <CustomSheetContent>
+        <SheetHeader className="pb-2 p-6">
           <SheetTitle className="text-foreground">Thread Navigator</SheetTitle>
         </SheetHeader>
 
         {/* View Mode Toggle - Moved below header with proper spacing from close button */}
-        <div className="border-t border-mauve-dark pt-4 pb-2">
+        <div className="border-t border-mauve-dark pt-4 pb-2 px-6">
           <div className="px-1">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setViewMode(viewMode === "standard" ? "tree" : "standard")}
-              className="w-full justify-center gap-2"
+              className="w-full justify-center gap-2 border-mauve-dark/50 bg-black/20 hover:bg-white/5"
             >
               {viewMode === "standard" ? (
                 <>
@@ -372,7 +425,7 @@ export function ThreadNavigator({
 
         {/* Help text for tree view */}
         {viewMode === "tree" && (
-          <div className="px-4 py-2 border-b border-mauve-dark">
+          <div className="px-6 py-2 border-b border-mauve-dark">
             <p className="text-xs text-mauve-subtle">
               Branches represent conversation paths. Each branch starts with a user prompt. Click messages to navigate.
             </p>
@@ -380,10 +433,10 @@ export function ThreadNavigator({
         )}
 
         {/* Scrollable content area */}
-        <ScrollArea className="flex-1 mt-2">
+        <ScrollArea className="flex-1 mt-2 px-6">
           {viewMode === "standard" ? renderStandardView() : renderTreeView()}
         </ScrollArea>
-      </SheetContent>
+      </CustomSheetContent>
     </Sheet>
   )
 }
