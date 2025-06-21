@@ -48,7 +48,7 @@ export function NewChatButtonGroup({
             : "border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20"
         }
         onClick={handleTemporaryChat}
-        title={isTemporaryMode ? "Exit temporary chat" : "Start temporary chat"}
+        title={isTemporaryMode ? "Exit temporary chat" : "Start temporary chat (Ctrl+E)"}
       >
         <Zap className="h-4 w-4" />
       </Button>

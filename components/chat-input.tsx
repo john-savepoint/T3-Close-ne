@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Send, Palette, Globe, StopCircle, Zap, Keyboard } from "lucide-react"
+import { Send, Palette, Globe, StopCircle, Zap, Keyboard, Brain } from "lucide-react"
 import { useRef, useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { EnhancedModelSwitcher } from "@/components/enhanced-model-switcher"
@@ -20,6 +20,7 @@ import { DEFAULT_MODEL_ID } from "@/lib/default-models"
 import { estimateTokens } from "@/lib/token-utils"
 import { useWebSearch } from "@/hooks/use-web-search"
 import { useTemporaryChat } from "@/hooks/use-temporary-chat"
+import { useUIPreferences } from "@/hooks/use-ui-preferences"
 
 interface ChatInputProps {
   onSendMessage?: (content: string, attachments?: Attachment[]) => void
@@ -51,9 +52,21 @@ export function ChatInput({
   const [message, setMessage] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isMobile = useIsMobile()
+  const [isTablet, setIsTablet] = useState(false)
   const { selectedModel: modelsSelectedModel, setSelectedModel, getModelById } = useModels()
   const { search, isLoading: isSearching, error: searchError } = useWebSearch()
-  const { startTemporaryChat, isTemporaryMode: currentlyInTempMode } = useTemporaryChat()
+  const { startTemporaryChat, isTemporaryMode: currentlyInTempMode, exitTemporaryMode } = useTemporaryChat()
+  const { isDismissed, isLoaded } = useUIPreferences()
+
+  // Detect tablet size
+  useEffect(() => {
+    const checkIsTablet = () => {
+      setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024)
+    }
+    checkIsTablet()
+    window.addEventListener('resize', checkIsTablet)
+    return () => window.removeEventListener('resize', checkIsTablet)
+  }, [])
 
   // Use prop selectedModel if provided, otherwise fall back to models hook
   const currentSelectedModel = selectedModel || modelsSelectedModel?.id || "openai/gpt-4o-mini"
@@ -124,9 +137,17 @@ export function ChatInput({
       handleSendMessage()
     }
     
-    // Ctrl/Cmd + E for temporary chat
+    // Ctrl/Cmd + E for temporary chat toggle
     if ((e.ctrlKey || e.metaKey) && e.key === "e") {
       e.preventDefault()
+      handleTemporaryChat()
+    }
+  }
+
+  const handleTemporaryChat = () => {
+    if (isTemporaryMode || currentlyInTempMode) {
+      exitTemporaryMode()
+    } else {
       startTemporaryChat()
     }
   }
@@ -213,26 +234,51 @@ export function ChatInput({
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1 md:gap-2">
             
-            {/* Keyboard Shortcut Hint - only show when not in temp mode and no toggle available */}
-            {!onToggleTemporaryMode && !isTemporaryMode && !currentlyInTempMode && (
-              <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground/50">
+            {/* Keyboard Shortcut Hint - only show on desktop when not in temp mode */}
+            {!onToggleTemporaryMode && !isTemporaryMode && !currentlyInTempMode && isLoaded && !isDismissed("temporaryChatStarter") && (
+              <div className="hidden xl:flex items-center gap-1 text-xs text-muted-foreground/50">
                 <Keyboard className="h-3 w-3" />
                 <span>Ctrl+E for temp chat</span>
               </div>
             )}
-            <EnhancedModelSwitcher
-              selectedModel={modelsSelectedModel}
-              onModelChange={handleModelChange}
-              showCost={true}
-              estimatedTokens={
-                message.length > 0 ? estimateTokens(message, currentSelectedModel) : undefined
-              }
-            />
+            
+            {/* Model Switcher - simplified on mobile */}
+            <div className="hidden sm:block">
+              <EnhancedModelSwitcher
+                selectedModel={modelsSelectedModel}
+                onModelChange={handleModelChange}
+                showCost={true}
+                estimatedTokens={
+                  message.length > 0 ? estimateTokens(message, currentSelectedModel) : undefined
+                }
+              />
+            </div>
+            
+            {/* Model Icon Button for Mobile */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="sm:hidden h-9 w-9"
+              onClick={() => {
+                // Trigger model switcher modal on mobile
+                const event = new KeyboardEvent('keydown', {
+                  key: 'k',
+                  ctrlKey: true,
+                  metaKey: true
+                });
+                window.dispatchEvent(event);
+              }}
+              title="Select Model"
+            >
+              <Brain className="h-4 w-4" />
+            </Button>
+            
+            {/* Temperature/Creativity Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-                  <Palette className="mr-1 h-4 w-4 md:mr-2" />
-                  {temperature <= 0.3 ? "Low" : temperature <= 0.7 ? "Medium" : "High"}
+                <Button variant="ghost" size={isMobile ? "icon" : "sm"} className="text-xs text-muted-foreground h-9 w-9 sm:w-auto">
+                  <Palette className={isMobile ? "h-4 w-4" : "mr-1 h-4 w-4 md:mr-2"} />
+                  {!isMobile && (temperature <= 0.3 ? "Low" : temperature <= 0.7 ? "Medium" : "High")}
                   <span className="sr-only">Creativity</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -248,41 +294,48 @@ export function ChatInput({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {!isMobile && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`text-xs ${isSearching ? "opacity-50" : ""}`}
-                onClick={handleWebSearch}
-                disabled={!message.trim() || isSearching || isLoading}
-                title={
-                  !message.trim() 
-                    ? "Enter a search query first" 
-                    : isSearching 
-                    ? "Searching..." 
-                    : "Search the web"
-                }
-              >
-                <Globe className="mr-2 h-4 w-4" /> 
-                {isSearching ? "Searching..." : "Search"}
-              </Button>
-            )}
+            
+            {/* Web Search Button - icon only on mobile/tablet */}
+            <Button
+              variant="ghost"
+              size={isMobile || isTablet ? "icon" : "sm"}
+              className={`${isMobile || isTablet ? "h-9 w-9" : "text-xs"} ${isSearching ? "opacity-50" : ""}`}
+              onClick={handleWebSearch}
+              disabled={!message.trim() || isSearching || isLoading}
+              title={
+                !message.trim() 
+                  ? "Enter a search query first" 
+                  : isSearching 
+                  ? "Searching..." 
+                  : "Search the web"
+              }
+            >
+              <Globe className={isMobile || isTablet ? "h-4 w-4" : "mr-2 h-4 w-4"} /> 
+              {!isMobile && !isTablet && (isSearching ? "Searching..." : "Search")}
+            </Button>
+            
             <EnhancedFileUpload onFilesAttached={handleFilesAttached} maxFiles={10} />
           </div>
           <div className="flex items-center gap-1">
-            {/* Temporary Chat Button - now inline and semi-transparent when no text */}
-            {!isTemporaryMode && (
-              <Button
-                size="icon"
-                onClick={startTemporaryChat}
-                className={`h-9 w-9 border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all duration-200 ${
-                  !message.trim() ? 'opacity-50' : 'opacity-100'
-                }`}
-                title="Start Temporary Chat (Fast & Secure)"
-              >
-                <Zap className="h-4 w-4" />
-              </Button>
-            )}
+            {/* Temporary Chat Button - toggles between start and exit */}
+            <Button
+              size="icon"
+              onClick={handleTemporaryChat}
+              className={
+                isTemporaryMode || currentlyInTempMode
+                  ? "h-9 w-9 border-orange-500 bg-orange-500/30 text-orange-300 hover:bg-orange-500/40"
+                  : `h-9 w-9 border-orange-500/50 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all duration-200 ${
+                      !message.trim() ? 'opacity-50' : 'opacity-100'
+                    }`
+              }
+              title={
+                isTemporaryMode || currentlyInTempMode
+                  ? "Exit Temporary Chat (Ctrl+E)"
+                  : "Start Temporary Chat (Ctrl+E) - Fast & Secure"
+              }
+            >
+              <Zap className="h-4 w-4" />
+            </Button>
             
             {/* Submit/Stop Button */}
             {isLoading ? (

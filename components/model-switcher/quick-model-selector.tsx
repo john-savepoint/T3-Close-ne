@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Zap, Gauge, Brain, ChevronDown } from "lucide-react"
 import { ChatModel } from "@/types/models"
 import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface QuickModelSelectorProps {
   quickSelectModels: {
@@ -45,6 +46,18 @@ export function QuickModelSelector({
 }: QuickModelSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const isMobile = useIsMobile()
+  const [isTablet, setIsTablet] = useState(false)
+
+  // Detect tablet size
+  useEffect(() => {
+    const checkIsTablet = () => {
+      setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024)
+    }
+    checkIsTablet()
+    window.addEventListener('resize', checkIsTablet)
+    return () => window.removeEventListener('resize', checkIsTablet)
+  }, [])
 
   // Determine which type is currently selected
   const getCurrentType = (): ModelType | null => {
@@ -117,7 +130,7 @@ export function QuickModelSelector({
                 onClick={() => handleSelect(type)}
               >
                 <Icon className="mr-1 h-3 w-3" />
-                {config.label}
+                {!(isMobile || isTablet) && config.label}
               </Button>
             )
           })}
@@ -127,20 +140,23 @@ export function QuickModelSelector({
       {/* Main button */}
       <Button
         variant="ghost"
-        size="sm"
+        size={isMobile || isTablet ? "icon" : "sm"}
         className={cn(
-          "text-xs",
+          isMobile || isTablet ? "h-9 w-9" : "text-xs",
           currentType && currentConfig.color,
           currentType && currentModel?.id === currentModel?.id && "bg-primary/20"
         )}
         onClick={() => setIsOpen(!isOpen)}
+        title={currentConfig.label}
       >
-        <CurrentIcon className="mr-1 h-3 w-3" />
-        {currentConfig.label}
-        <ChevronDown className={cn(
-          "ml-1 h-3 w-3 transition-transform",
-          isOpen && "rotate-180"
-        )} />
+        <CurrentIcon className={isMobile || isTablet ? "h-4 w-4" : "mr-1 h-3 w-3"} />
+        {!(isMobile || isTablet) && currentConfig.label}
+        {!(isMobile || isTablet) && (
+          <ChevronDown className={cn(
+            "ml-1 h-3 w-3 transition-transform",
+            isOpen && "rotate-180"
+          )} />
+        )}
       </Button>
     </div>
   )

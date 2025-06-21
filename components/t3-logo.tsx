@@ -1,35 +1,38 @@
 export const T3Logo = ({ className }: { className?: string }) => (
   <svg
     width="160"
-    height="60"
-    viewBox="0 0 160 60"
+    height="48"
+    viewBox="0 0 160 48"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    style={{ overflow: 'visible' }}
   >
     <g>
-      {/* Z6 - White fill with colored outline, moved closer to Chat */}
+      {/* Z6 - White fill with subtle pink outline */}
       <text
         x="10"
-        y="45"
-        fontSize="64"
-        fontWeight="bold"
+        y="36"
+        fontSize="42"
+        fontWeight="600"
         fill="white"
         stroke="#ff1493"
-        strokeWidth="2"
-        fontFamily="Inter, system-ui, sans-serif"
+        strokeWidth="0.8"
+        strokeOpacity="0.7"
+        paintOrder="fill"
+        fontFamily="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
       >
         Z6
       </text>
-      {/* Chat - Moved closer to Z6 */}
+      {/* Chat - Consistent font with app */}
       <text
-        x="95"
-        y="40"
-        fontSize="24"
+        x="75"
+        y="32"
+        fontSize="20"
         fontWeight="500"
         fill="currentColor"
-        fontFamily="Inter, system-ui, sans-serif"
-        opacity="0.8"
+        fontFamily="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+        opacity="0.9"
       >
         Chat
       </text>
