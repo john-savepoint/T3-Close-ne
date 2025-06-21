@@ -14,6 +14,7 @@ interface DraggableChatItemProps {
   onRename: (newTitle: string) => Promise<void>
   onTogglePin: (chatId: string, isPinned: boolean) => Promise<void>
   onShare: (chatId: string) => void
+  onMoveToProject?: () => void
   onClick: () => void
 }
 
@@ -25,6 +26,7 @@ export function DraggableChatItem({
   onRename,
   onTogglePin,
   onShare,
+  onMoveToProject,
   onClick,
 }: DraggableChatItemProps) {
   const {
@@ -81,6 +83,7 @@ export function DraggableChatItem({
           onDeletePermanently={() => {}}
           onPin={async () => await onTogglePin(chat._id, chat.isPinned)}
           onShare={() => onShare(chat._id)}
+          onMoveToProject={onMoveToProject}
           showParentIcon={false}
         />
       </div>

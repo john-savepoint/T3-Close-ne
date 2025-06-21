@@ -240,6 +240,28 @@ export const duplicate = mutation({
   },
 })
 
+// Mutation to move a chat to a different project
+export const moveToProject = mutation({
+  args: { 
+    chatId: v.id("chats"),
+    projectId: v.union(v.id("projects"), v.null())
+  },
+  handler: async (ctx, args) => {
+    const chat = await ctx.db.get(args.chatId)
+    if (!chat) {
+      throw new Error("Chat not found")
+    }
+
+    // Update the chat's project ID
+    await ctx.db.patch(args.chatId, {
+      projectId: args.projectId,
+      updatedAt: Date.now(),
+    })
+
+    return args.chatId
+  },
+})
+
 // Mutation to permanently delete a chat and all its messages
 export const deletePermanently = mutation({
   args: { chatId: v.id("chats") },

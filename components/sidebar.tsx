@@ -18,13 +18,14 @@ import { EnhancedChatItem } from "@/components/enhanced-chat-item"
 import { useChatLifecycle } from "@/hooks/use-chat-lifecycle"
 import { useChats } from "@/hooks/use-chats"
 import { useAuth } from "@/hooks/use-auth"
-import { toChatId, ensureStringId, toProjectId } from "@/types/chat"
+import { toChatId, ensureStringId, toProjectId, type Chat } from "@/types/chat"
 import { Separator } from "@/components/ui/separator"
 import { UserProfile } from "@/components/user-profile"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useUIPreferences } from "@/hooks/use-ui-preferences"
 import { useChatPinning } from "@/hooks/use-chat-pinning"
 import { ShareChatModal } from "@/components/share-chat-modal"
+import { MoveChatModal } from "@/components/move-chat-modal"
 import { useNavigationState } from "@/hooks/use-navigation-state"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { DndProvider } from "@/components/providers/dnd-provider"
@@ -106,12 +107,14 @@ const ThreadItem = ({
   onRename,
   onTogglePin,
   onShare,
+  onMoveToProject,
 }: ThreadItemProps & {
   onMoveToTrash: (chatId: string) => Promise<void>
   onMoveToArchive: (chatId: string) => Promise<void>
   onRename: (chatId: string, newTitle: string) => Promise<void>
   onTogglePin: (chatId: string, isPinned: boolean) => Promise<void>
   onShare: (chatId: string) => void
+  onMoveToProject?: (chatId: string) => void
 }) => {
   const router = useRouter()
   const handleMoveToTrash = async () => {
@@ -128,6 +131,10 @@ const ThreadItem = ({
   
   const handleShare = () => {
     onShare(ensureStringId(chat._id))
+  }
+
+  const handleMoveToProjectLocal = () => {
+    onMoveToProject?.(ensureStringId(chat._id))
   }
 
   const handleRestore = () => {
@@ -159,6 +166,7 @@ const ThreadItem = ({
       onRename={handleRename}
       onTogglePin={handleTogglePin}
       onShare={handleShare}
+      onMoveToProject={handleMoveToProjectLocal}
       onClick={handleChatClick}
     />
   )
@@ -182,7 +190,7 @@ export function Sidebar() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentChatId = searchParams.get("chatId")
-  const { isDismissed } = useUIPreferences()
+  const { isDismissed, isLoaded } = useUIPreferences()
   const { togglePin } = useChatPinning()
   const { activeProject, projects } = useProjects()
   const { startTemporaryChat, isTemporaryMode } = useTemporaryChat()
@@ -268,11 +276,12 @@ export function Sidebar() {
         return
       }
       
-      // Clear the current chat by removing chatId from URL
+      // Clear the current chat by removing chatId from URL and navigate to home
       router.push('/')
       
       // If there's an active project, the new chat will be created in that project
       // The actual chat creation happens when the first message is sent
+      // This will show the tools grid on the home page
     } catch (error) {
       console.error("Failed to create new chat:", error)
     }
@@ -287,6 +296,14 @@ export function Sidebar() {
   }
 
   const [shareModalChatId, setShareModalChatId] = useState<string | null>(null)
+  const [moveModalChat, setMoveModalChat] = useState<Chat | null>(null)
+
+  const handleMoveToProject = (chatId: string) => {
+    const chat = activeChats.find(c => c._id === chatId)
+    if (chat) {
+      setMoveModalChat(chat)
+    }
+  }
 
   const handleShareChat = (chatId: string) => {
     // Only allow sharing of real Convex chats (IDs start with 'j')
@@ -433,7 +450,12 @@ export function Sidebar() {
           {/* Header */}
           <div className="flex flex-col space-y-2 pb-2">
             <div className="px-2 py-1">
-              <T3Logo className="h-6 text-foreground" />
+              <button
+                className="block cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => router.push('/')}
+              >
+                <T3Logo className="h-10 w-auto text-foreground" />
+              </button>
             </div>
 
             {/* Chat Creation Buttons */}
@@ -442,7 +464,7 @@ export function Sidebar() {
                 onCreateNewChat={handleCreateNewChat}
               />
 
-              {!isDismissed("giftProButton") && <DismissableGiftButton />}
+              {isLoaded && !isDismissed("giftProButton") && <DismissableGiftButton />}
             </div>
 
             <div className="relative">
@@ -536,6 +558,7 @@ export function Sidebar() {
                                 onRename={handleRenameChat}
                                 onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
                                 onShare={handleShareChat}
+                                onMoveToProject={handleMoveToProject}
                               />
                             )
                           })}
@@ -561,6 +584,7 @@ export function Sidebar() {
                                 onRename={handleRenameChat}
                                 onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
                                 onShare={handleShareChat}
+                                onMoveToProject={handleMoveToProject}
                               />
                             )
                           })}
@@ -586,6 +610,7 @@ export function Sidebar() {
                                 onRename={handleRenameChat}
                                 onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
                                 onShare={handleShareChat}
+                                onMoveToProject={handleMoveToProject}
                               />
                             )
                           })}
@@ -611,6 +636,7 @@ export function Sidebar() {
                                 onRename={handleRenameChat}
                                 onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
                                 onShare={handleShareChat}
+                                onMoveToProject={handleMoveToProject}
                               />
                             )
                           })}
@@ -636,6 +662,7 @@ export function Sidebar() {
                                 onRename={handleRenameChat}
                                 onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
                                 onShare={handleShareChat}
+                                onMoveToProject={handleMoveToProject}
                               />
                             )
                           })}
@@ -721,6 +748,17 @@ export function Sidebar() {
           onOpenChange={(open) => !open && setShareModalChatId(null)}
         />
       )}
+
+      {/* Move Chat Modal */}
+      <MoveChatModal
+        open={!!moveModalChat}
+        onOpenChange={(open) => !open && setMoveModalChat(null)}
+        chat={moveModalChat}
+        onSuccess={() => {
+          setMoveModalChat(null)
+          // Optionally refresh the chat list
+        }}
+      />
 
     </>
   )

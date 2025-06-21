@@ -19,6 +19,7 @@ import {
   Share,
   RotateCcw,
   AlertTriangle,
+  FolderOpen,
 } from "lucide-react"
 import type { Chat } from "@/types/chat"
 import { formatDistanceToNow } from "date-fns"
@@ -37,6 +38,7 @@ interface EnhancedChatItemProps {
   onRename?: (newTitle: string) => void
   onShare?: () => void
   onPin?: () => void
+  onMoveToProject?: () => void
   className?: string
 }
 
@@ -52,6 +54,7 @@ export function EnhancedChatItem({
   onRename,
   onShare,
   onPin,
+  onMoveToProject,
   className = "",
 }: EnhancedChatItemProps) {
   const [isHovered, setIsHovered] = useState(false)
@@ -144,6 +147,10 @@ export function EnhancedChatItem({
         <DropdownMenuItem onClick={onPin}>
           <Pin className="mr-2 h-4 w-4" />
           {chat.isPinned ? "Unpin" : "Pin"}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onMoveToProject}>
+          <FolderOpen className="mr-2 h-4 w-4" />
+          Move to Project
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onMoveToArchive}>
