@@ -124,11 +124,11 @@ const ThreadItem = ({
   const handleMoveToArchive = async () => {
     await onMoveToArchive(ensureStringId(chat._id))
   }
-  
+
   const handleTogglePin = async () => {
     await onTogglePin(ensureStringId(chat._id), chat.isPinned)
   }
-  
+
   const handleShare = () => {
     onShare(ensureStringId(chat._id))
   }
@@ -241,21 +241,33 @@ export function Sidebar() {
 
   // Group archived chats by time
   const archivedChatGroups = groupChatsByTime(archivedChatsData)
-  
-  // Group trashed chats by time  
+
+  // Group trashed chats by time
   const trashedChatGroups = groupChatsByTime(trashedChatsData)
 
   // Filter chats based on current view
   const getFilteredChats = () => {
     switch (currentView) {
       case "pinned":
-        return { pinnedThreads, todayThreads: [], yesterdayThreads: [], thisWeekThreads: [], olderThreads: [] }
+        return {
+          pinnedThreads,
+          todayThreads: [],
+          yesterdayThreads: [],
+          thisWeekThreads: [],
+          olderThreads: [],
+        }
       case "archive":
         return archivedChatGroups
       case "trash":
         return trashedChatGroups
       case "projects":
-        return { pinnedThreads: [], todayThreads: [], yesterdayThreads: [], thisWeekThreads: [], olderThreads: [] }
+        return {
+          pinnedThreads: [],
+          todayThreads: [],
+          yesterdayThreads: [],
+          thisWeekThreads: [],
+          olderThreads: [],
+        }
       default: // home
         return { pinnedThreads, todayThreads, yesterdayThreads, thisWeekThreads, olderThreads }
     }
@@ -275,10 +287,10 @@ export function Sidebar() {
         console.error("Cannot create chat: user not authenticated")
         return
       }
-      
+
       // Clear the current chat by removing chatId from URL and navigate to home
-      router.push('/')
-      
+      router.push("/")
+
       // If there's an active project, the new chat will be created in that project
       // The actual chat creation happens when the first message is sent
       // This will show the tools grid on the home page
@@ -299,29 +311,21 @@ export function Sidebar() {
   const [moveModalChat, setMoveModalChat] = useState<Chat | null>(null)
 
   const handleMoveToProject = (chatId: string) => {
-    const chat = activeChats.find(c => c._id === chatId)
+    const chat = activeChats.find((c) => c._id === chatId)
     if (chat) {
       // Convert to Chat type for the modal
       const chatForModal: Chat = {
-        _id: chat._id,
-        _creationTime: chat._creationTime,
+        id: chat._id,
         title: chat.title,
-        userId: chat.userId,
+        messages: [],
+        createdAt: new Date(chat.createdAt),
+        updatedAt: new Date(chat.updatedAt),
         status: chat.status,
         projectId: chat.projectId,
         activeLeafMessageId: chat.activeLeafMessageId,
         isPinned: chat.isPinned,
-        pinnedAt: chat.pinnedAt,
-        isPublic: chat.isPublic,
-        shareToken: chat.shareToken,
-        model: chat.model,
-        systemPrompt: chat.systemPrompt,
-        temperature: chat.temperature,
-        archived: chat.archived,
-        lastActivity: chat.lastActivity,
-        statusChangedAt: chat.statusChangedAt,
-        id: chat._id,
-        messages: []
+        pinnedAt: chat.pinnedAt ? new Date(chat.pinnedAt) : undefined,
+        statusChangedAt: new Date(chat.statusChangedAt),
       }
       setMoveModalChat(chatForModal)
     }
@@ -329,13 +333,15 @@ export function Sidebar() {
 
   const handleShareChat = (chatId: string) => {
     // Only allow sharing of real Convex chats (IDs start with 'j')
-    if (!chatId.startsWith('j')) {
+    if (!chatId.startsWith("j")) {
       // TODO: Show a toast notification instead of console warning
-      console.warn("Cannot share chat: Chat must be saved first. Send a message to save the conversation.")
+      console.warn(
+        "Cannot share chat: Chat must be saved first. Send a message to save the conversation."
+      )
       alert("This chat needs to be saved before it can be shared. Send a message first!")
       return
     }
-    
+
     setShareModalChatId(chatId)
   }
 
@@ -389,17 +395,17 @@ export function Sidebar() {
   // Handle drag end event
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
-    
+
     if (!over) return
-    
+
     const activeData = active.data.current
     const overData = over.data.current
-    
+
     // Check if we're dropping a chat onto a project
     if (activeData?.type === "chat" && overData?.type === "project") {
       const chatId = active.id as string
       const projectId = overData.projectId as string
-      
+
       try {
         // Update the chat to move it to the project
         await updateChat(toChatId(chatId), { projectId: toProjectId(projectId) })
@@ -413,17 +419,17 @@ export function Sidebar() {
   // Handle drag over event (for visual feedback)
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event
-    
+
     if (!over) return
-    
+
     const activeData = active.data.current
     const overData = over.data.current
-    
+
     // Auto-expand project when dragging over it
     if (activeData?.type === "chat" && overData?.type === "project") {
       const projectId = overData.projectId as string
       if (!expandedProjects.has(projectId)) {
-        setExpandedProjects(prev => new Set(prev).add(projectId))
+        setExpandedProjects((prev) => new Set(prev).add(projectId))
       }
     }
   }
@@ -473,8 +479,8 @@ export function Sidebar() {
           <div className="flex flex-col space-y-2 pb-2">
             <div className="px-2 py-1">
               <button
-                className="block cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => router.push('/')}
+                className="block cursor-pointer transition-opacity hover:opacity-80"
+                onClick={() => router.push("/")}
               >
                 <T3Logo className="h-10 w-auto text-foreground" />
               </button>
@@ -482,9 +488,7 @@ export function Sidebar() {
 
             {/* Chat Creation Buttons */}
             <div className="space-y-2">
-              <NewChatButtonGroup 
-                onCreateNewChat={handleCreateNewChat}
-              />
+              <NewChatButtonGroup onCreateNewChat={handleCreateNewChat} />
 
               {isLoaded && !isDismissed("giftProButton") && <DismissableGiftButton />}
             </div>
@@ -501,240 +505,259 @@ export function Sidebar() {
           </div>
 
           {/* Content */}
-          <DndProvider onDragEnd={handleDragEnd} onDragOver={handleDragOver} renderDragOverlay={(active) => {
-            const chat = active.data?.current?.chat
-            if (!chat) return null
-            return (
-              <div className="opacity-80">
-                <EnhancedChatItem
-                  chat={{
-                    ...chat,
-                    id: chat._id,
-                    timestamp: formatTimestamp(chat.lastActivity || chat.updatedAt),
-                  }}
-                  isActive={false}
-                  onClick={() => {}}
-                  onMoveToTrash={async () => {}}
-                  onMoveToArchive={async () => {}}
-                  onRename={() => {}}
-                  onRestore={() => {}}
-                  onDeletePermanently={() => {}}
-                  onPin={async () => {}}
-                  onShare={() => {}}
-                  showParentIcon={false}
-                />
-              </div>
-            )
-          }}>
+          <DndProvider
+            onDragEnd={handleDragEnd}
+            onDragOver={handleDragOver}
+            renderDragOverlay={(active) => {
+              const chat = active.data?.current?.chat
+              if (!chat) return null
+              return (
+                <div className="opacity-80">
+                  <EnhancedChatItem
+                    chat={{
+                      ...chat,
+                      id: chat._id,
+                      timestamp: formatTimestamp(chat.lastActivity || chat.updatedAt),
+                    }}
+                    isActive={false}
+                    onClick={() => {}}
+                    onMoveToTrash={async () => {}}
+                    onMoveToArchive={async () => {}}
+                    onRename={() => {}}
+                    onRestore={() => {}}
+                    onDeletePermanently={() => {}}
+                    onPin={async () => {}}
+                    onShare={() => {}}
+                    showParentIcon={false}
+                  />
+                </div>
+              )
+            }}
+          >
             <ScrollArea className="-mr-2 flex-1 pr-2">
               <nav className="flex flex-col gap-1 py-2">
-              {/* Projects Section - Only show on home view */}
-              {currentView === "home" && (
-                <ProjectList
-                  onChatSelect={(chatId, projectId) => {
-                    router.push(`/?chatId=${chatId}`)
-                  }}
-                />
-              )}
-
-              {/* Projects-only view - Takes full space */}
-              {currentView === "projects" && (
-                <ProjectList
-                  onChatSelect={(chatId, projectId) => {
-                    router.push(`/?chatId=${chatId}`)
-                  }}
-                />
-              )}
-
-              {/* Content based on current view */}
-              <div className={currentView === "home" ? "mt-4" : ""}>
-                {currentView === "projects" ? (
-                  // Projects content is handled by ProjectList component above
-                  null
-                ) : isAuthenticating ? (
-                  <div className="px-3 py-2 text-sm text-mauve-subtle">Syncing user account...</div>
-                ) : syncError ? (
-                  <div className="px-3 py-2 text-sm text-yellow-400">
-                    <p className="font-medium">Sync Error</p>
-                    <p className="text-xs">Please refresh the page</p>
-                  </div>
-                ) : chatsLoading ? (
-                  <div className="px-3 py-2 text-sm text-mauve-subtle">Loading chats...</div>
-                ) : (
-                  <>
-                    {filteredChatGroups.pinnedThreads.length > 0 && (
-                      <>
-                        <GroupLabel label="Pinned" />
-                        <SortableContext 
-                          items={filteredChatGroups.pinnedThreads.map(t => t._id)} 
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {filteredChatGroups.pinnedThreads.map((thread) => {
-                            const handlers = getItemHandlers(ensureStringId(thread._id))
-                            return (
-                              <ThreadItem
-                                key={thread._id}
-                                chat={thread}
-                                onMoveToTrash={handlers.onMoveToTrash}
-                                onMoveToArchive={handlers.onMoveToArchive}
-                                onRename={handleRenameChat}
-                                onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                                onShare={handleShareChat}
-                                onMoveToProject={handleMoveToProject}
-                              />
-                            )
-                          })}
-                        </SortableContext>
-                      </>
-                    )}
-
-                    {filteredChatGroups.todayThreads.length > 0 && (
-                      <>
-                        <GroupLabel label="Today" />
-                        <SortableContext 
-                          items={filteredChatGroups.todayThreads.map(t => t._id)} 
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {filteredChatGroups.todayThreads.map((thread) => {
-                            const handlers = getItemHandlers(ensureStringId(thread._id))
-                            return (
-                              <ThreadItem
-                                key={thread._id}
-                                chat={thread}
-                                onMoveToTrash={handlers.onMoveToTrash}
-                                onMoveToArchive={handlers.onMoveToArchive}
-                                onRename={handleRenameChat}
-                                onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                                onShare={handleShareChat}
-                                onMoveToProject={handleMoveToProject}
-                              />
-                            )
-                          })}
-                        </SortableContext>
-                      </>
-                    )}
-
-                    {filteredChatGroups.yesterdayThreads.length > 0 && (
-                      <>
-                        <GroupLabel label="Yesterday" />
-                        <SortableContext 
-                          items={filteredChatGroups.yesterdayThreads.map(t => t._id)} 
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {filteredChatGroups.yesterdayThreads.map((thread) => {
-                            const handlers = getItemHandlers(ensureStringId(thread._id))
-                            return (
-                              <ThreadItem
-                                key={thread._id}
-                                chat={thread}
-                                onMoveToTrash={handlers.onMoveToTrash}
-                                onMoveToArchive={handlers.onMoveToArchive}
-                                onRename={handleRenameChat}
-                                onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                                onShare={handleShareChat}
-                                onMoveToProject={handleMoveToProject}
-                              />
-                            )
-                          })}
-                        </SortableContext>
-                      </>
-                    )}
-
-                    {filteredChatGroups.thisWeekThreads.length > 0 && (
-                      <>
-                        <GroupLabel label="This Week" />
-                        <SortableContext 
-                          items={filteredChatGroups.thisWeekThreads.map(t => t._id)} 
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {filteredChatGroups.thisWeekThreads.map((thread) => {
-                            const handlers = getItemHandlers(ensureStringId(thread._id))
-                            return (
-                              <ThreadItem
-                                key={thread._id}
-                                chat={thread}
-                                onMoveToTrash={handlers.onMoveToTrash}
-                                onMoveToArchive={handlers.onMoveToArchive}
-                                onRename={handleRenameChat}
-                                onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                                onShare={handleShareChat}
-                                onMoveToProject={handleMoveToProject}
-                              />
-                            )
-                          })}
-                        </SortableContext>
-                      </>
-                    )}
-
-                    {filteredChatGroups.olderThreads.length > 0 && (
-                      <>
-                        <GroupLabel label="Older" />
-                        <SortableContext 
-                          items={filteredChatGroups.olderThreads.map(t => t._id)} 
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {filteredChatGroups.olderThreads.map((thread) => {
-                            const handlers = getItemHandlers(ensureStringId(thread._id))
-                            return (
-                              <ThreadItem
-                                key={thread._id}
-                                chat={thread}
-                                onMoveToTrash={handlers.onMoveToTrash}
-                                onMoveToArchive={handlers.onMoveToArchive}
-                                onRename={handleRenameChat}
-                                onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                                onShare={handleShareChat}
-                                onMoveToProject={handleMoveToProject}
-                              />
-                            )
-                          })}
-                        </SortableContext>
-                      </>
-                    )}
-
-                    {/* Archived Search Results */}
-                    {searchQuery && filteredArchivedChats.length > 0 && (
-                      <>
-                        <Separator className="my-3 bg-mauve-dark" />
-                        <GroupLabel label="Archived Results" />
-                        {filteredArchivedChats.map((thread) => (
-                          <div key={thread._id} className="relative">
-                            <ThreadItem
-                              chat={thread}
-                              onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
-                              onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
-                              onRename={handleRenameChat}
-                              onTogglePin={(chatId, isPinned) => togglePin(toChatId(chatId), isPinned)}
-                              onShare={handleShareChat}
-                            />
-                            <Badge
-                              variant="outline"
-                              className="absolute right-2 top-2 border-blue-500/50 bg-blue-500/10 text-xs text-blue-400"
-                            >
-                              Archived
-                            </Badge>
-                          </div>
-                        ))}
-                      </>
-                    )}
-
-                    {/* Empty state */}
-                    {Object.values(filteredChatGroups).every(group => group.length === 0) &&
-                      filteredArchivedChats.length === 0 &&
-                      !chatsLoading && (
-                        <div className="px-3 py-8 text-center text-sm text-mauve-subtle">
-                          {searchQuery ? "No chats found" : 
-                           currentView === "archive" ? "No archived chats" :
-                           currentView === "trash" ? "No chats in trash" :
-                           currentView === "pinned" ? "No pinned chats" :
-                           "No chats yet. Create your first chat!"}
-                        </div>
-                      )}
-                  </>
+                {/* Projects Section - Only show on home view */}
+                {currentView === "home" && (
+                  <ProjectList
+                    onChatSelect={(chatId, projectId) => {
+                      router.push(`/?chatId=${chatId}`)
+                    }}
+                  />
                 )}
-              </div>
-            </nav>
-          </ScrollArea>
+
+                {/* Projects-only view - Takes full space */}
+                {currentView === "projects" && (
+                  <ProjectList
+                    onChatSelect={(chatId, projectId) => {
+                      router.push(`/?chatId=${chatId}`)
+                    }}
+                  />
+                )}
+
+                {/* Content based on current view */}
+                <div className={currentView === "home" ? "mt-4" : ""}>
+                  {currentView === "projects" ? null : isAuthenticating ? ( // Projects content is handled by ProjectList component above
+                    <div className="px-3 py-2 text-sm text-mauve-subtle">
+                      Syncing user account...
+                    </div>
+                  ) : syncError ? (
+                    <div className="px-3 py-2 text-sm text-yellow-400">
+                      <p className="font-medium">Sync Error</p>
+                      <p className="text-xs">Please refresh the page</p>
+                    </div>
+                  ) : chatsLoading ? (
+                    <div className="px-3 py-2 text-sm text-mauve-subtle">Loading chats...</div>
+                  ) : (
+                    <>
+                      {filteredChatGroups.pinnedThreads.length > 0 && (
+                        <>
+                          <GroupLabel label="Pinned" />
+                          <SortableContext
+                            items={filteredChatGroups.pinnedThreads.map((t) => t._id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {filteredChatGroups.pinnedThreads.map((thread) => {
+                              const handlers = getItemHandlers(ensureStringId(thread._id))
+                              return (
+                                <ThreadItem
+                                  key={thread._id}
+                                  chat={thread}
+                                  onMoveToTrash={handlers.onMoveToTrash}
+                                  onMoveToArchive={handlers.onMoveToArchive}
+                                  onRename={handleRenameChat}
+                                  onTogglePin={(chatId, isPinned) =>
+                                    togglePin(toChatId(chatId), isPinned)
+                                  }
+                                  onShare={handleShareChat}
+                                  onMoveToProject={handleMoveToProject}
+                                />
+                              )
+                            })}
+                          </SortableContext>
+                        </>
+                      )}
+
+                      {filteredChatGroups.todayThreads.length > 0 && (
+                        <>
+                          <GroupLabel label="Today" />
+                          <SortableContext
+                            items={filteredChatGroups.todayThreads.map((t) => t._id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {filteredChatGroups.todayThreads.map((thread) => {
+                              const handlers = getItemHandlers(ensureStringId(thread._id))
+                              return (
+                                <ThreadItem
+                                  key={thread._id}
+                                  chat={thread}
+                                  onMoveToTrash={handlers.onMoveToTrash}
+                                  onMoveToArchive={handlers.onMoveToArchive}
+                                  onRename={handleRenameChat}
+                                  onTogglePin={(chatId, isPinned) =>
+                                    togglePin(toChatId(chatId), isPinned)
+                                  }
+                                  onShare={handleShareChat}
+                                  onMoveToProject={handleMoveToProject}
+                                />
+                              )
+                            })}
+                          </SortableContext>
+                        </>
+                      )}
+
+                      {filteredChatGroups.yesterdayThreads.length > 0 && (
+                        <>
+                          <GroupLabel label="Yesterday" />
+                          <SortableContext
+                            items={filteredChatGroups.yesterdayThreads.map((t) => t._id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {filteredChatGroups.yesterdayThreads.map((thread) => {
+                              const handlers = getItemHandlers(ensureStringId(thread._id))
+                              return (
+                                <ThreadItem
+                                  key={thread._id}
+                                  chat={thread}
+                                  onMoveToTrash={handlers.onMoveToTrash}
+                                  onMoveToArchive={handlers.onMoveToArchive}
+                                  onRename={handleRenameChat}
+                                  onTogglePin={(chatId, isPinned) =>
+                                    togglePin(toChatId(chatId), isPinned)
+                                  }
+                                  onShare={handleShareChat}
+                                  onMoveToProject={handleMoveToProject}
+                                />
+                              )
+                            })}
+                          </SortableContext>
+                        </>
+                      )}
+
+                      {filteredChatGroups.thisWeekThreads.length > 0 && (
+                        <>
+                          <GroupLabel label="This Week" />
+                          <SortableContext
+                            items={filteredChatGroups.thisWeekThreads.map((t) => t._id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {filteredChatGroups.thisWeekThreads.map((thread) => {
+                              const handlers = getItemHandlers(ensureStringId(thread._id))
+                              return (
+                                <ThreadItem
+                                  key={thread._id}
+                                  chat={thread}
+                                  onMoveToTrash={handlers.onMoveToTrash}
+                                  onMoveToArchive={handlers.onMoveToArchive}
+                                  onRename={handleRenameChat}
+                                  onTogglePin={(chatId, isPinned) =>
+                                    togglePin(toChatId(chatId), isPinned)
+                                  }
+                                  onShare={handleShareChat}
+                                  onMoveToProject={handleMoveToProject}
+                                />
+                              )
+                            })}
+                          </SortableContext>
+                        </>
+                      )}
+
+                      {filteredChatGroups.olderThreads.length > 0 && (
+                        <>
+                          <GroupLabel label="Older" />
+                          <SortableContext
+                            items={filteredChatGroups.olderThreads.map((t) => t._id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {filteredChatGroups.olderThreads.map((thread) => {
+                              const handlers = getItemHandlers(ensureStringId(thread._id))
+                              return (
+                                <ThreadItem
+                                  key={thread._id}
+                                  chat={thread}
+                                  onMoveToTrash={handlers.onMoveToTrash}
+                                  onMoveToArchive={handlers.onMoveToArchive}
+                                  onRename={handleRenameChat}
+                                  onTogglePin={(chatId, isPinned) =>
+                                    togglePin(toChatId(chatId), isPinned)
+                                  }
+                                  onShare={handleShareChat}
+                                  onMoveToProject={handleMoveToProject}
+                                />
+                              )
+                            })}
+                          </SortableContext>
+                        </>
+                      )}
+
+                      {/* Archived Search Results */}
+                      {searchQuery && filteredArchivedChats.length > 0 && (
+                        <>
+                          <Separator className="my-3 bg-mauve-dark" />
+                          <GroupLabel label="Archived Results" />
+                          {filteredArchivedChats.map((thread) => (
+                            <div key={thread._id} className="relative">
+                              <ThreadItem
+                                chat={thread}
+                                onMoveToTrash={(chatId) => moveToTrash(toChatId(chatId))}
+                                onMoveToArchive={(chatId) => moveToArchive(toChatId(chatId))}
+                                onRename={handleRenameChat}
+                                onTogglePin={(chatId, isPinned) =>
+                                  togglePin(toChatId(chatId), isPinned)
+                                }
+                                onShare={handleShareChat}
+                              />
+                              <Badge
+                                variant="outline"
+                                className="absolute right-2 top-2 border-blue-500/50 bg-blue-500/10 text-xs text-blue-400"
+                              >
+                                Archived
+                              </Badge>
+                            </div>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Empty state */}
+                      {Object.values(filteredChatGroups).every((group) => group.length === 0) &&
+                        filteredArchivedChats.length === 0 &&
+                        !chatsLoading && (
+                          <div className="px-3 py-8 text-center text-sm text-mauve-subtle">
+                            {searchQuery
+                              ? "No chats found"
+                              : currentView === "archive"
+                                ? "No archived chats"
+                                : currentView === "trash"
+                                  ? "No chats in trash"
+                                  : currentView === "pinned"
+                                    ? "No pinned chats"
+                                    : "No chats yet. Create your first chat!"}
+                          </div>
+                        )}
+                    </>
+                  )}
+                </div>
+              </nav>
+            </ScrollArea>
           </DndProvider>
 
           {/* Bottom Navigation */}
@@ -745,7 +768,7 @@ export function Sidebar() {
               archivedCount={archivedChatsData.length}
               trashedCount={trashedChatsData.length}
             />
-            
+
             {/* User Profile */}
             <div className="p-2">
               <UserProfile />
@@ -759,12 +782,22 @@ export function Sidebar() {
         <ShareChatModal
           chatId={shareModalChatId}
           chatTitle={
-            [...pinnedThreads, ...todayThreads, ...yesterdayThreads, ...thisWeekThreads, ...olderThreads]
-              .find(chat => chat._id === shareModalChatId)?.title || "Untitled Chat"
+            [
+              ...pinnedThreads,
+              ...todayThreads,
+              ...yesterdayThreads,
+              ...thisWeekThreads,
+              ...olderThreads,
+            ].find((chat) => chat._id === shareModalChatId)?.title || "Untitled Chat"
           }
           messageCount={
-            [...pinnedThreads, ...todayThreads, ...yesterdayThreads, ...thisWeekThreads, ...olderThreads]
-              .find(chat => chat._id === shareModalChatId)?.messageCount || 0
+            [
+              ...pinnedThreads,
+              ...todayThreads,
+              ...yesterdayThreads,
+              ...thisWeekThreads,
+              ...olderThreads,
+            ].find((chat) => chat._id === shareModalChatId)?.messageCount || 0
           }
           open={!!shareModalChatId}
           onOpenChange={(open) => !open && setShareModalChatId(null)}
@@ -781,7 +814,6 @@ export function Sidebar() {
           // Optionally refresh the chat list
         }}
       />
-
     </>
   )
 }

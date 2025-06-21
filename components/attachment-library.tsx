@@ -102,7 +102,9 @@ export function AttachmentLibrary({
   }
 
   const handleAttachSelected = () => {
-    const selectedAttachmentObjects = attachments.filter((att) => att.id && selectedIds.includes(att.id))
+    const selectedAttachmentObjects = attachments.filter(
+      (att) => att.id && selectedIds.includes(att.id)
+    )
     onAttach?.(selectedAttachmentObjects)
   }
 
@@ -338,7 +340,7 @@ function AttachmentCard({
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 {attachment.createdAt
-                  ? attachment.createdAt.toLocaleDateString()
+                  ? new Date(attachment.createdAt).toLocaleDateString()
                   : new Date(attachment._creationTime).toLocaleDateString()}
               </div>
               <div className="flex items-center gap-1">
@@ -428,7 +430,7 @@ function AttachmentPreviewModal({ attachment, onClose, getUsages }: AttachmentPr
               <span className="text-xs text-mauve-subtle/70">Created:</span>
               <div className="text-sm font-medium">
                 {attachment.createdAt
-                  ? attachment.createdAt.toLocaleDateString()
+                  ? new Date(attachment.createdAt).toLocaleDateString()
                   : new Date(attachment._creationTime).toLocaleDateString()}
               </div>
             </div>

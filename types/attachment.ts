@@ -11,12 +11,11 @@ export type Attachment = Doc<"attachments"> & {
   sizeBytes?: number // For backward compatibility, maps to size
   storagePath?: string // For backward compatibility, maps to storageId
   uploadedBy?: string // For backward compatibility, maps to userId
-  createdAt?: Date // For backward compatibility
-  updatedAt?: Date // For backward compatibility
+  // Removed createdAt and updatedAt overrides as they conflict with base schema
   processingStatus?: "pending" | "completed" | "failed" // For backward compatibility
   usageCount?: number // For backward compatibility
   lastUsedAt?: Date // For backward compatibility
-  
+
   // Legacy fields - no longer needed with real implementation
 }
 

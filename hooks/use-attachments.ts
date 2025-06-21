@@ -16,9 +16,26 @@ import type {
 // Get file category from MIME type
 function getFileCategory(mimeType: string): string {
   if (mimeType.startsWith("image/")) return "images"
-  if (mimeType.startsWith("text/") || mimeType.includes("javascript") || mimeType.includes("typescript")) return "code"
-  if (mimeType.includes("pdf") || mimeType.includes("document") || mimeType.includes("presentation") || mimeType.includes("markdown")) return "documents"
-  if (mimeType.includes("spreadsheet") || mimeType.includes("csv") || mimeType.includes("json") || mimeType.includes("xml")) return "data"
+  if (
+    mimeType.startsWith("text/") ||
+    mimeType.includes("javascript") ||
+    mimeType.includes("typescript")
+  )
+    return "code"
+  if (
+    mimeType.includes("pdf") ||
+    mimeType.includes("document") ||
+    mimeType.includes("presentation") ||
+    mimeType.includes("markdown")
+  )
+    return "documents"
+  if (
+    mimeType.includes("spreadsheet") ||
+    mimeType.includes("csv") ||
+    mimeType.includes("json") ||
+    mimeType.includes("xml")
+  )
+    return "data"
   return "other"
 }
 
@@ -65,19 +82,17 @@ export const SUPPORTED_FILE_TYPES = {
 
 export function useAttachments() {
   const { user, isAuthenticated } = useAuth()
-  
+
   // Convex mutations
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const saveFile = useMutation(api.files.saveFile)
   const deleteFileMutation = useMutation(api.files.deleteFile)
   const updateFileMutation = useMutation(api.files.updateFile)
-  
+
   // Only query for attachments if user is authenticated
-  const attachments = (useQuery(
-    api.files.getUserFiles,
-    isAuthenticated && user ? {} : "skip"
-  ) || []) as Attachment[]
-  
+  const attachments = (useQuery(api.files.getUserFiles, isAuthenticated && user ? {} : "skip") ||
+    []) as Attachment[]
+
   const [uploadProgress, setUploadProgress] = useState<FileUploadProgress[]>([])
   const [loading, setLoading] = useState(false)
   const queryLoading = attachments === undefined && isAuthenticated
@@ -113,7 +128,7 @@ export function useAttachments() {
           try {
             // Step 1: Generate upload URL
             setUploadProgress((prev) =>
-              prev.map((item) => 
+              prev.map((item) =>
                 item.id === progressItem.id ? { ...item, progress: 10, status: "uploading" } : item
               )
             )
@@ -122,9 +137,7 @@ export function useAttachments() {
 
             // Step 2: Upload file to Convex storage
             setUploadProgress((prev) =>
-              prev.map((item) => 
-                item.id === progressItem.id ? { ...item, progress: 30 } : item
-              )
+              prev.map((item) => (item.id === progressItem.id ? { ...item, progress: 30 } : item))
             )
 
             const result = await fetch(uploadUrl, {
@@ -140,7 +153,7 @@ export function useAttachments() {
             const { storageId } = await result.json()
 
             setUploadProgress((prev) =>
-              prev.map((item) => 
+              prev.map((item) =>
                 item.id === progressItem.id ? { ...item, progress: 70, status: "processing" } : item
               )
             )
@@ -154,17 +167,17 @@ export function useAttachments() {
               contentType: file.type || "application/octet-stream",
               size: file.size,
               category,
-              chatId: targetType === "chat" && targetId ? targetId as Id<"chats"> : undefined,
+              chatId: targetType === "chat" && targetId ? (targetId as Id<"chats">) : undefined,
               description: `Uploaded file: ${file.name}`,
             })
 
             setUploadProgress((prev) =>
-              prev.map((item) => 
+              prev.map((item) =>
                 item.id === progressItem.id ? { ...item, progress: 100, status: "completed" } : item
               )
             )
 
-            // Create attachment object that matches our type  
+            // Create attachment object that matches our type
             const newAttachment: Attachment = {
               _id: attachmentId,
               _creationTime: Date.now(),
@@ -176,8 +189,8 @@ export function useAttachments() {
               category,
               userId: user!._id,
               uploadedAt: Date.now(),
-              createdAt: new Date(),
-              chatId: targetType === "chat" && targetId ? targetId as any : undefined,
+              createdAt: Date.now(),
+              chatId: targetType === "chat" && targetId ? (targetId as any) : undefined,
               description: `Uploaded file: ${file.name}`,
               isPublic: false,
               status: "ready",
@@ -189,13 +202,12 @@ export function useAttachments() {
             }
 
             uploadedAttachments.push(newAttachment)
-
           } catch (error) {
             console.error(`Failed to upload ${file.name}:`, error)
             setUploadProgress((prev) =>
-              prev.map((item) => 
-                item.id === progressItem.id 
-                  ? { ...item, status: "error", error: `Failed to upload ${file.name}` } 
+              prev.map((item) =>
+                item.id === progressItem.id
+                  ? { ...item, status: "error", error: `Failed to upload ${file.name}` }
                   : item
               )
             )
@@ -235,22 +247,25 @@ export function useAttachments() {
     [uploadFiles]
   )
 
-  const deleteAttachment = useCallback(async (attachmentId: string): Promise<void> => {
-    if (!isAuthenticated) {
-      throw new Error("Authentication required")
-    }
+  const deleteAttachment = useCallback(
+    async (attachmentId: string): Promise<void> => {
+      if (!isAuthenticated) {
+        throw new Error("Authentication required")
+      }
 
-    setLoading(true)
+      setLoading(true)
 
-    try {
-      await deleteFileMutation({ id: attachmentId as Id<"attachments"> })
-    } catch (error) {
-      console.error("Failed to delete attachment:", error)
-      throw error
-    } finally {
-      setLoading(false)
-    }
-  }, [isAuthenticated, deleteFileMutation])
+      try {
+        await deleteFileMutation({ id: attachmentId as Id<"attachments"> })
+      } catch (error) {
+        console.error("Failed to delete attachment:", error)
+        throw error
+      } finally {
+        setLoading(false)
+      }
+    },
+    [isAuthenticated, deleteFileMutation]
+  )
 
   const replaceAttachment = useCallback(
     async (attachmentId: string, newFile: File): Promise<Attachment> => {
@@ -266,10 +281,10 @@ export function useAttachments() {
 
         // Upload new file first
         const [newAttachment] = await uploadFiles([newFile])
-        
+
         // Delete old attachment
         await deleteAttachment(attachmentId)
-        
+
         return newAttachment
       } catch (error) {
         console.error("Failed to replace attachment:", error)
@@ -281,13 +296,10 @@ export function useAttachments() {
     [isAuthenticated, attachments, uploadFiles, deleteAttachment]
   )
 
-  const getAttachmentUsages = useCallback(
-    (attachmentId: string): AttachmentUsage[] => {
-      // TODO: Implement real usage tracking
-      return []
-    },
-    []
-  )
+  const getAttachmentUsages = useCallback((attachmentId: string): AttachmentUsage[] => {
+    // TODO: Implement real usage tracking
+    return []
+  }, [])
 
   const addAttachmentToContext = useCallback(
     async (
@@ -320,7 +332,7 @@ export function useAttachments() {
       if (filters.fileType !== "all") {
         const categoryMap: Record<string, string> = {
           documents: "documents",
-          code: "code", 
+          code: "code",
           data: "data",
           images: "images",
         }

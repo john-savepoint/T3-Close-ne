@@ -204,12 +204,14 @@ T3-Close-ne/
 pnpm dev              # Start Next.js dev server
 pnpm dev:convex       # Start Convex backend (separate terminal)
 
-# Code Quality
+# Code Quality (MANDATORY BEFORE COMMIT)
 pnpm type-check       # TypeScript validation
 pnpm lint             # ESLint checking
 pnpm lint:fix         # Auto-fix linting issues
 pnpm format           # Prettier formatting
 pnpm quality:check    # Run all quality checks
+pnpm check-all        # Full build validation (catches Vercel errors)
+pnpm pre-deploy       # Complete pre-deployment validation
 
 # Build & Deploy
 pnpm build           # Production build
@@ -415,6 +417,29 @@ mcp__context7__get-library-docs
 - Skip error handling or loading states
 - Commit without running quality checks
 - Implement third-party services without Context7 docs
+
+### **Preventing Vercel Deployment Failures**
+
+**CRITICAL: Always run these checks before pushing to main:**
+
+1. **Run full validation**: `pnpm check-all`
+2. **Fix any TypeScript errors**: `pnpm type-check`
+3. **Fix ESLint issues**: `pnpm lint:fix`
+4. **Test the build locally**: `pnpm build:ci`
+
+**Why deployments fail:**
+
+- Next.js production builds are stricter than dev mode
+- TypeScript errors that are warnings in dev become errors in prod
+- ESLint rules are enforced during Vercel builds
+- Missing environment variables cause runtime failures
+
+**New safeguards in place:**
+
+- Pre-push hooks run full validation
+- GitHub Actions run quality checks before deploying
+- Next.js config enforces TypeScript and ESLint checks
+- Local build commands mirror Vercel's build process
 
 ## 🆕 **ADDING NEW CLAUDESQUAD TASKS**
 

@@ -16,6 +16,8 @@
     "format:check": "prettier --check .",
     "quality:check": "pnpm type-check && pnpm lint && pnpm format:check",
     "quality:fix": "pnpm lint:fix && pnpm format",
+    "pre-deploy": "pnpm quality:check && pnpm build:ci",
+    "check-all": "pnpm type-check && pnpm lint && pnpm build:ci",
     "prepare": "husky",
     "pre-commit": "lint-staged",
     "convex:deploy": "npx convex deploy",

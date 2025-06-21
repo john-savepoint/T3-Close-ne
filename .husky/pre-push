@@ -1,0 +1,29 @@
+#!/bin/sh
+
+echo "🔍 Running pre-push checks..."
+
+# Run type checking
+echo "📝 Type checking..."
+pnpm type-check
+if [ $? -ne 0 ]; then
+  echo "❌ Type checking failed! Fix errors before pushing."
+  exit 1
+fi
+
+# Run linting
+echo "🧹 Linting..."
+pnpm lint
+if [ $? -ne 0 ]; then
+  echo "❌ Linting failed! Run 'pnpm lint:fix' to fix."
+  exit 1
+fi
+
+# Run build to catch Next.js specific errors
+echo "🏗️  Testing build..."
+pnpm build:ci
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed! Fix errors before pushing."
+  exit 1
+fi
+
+echo "✅ All checks passed! Pushing..."
