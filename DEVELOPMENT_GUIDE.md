@@ -201,6 +201,47 @@ Add this to your CI:
 3. Run `pnpm build` locally first
 4. Deploy and monitor logs
 
+## 🔧 GitHub Actions Configuration
+
+### Required Secrets
+
+To get GitHub Actions working properly, you need to set these secrets in your repository:
+
+```bash
+# Required for build process
+NEXT_PUBLIC_CONVEX_URL         # Your Convex deployment URL
+OPENROUTER_API_KEY             # For AI chat functionality
+
+# Optional but recommended
+OPENAI_API_KEY                 # For image generation
+TAVILY_API_KEY                 # For web search
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY  # For authentication
+CLERK_SECRET_KEY               # For authentication
+CONVEX_DEPLOY_KEY              # For Convex deployments
+CONVEX_DEPLOYMENT              # Your Convex deployment name
+
+# Required for Vercel deployment
+VERCEL_TOKEN                   # From Vercel dashboard
+VERCEL_ORG_ID                  # From Vercel project settings
+VERCEL_PROJECT_ID              # From Vercel project settings
+```
+
+### Setting Up Secrets
+
+1. Go to Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Add each secret with its value
+
+### Deploy Workflow
+
+The deploy workflow runs on every push to main and:
+
+1. Runs type checking
+2. Runs ESLint
+3. Builds the project
+4. Deploys to Convex (if keys are set)
+5. Deploys to Vercel
+
 ## 🆘 Common Issues & Fixes
 
 ### "Schema validation failed"

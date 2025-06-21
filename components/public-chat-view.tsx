@@ -17,7 +17,7 @@ import {
   Copy,
   Check,
 } from "lucide-react"
-import { T3Logo } from "@/components/t3-logo"
+import { Z6Logo } from "@/components/z6-logo"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { CodeCanvas } from "@/components/code-canvas"
 import { sanitizeSVG } from "@/lib/content-sanitizer"
@@ -32,7 +32,7 @@ function MermaidWrapper({ code, className }: { code: string; className?: string 
 
   useEffect(() => {
     let mounted = true
-    
+
     const loadMermaid = async () => {
       try {
         const { default: Mermaid } = await import("@/components/ui/mermaid")
@@ -50,14 +50,18 @@ function MermaidWrapper({ code, className }: { code: string; className?: string 
     }
 
     loadMermaid()
-    
+
     return () => {
       mounted = false
     }
   }, [])
 
   if (isLoading) {
-    return <div className="flex justify-center p-4 text-sm text-muted-foreground">Loading diagram...</div>
+    return (
+      <div className="flex justify-center p-4 text-sm text-muted-foreground">
+        Loading diagram...
+      </div>
+    )
   }
 
   if (hasError || !MermaidComponent) {
@@ -187,7 +191,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <T3Logo className="h-6 text-foreground" />
+              <Z6Logo className="h-6" width={60} height={24} />
               <div className="hidden md:block">
                 <Badge
                   variant="outline"
@@ -347,7 +351,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
           <div className="inline-flex flex-col items-center gap-4 rounded-xl border border-mauve-dark bg-mauve-surface/30 p-6">
-            <T3Logo className="h-8 text-foreground" />
+            <Z6Logo className="h-8" width={80} height={32} />
             <h3 className="text-lg font-semibold text-foreground">Continue the conversation</h3>
             <p className="max-w-md text-sm text-mauve-subtle/70">
               Fork this conversation to your own Z6Chat account and keep exploring with AI.

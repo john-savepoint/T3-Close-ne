@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Search, Menu, EyeOff, Plus } from "lucide-react"
-import { T3Logo } from "@/components/t3-logo"
+import { Z6Logo } from "@/components/z6-logo"
 import { useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ProjectList } from "@/components/project-list"
@@ -33,6 +33,7 @@ import { DraggableChatItem } from "@/components/draggable-chat-item"
 import { DroppableProject } from "@/components/droppable-project"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { DragEndEvent, DragOverEvent } from "@dnd-kit/core"
+import { cn } from "@/lib/utils"
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp: number): string => {
@@ -476,13 +477,13 @@ export function Sidebar() {
           className={`${isMobile ? "fixed inset-y-0 left-0 z-40 w-64" : "w-64 flex-shrink-0"} flex flex-col border-r border-mauve-dark bg-black/30 p-2 backdrop-blur-sm transition-all duration-300 ease-in-out`}
         >
           {/* Header */}
-          <div className="flex flex-col space-y-2 pb-2">
-            <div className="px-2 py-1">
+          <div className="flex flex-col space-y-4 pb-2">
+            <div className="flex justify-center px-2 py-1">
               <button
-                className="block cursor-pointer transition-opacity hover:opacity-80"
+                className="cursor-pointer transition-opacity hover:opacity-80"
                 onClick={() => router.push("/")}
               >
-                <T3Logo className="h-10 w-auto text-foreground" />
+                <Z6Logo className="h-10 w-auto" width={100} height={40} />
               </button>
             </div>
 
