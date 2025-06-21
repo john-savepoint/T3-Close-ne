@@ -1,5 +1,28 @@
 # z6chat
 
+## 0.4.1
+
+### Patch Changes
+
+- feat(preferences): migrate UI preferences from localStorage to Convex database
+
+  This change enables cross-device synchronization of UI preferences such as dismissed elements. Key improvements include:
+
+  **Features:**
+  - Added `userPreferences` table to Convex schema for storing UI preferences
+  - Created Convex mutations and queries for managing user preferences
+  - Updated `useUIPreferences` hook to use Convex for authenticated users, localStorage for anonymous users
+  - Added automatic migration from localStorage to Convex when users sign in
+  - Maintained backward compatibility for non-authenticated users
+
+  **Technical Implementation:**
+  - New `convex/userPreferences.ts` with CRUD operations for preferences
+  - Enhanced `useUIPreferences` hook with dual storage support
+  - Added `useMigrateUIPreferences` hook for seamless data migration
+  - Created `UIPreferencesProvider` component for app-wide preference management
+
+  This ensures that UI dismissal states (like gift button and temporary chat starter) persist across all user devices when signed in.
+
 ## 0.4.0
 
 ### Minor Changes

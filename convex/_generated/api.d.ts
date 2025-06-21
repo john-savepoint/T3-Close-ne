@@ -25,6 +25,7 @@ import type * as migrations from "../migrations.js";
 import type * as projects from "../projects.js";
 import type * as sharing from "../sharing.js";
 import type * as teams from "../teams.js";
+import type * as userPreferences from "../userPreferences.js";
 import type * as users from "../users.js";
 
 /**
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   projects: typeof projects;
   sharing: typeof sharing;
   teams: typeof teams;
+  userPreferences: typeof userPreferences;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

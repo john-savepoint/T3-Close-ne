@@ -275,6 +275,21 @@ const schema = defineSchema({
     .index("by_owner", ["ownerUserId"])
     .index("by_token", ["token"])
     .index("by_active", ["isActive"]),
+
+  // User preferences for UI state that syncs across devices
+  userPreferences: defineTable({
+    userId: v.id("users"),
+    dismissedElements: v.optional(
+      v.object({
+        temporaryChatStarter: v.optional(v.boolean()),
+        giftProButton: v.optional(v.boolean()),
+      })
+    ),
+    // Additional preferences can be added here in the future
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"]),
 })
 
 export default schema
