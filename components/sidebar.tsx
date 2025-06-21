@@ -301,7 +301,29 @@ export function Sidebar() {
   const handleMoveToProject = (chatId: string) => {
     const chat = activeChats.find(c => c._id === chatId)
     if (chat) {
-      setMoveModalChat(chat)
+      // Convert to Chat type for the modal
+      const chatForModal: Chat = {
+        _id: chat._id,
+        _creationTime: chat._creationTime,
+        title: chat.title,
+        userId: chat.userId,
+        status: chat.status,
+        projectId: chat.projectId,
+        activeLeafMessageId: chat.activeLeafMessageId,
+        isPinned: chat.isPinned,
+        pinnedAt: chat.pinnedAt,
+        isPublic: chat.isPublic,
+        shareToken: chat.shareToken,
+        model: chat.model,
+        systemPrompt: chat.systemPrompt,
+        temperature: chat.temperature,
+        archived: chat.archived,
+        lastActivity: chat.lastActivity,
+        statusChangedAt: chat.statusChangedAt,
+        id: chat._id,
+        messages: []
+      }
+      setMoveModalChat(chatForModal)
     }
   }
 

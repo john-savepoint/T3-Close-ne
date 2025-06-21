@@ -275,7 +275,7 @@ export function ChatMessage({
       <Avatar className="h-8 w-8 flex-shrink-0">
         {type === "user" ? (
           <>
-            <AvatarImage src={userImage} alt={userName} />
+            <AvatarImage src={userImage || undefined} alt={userName} />
             <AvatarFallback className="bg-blue-500 text-white">
               {userInitials}
             </AvatarFallback>
@@ -492,8 +492,7 @@ export function ChatMessage({
                 type, 
                 content, 
                 timestamp, 
-                model: model || 'Unknown',
-                user: user
+                model: model || 'Unknown'
               }]}
               chatTitle={`Single Message - ${type === "user" ? "User" : "Assistant"}`}
               trigger={

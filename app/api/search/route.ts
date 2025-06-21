@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
         published_date: result.published_date,
       })),
       images: response.images || [],
-      follow_up_questions: response.follow_up_questions || [],
-      response_time: response.response_time,
+      follow_up_questions: (response as any).follow_up_questions || [],
+      response_time: response.responseTime,
     }
 
     return NextResponse.json(results)

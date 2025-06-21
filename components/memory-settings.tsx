@@ -169,7 +169,7 @@ export function MemorySettings() {
               <SelectContent className="border-mauve-dark bg-mauve-surface">
                 <SelectItem value="all">All Memories</SelectItem>
                 <SelectItem value="global">Global Only</SelectItem>
-                {projects.map((project) => (
+                {projects.map((project: any) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
                   </SelectItem>
@@ -492,7 +492,7 @@ function CreateMemoryModal({ open, onOpenChange, onSubmit, projects }: CreateMem
                 </SelectTrigger>
                 <SelectContent className="border-mauve-dark bg-mauve-surface">
                   <SelectItem value="global">Global</SelectItem>
-                  {projects.map((project) => (
+                  {projects.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
                     </SelectItem>
@@ -600,7 +600,7 @@ function EditMemoryModal({ memory, projects, onSubmit, onClose }: EditMemoryModa
                 </SelectTrigger>
                 <SelectContent className="border-mauve-dark bg-mauve-surface">
                   <SelectItem value="global">Global</SelectItem>
-                  {projects.map((project) => (
+                  {projects.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
                     </SelectItem>

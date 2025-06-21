@@ -176,7 +176,7 @@ export function useAttachments() {
               category,
               userId: user!._id,
               uploadedAt: Date.now(),
-              createdAt: Date.now(),
+              createdAt: new Date(),
               chatId: targetType === "chat" && targetId ? targetId as any : undefined,
               description: `Uploaded file: ${file.name}`,
               isPublic: false,

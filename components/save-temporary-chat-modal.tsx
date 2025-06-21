@@ -200,7 +200,7 @@ export function SaveTemporaryChatModal({ open, onOpenChange }: SaveTemporaryChat
                 </SelectTrigger>
                 <SelectContent className="border-mauve-dark bg-mauve-surface">
                   <SelectItem value="standalone">Standalone Chat</SelectItem>
-                  {projects.map((project) => (
+                  {projects.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
                     </SelectItem>

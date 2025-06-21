@@ -14,7 +14,7 @@ export function ProjectContextIndicator() {
 
   const contextSize =
     (activeProject.systemPrompt?.length || 0) +
-    activeProject.attachments.reduce((acc, att) => acc + (att.content?.length || 0), 0)
+    activeProject.attachments.reduce((acc: number, att: any) => acc + (att.content?.length || 0), 0)
 
   const formatContextSize = (size: number) => {
     if (size < 1000) return `${size} chars`
@@ -65,7 +65,7 @@ export function ProjectContextIndicator() {
                 </h4>
                 <ScrollArea className="h-24">
                   <div className="space-y-1">
-                    {activeProject.attachments.map((attachment) => (
+                    {activeProject.attachments.map((attachment: any) => (
                       <div key={attachment.id} className="flex items-center gap-2 text-xs">
                         <FileText className="h-3 w-3 text-mauve-subtle" />
                         <span className="truncate">{attachment.name}</span>

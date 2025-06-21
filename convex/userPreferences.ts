@@ -44,7 +44,7 @@ export const dismissElement = mutation({
     
     if (existing) {
       // Check if element is already dismissed to avoid unnecessary updates
-      if (existing.dismissedElements?.[args.elementId] === true) {
+      if (existing.dismissedElements?.[args.elementId as keyof typeof existing.dismissedElements] === true) {
         return // Already dismissed, no need to update
       }
       
@@ -75,7 +75,7 @@ export const dismissElement = mutation({
           .withIndex("by_user", (q) => q.eq("userId", user._id))
           .first()
         
-        if (newExisting && !newExisting.dismissedElements?.[args.elementId]) {
+        if (newExisting && !newExisting.dismissedElements?.[args.elementId as keyof typeof newExisting.dismissedElements]) {
           await ctx.db.patch(newExisting._id, {
             dismissedElements: {
               ...newExisting.dismissedElements,

@@ -255,7 +255,7 @@ export const moveToProject = mutation({
 
     // Update the chat's project ID
     await ctx.db.patch(args.chatId, {
-      projectId: args.projectId,
+      projectId: args.projectId || undefined,
       updatedAt: Date.now(),
     })
 

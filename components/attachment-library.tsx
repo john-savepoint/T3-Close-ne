@@ -102,7 +102,7 @@ export function AttachmentLibrary({
   }
 
   const handleAttachSelected = () => {
-    const selectedAttachmentObjects = attachments.filter((att) => selectedIds.includes(att.id))
+    const selectedAttachmentObjects = attachments.filter((att) => att.id && selectedIds.includes(att.id))
     onAttach?.(selectedAttachmentObjects)
   }
 
