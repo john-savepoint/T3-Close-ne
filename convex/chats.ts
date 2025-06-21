@@ -1,5 +1,6 @@
 import { query, mutation, internalMutation } from "./_generated/server"
 import { v } from "convex/values"
+import { requireAuth } from "./clerk"
 
 export const list = query({
   args: {

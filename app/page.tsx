@@ -22,7 +22,7 @@ function MainContentWrapper({ isSidebarOpen, onToggleSidebar }: { isSidebarOpen:
   )
 }
 
-export default function HomePage() {
+function HomePageContent() {
   const isMobile = useIsMobile()
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile)
 
@@ -38,5 +38,22 @@ export default function HomePage() {
         <MainContentWrapper isSidebarOpen={isSidebarOpen} onToggleSidebar={handleToggleSidebar} />
       </div>
     </div>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen w-full items-center justify-center bg-mauve-deep/50">
+        <div className="space-y-4 text-center">
+          <div className="animate-pulse">
+            <div className="h-12 w-12 mx-auto rounded-full bg-mauve-accent/20"></div>
+          </div>
+          <p className="text-mauve-subtle">Loading Z6Chat...</p>
+        </div>
+      </div>
+    }>
+      <HomePageContent />
+    </Suspense>
   )
 }

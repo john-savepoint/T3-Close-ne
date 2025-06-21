@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
 
-  const firstUserMessage = chat.messages.find((m) => m.type === "user")?.content || ""
+  const firstUserMessage = chat.messages.find((m: any) => m.type === "user")?.content || ""
   const preview =
     firstUserMessage.length > 150 ? firstUserMessage.substring(0, 150) + "..." : firstUserMessage
 
