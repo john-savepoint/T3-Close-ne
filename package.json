@@ -7,7 +7,7 @@
     "dev": "next dev",
     "dev:convex": "npx convex dev",
     "dev:all": "concurrently -n \"NEXT,CONVEX\" -c \"blue,yellow\" \"pnpm dev\" \"pnpm dev:convex\"",
-    "test:schema": "npx convex deploy --dry-run",
+    "test:schema": "npx convex deploy --prod necessary-duck-420 --admin-key $CONVEX_DEPLOY_KEY --dry-run",
     "test:quick": "./scripts/dev-check.sh",
     "build": "next build",
     "build:ci": "next build",

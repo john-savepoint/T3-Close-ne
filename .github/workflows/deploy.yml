@@ -33,9 +33,15 @@ jobs:
           pnpm build:ci
 
       - name: Deploy Convex Schema
-        run: pnpm convex:deploy
+        run: |
+          if [ -n "${{ secrets.CONVEX_DEPLOY_KEY }}" ]; then
+            pnpm convex:deploy
+          else
+            echo "⚠️ Skipping Convex deployment - CONVEX_DEPLOY_KEY not set"
+          fi
         env:
           CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
         continue-on-error: true
 
       - name: Deploy to Vercel Production
