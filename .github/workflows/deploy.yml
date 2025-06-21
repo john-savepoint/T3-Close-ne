@@ -31,6 +31,8 @@ jobs:
           pnpm type-check
           pnpm lint
           pnpm build:ci
+        env:
+          NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
 
       - name: Deploy Convex Schema
         run: |
