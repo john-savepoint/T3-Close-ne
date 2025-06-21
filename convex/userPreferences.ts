@@ -34,6 +34,7 @@ export const dismissElement = mutation({
   handler: async (ctx, args) => {
     const user = await requireAuth(ctx)
     
+    // Try to create or update in a single operation to avoid race conditions
     const existing = await ctx.db
       .query("userPreferences")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
@@ -42,6 +43,11 @@ export const dismissElement = mutation({
     const now = Date.now()
     
     if (existing) {
+      // Check if element is already dismissed to avoid unnecessary updates
+      if (existing.dismissedElements?.[args.elementId] === true) {
+        return // Already dismissed, no need to update
+      }
+      
       // Update existing preferences
       await ctx.db.patch(existing._id, {
         dismissedElements: {
@@ -52,14 +58,33 @@ export const dismissElement = mutation({
       })
     } else {
       // Create new preferences
-      await ctx.db.insert("userPreferences", {
-        userId: user._id,
-        dismissedElements: {
-          [args.elementId]: true,
-        },
-        createdAt: now,
-        updatedAt: now,
-      })
+      // Use a try-catch in case another request creates it simultaneously
+      try {
+        await ctx.db.insert("userPreferences", {
+          userId: user._id,
+          dismissedElements: {
+            [args.elementId]: true,
+          },
+          createdAt: now,
+          updatedAt: now,
+        })
+      } catch (error) {
+        // If insert fails due to race condition, try updating instead
+        const newExisting = await ctx.db
+          .query("userPreferences")
+          .withIndex("by_user", (q) => q.eq("userId", user._id))
+          .first()
+        
+        if (newExisting && !newExisting.dismissedElements?.[args.elementId]) {
+          await ctx.db.patch(newExisting._id, {
+            dismissedElements: {
+              ...newExisting.dismissedElements,
+              [args.elementId]: true,
+            },
+            updatedAt: now,
+          })
+        }
+      }
     }
   },
 })
