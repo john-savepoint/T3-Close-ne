@@ -33,6 +33,9 @@ jobs:
           pnpm build:ci
         env:
           NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy-key-for-build' }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY || 'dummy-key-for-build' }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
       - name: Deploy Convex Schema
         run: |
@@ -56,3 +59,5 @@ jobs:
         env:
           NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy-key-for-build' }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY || 'dummy-key-for-build' }}
