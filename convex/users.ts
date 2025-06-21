@@ -38,6 +38,7 @@ export const syncUser = mutation({
     image: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Use a transaction-like approach to avoid concurrent modifications
     const existing = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
@@ -46,6 +47,18 @@ export const syncUser = mutation({
     const now = Date.now()
 
     if (existing) {
+      // Check if the user data actually needs updating to avoid unnecessary writes
+      const needsUpdate = 
+        existing.email !== args.email ||
+        existing.name !== args.name ||
+        existing.image !== args.image ||
+        // Only update lastActiveAt if it's been more than 5 minutes
+        (existing.lastActiveAt && now - existing.lastActiveAt > 5 * 60 * 1000)
+
+      if (!needsUpdate) {
+        return existing._id
+      }
+
       // Update existing user
       return await ctx.db.patch(existing._id, {
         email: args.email,

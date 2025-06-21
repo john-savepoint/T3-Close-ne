@@ -3,8 +3,8 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter'
+import atomDark from 'react-syntax-highlighter/dist/esm/styles/hljs/atom-one-dark'
 import { cn } from '@/lib/utils'
 import type { Components } from 'react-markdown'
 
@@ -21,23 +21,34 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
       const inline = !match && !String(children).includes('\n')
       
       if (!inline && match) {
-        return (
-          <div className="my-4 overflow-hidden rounded-lg border border-mauve-dark/50 bg-mauve-dark/20">
-            <SyntaxHighlighter
-              style={atomDark}
-              language={language}
-              PreTag="div"
-              customStyle={{
-                margin: 0,
-                background: 'transparent',
-                padding: '1rem',
-                fontSize: '0.875rem',
-              }}
-            >
-              {String(children).replace(/\n$/, '')}
-            </SyntaxHighlighter>
-          </div>
-        )
+        try {
+          return (
+            <div className="my-4 overflow-hidden rounded-lg border border-mauve-dark/50 bg-mauve-dark/20">
+              <SyntaxHighlighter
+                style={atomDark}
+                language={language}
+                PreTag="div"
+                customStyle={{
+                  margin: 0,
+                  background: 'transparent',
+                  padding: '1rem',
+                  fontSize: '0.875rem',
+                }}
+              >
+                {String(children).replace(/\n$/, '')}
+              </SyntaxHighlighter>
+            </div>
+          )
+        } catch (error) {
+          // Fall back to plain code block if syntax highlighting fails
+          return (
+            <div className="my-4 overflow-hidden rounded-lg border border-mauve-dark/50 bg-mauve-dark/20">
+              <pre className="p-4 text-sm overflow-x-auto">
+                <code>{String(children).replace(/\n$/, '')}</code>
+              </pre>
+            </div>
+          )
+        }
       }
       
       return (

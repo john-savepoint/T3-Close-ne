@@ -2,7 +2,7 @@
 
 import React from "react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -18,10 +18,60 @@ import {
   Check,
 } from "lucide-react"
 import { T3Logo } from "@/components/t3-logo"
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
+import { CodeCanvas } from "@/components/code-canvas"
+import { sanitizeSVG } from "@/lib/content-sanitizer"
 import { useChatSharing } from "@/hooks/use-chat-sharing"
 import type { PublicChatView as PublicChatViewType } from "@/types/sharing"
+
+// Mermaid component with safe loading
+function MermaidWrapper({ code, className }: { code: string; className?: string }) {
+  const [MermaidComponent, setMermaidComponent] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    
+    const loadMermaid = async () => {
+      try {
+        const { default: Mermaid } = await import("@/components/ui/mermaid")
+        if (mounted) {
+          setMermaidComponent(() => Mermaid)
+          setIsLoading(false)
+        }
+      } catch (error) {
+        console.error("Failed to load Mermaid component:", error)
+        if (mounted) {
+          setHasError(true)
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadMermaid()
+    
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  if (isLoading) {
+    return <div className="flex justify-center p-4 text-sm text-muted-foreground">Loading diagram...</div>
+  }
+
+  if (hasError || !MermaidComponent) {
+    return (
+      <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 text-yellow-400">
+        <p className="font-medium">Mermaid Diagram</p>
+        <pre className="mt-2 text-xs opacity-70">{code}</pre>
+        <p className="mt-2 text-xs">Diagram rendering unavailable</p>
+      </div>
+    )
+  }
+
+  return <MermaidComponent code={code} className={className} />
+}
 
 interface PublicChatViewProps {
   chat: PublicChatViewType
@@ -86,6 +136,7 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
     let lastIndex = 0
 
     while ((match = codeBlockRegex.exec(text)) !== null) {
+      // Add text before code block
       if (match.index > lastIndex) {
         blocks.push({
           type: "text",
@@ -93,15 +144,32 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
         })
       }
 
-      blocks.push({
-        type: "code",
-        language: match[1] || "text",
-        content: match[2].trim(),
-      })
+      // Check if it's a mermaid diagram or SVG
+      const language = match[1] || "text"
+      const content = match[2].trim()
+
+      if (language.toLowerCase() === "mermaid") {
+        blocks.push({
+          type: "mermaid",
+          content: content,
+        })
+      } else if (language.toLowerCase() === "svg") {
+        blocks.push({
+          type: "svg",
+          content: sanitizeSVG(content),
+        })
+      } else {
+        blocks.push({
+          type: "code",
+          language: language,
+          content: content,
+        })
+      }
 
       lastIndex = match.index + match[0].length
     }
 
+    // Add remaining text
     if (lastIndex < text.length) {
       blocks.push({
         type: "text",
@@ -248,29 +316,24 @@ export function PublicChatView({ chat }: PublicChatViewProps) {
                     {blocks.map((block, index) => (
                       <div key={index}>
                         {block.type === "text" ? (
-                          <div className="whitespace-pre-wrap text-sm text-foreground">
-                            {block.content}
+                          <MarkdownRenderer content={block.content} />
+                        ) : block.type === "mermaid" ? (
+                          <div className="my-4 overflow-x-auto rounded-lg border border-mauve-dark/50 bg-mauve-dark/20 p-4">
+                            <MermaidWrapper code={block.content} className="min-w-0" />
+                          </div>
+                        ) : block.type === "svg" ? (
+                          <div className="my-4 overflow-x-auto rounded-lg border border-mauve-dark/50 bg-mauve-dark/20 p-4">
+                            <div
+                              className="flex justify-center"
+                              dangerouslySetInnerHTML={{ __html: block.content }}
+                            />
                           </div>
                         ) : (
-                          <div className="my-4">
-                            <div className="flex items-center justify-between rounded-t-lg border-b border-mauve-dark bg-mauve-dark/50 px-4 py-2">
-                              <Badge variant="outline" className="text-xs">
-                                {block.language}
-                              </Badge>
-                            </div>
-                            <SyntaxHighlighter
-                              language={block.language}
-                              style={oneDark}
-                              customStyle={{
-                                margin: 0,
-                                borderTopLeftRadius: 0,
-                                borderTopRightRadius: 0,
-                                backgroundColor: "hsl(288, 15%, 12%)",
-                              }}
-                            >
-                              {block.content}
-                            </SyntaxHighlighter>
-                          </div>
+                          <CodeCanvas
+                            code={block.content}
+                            language={block.language || "text"}
+                            title={block.language || "text"}
+                          />
                         )}
                       </div>
                     ))}

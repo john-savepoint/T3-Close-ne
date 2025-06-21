@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter"
-import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism"
+import vscDarkPlus from "react-syntax-highlighter/dist/cjs/styles/hljs/vs2015"
 import { Copy, Check, Download, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,31 +11,31 @@ import { detectLanguage } from "@/lib/syntax-detection"
 
 // Dynamic language registration to avoid SSR issues
 const languageRegistrations = {
-  javascript: () => import("react-syntax-highlighter/dist/cjs/languages/prism/javascript"),
-  typescript: () => import("react-syntax-highlighter/dist/cjs/languages/prism/typescript"),
-  jsx: () => import("react-syntax-highlighter/dist/cjs/languages/prism/jsx"),
-  tsx: () => import("react-syntax-highlighter/dist/cjs/languages/prism/tsx"),
-  css: () => import("react-syntax-highlighter/dist/cjs/languages/prism/css"),
-  json: () => import("react-syntax-highlighter/dist/cjs/languages/prism/json"),
-  python: () => import("react-syntax-highlighter/dist/cjs/languages/prism/python"),
-  java: () => import("react-syntax-highlighter/dist/cjs/languages/prism/java"),
-  cpp: () => import("react-syntax-highlighter/dist/cjs/languages/prism/cpp"),
-  c: () => import("react-syntax-highlighter/dist/cjs/languages/prism/c"),
-  html: () => import("react-syntax-highlighter/dist/cjs/languages/prism/markup"),
-  markup: () => import("react-syntax-highlighter/dist/cjs/languages/prism/markup"),
-  sql: () => import("react-syntax-highlighter/dist/cjs/languages/prism/sql"),
-  bash: () => import("react-syntax-highlighter/dist/cjs/languages/prism/bash"),
-  shell: () => import("react-syntax-highlighter/dist/cjs/languages/prism/bash"),
-  yaml: () => import("react-syntax-highlighter/dist/cjs/languages/prism/yaml"),
-  yml: () => import("react-syntax-highlighter/dist/cjs/languages/prism/yaml"),
-  markdown: () => import("react-syntax-highlighter/dist/cjs/languages/prism/markdown"),
-  md: () => import("react-syntax-highlighter/dist/cjs/languages/prism/markdown"),
-  go: () => import("react-syntax-highlighter/dist/cjs/languages/prism/go"),
-  rust: () => import("react-syntax-highlighter/dist/cjs/languages/prism/rust"),
-  php: () => import("react-syntax-highlighter/dist/cjs/languages/prism/php"),
-  ruby: () => import("react-syntax-highlighter/dist/cjs/languages/prism/ruby"),
-  swift: () => import("react-syntax-highlighter/dist/cjs/languages/prism/swift"),
-  kotlin: () => import("react-syntax-highlighter/dist/cjs/languages/prism/kotlin"),
+  javascript: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/javascript"),
+  typescript: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/typescript"),
+  jsx: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/javascript"),
+  tsx: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/typescript"),
+  css: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/css"),
+  json: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/json"),
+  python: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/python"),
+  java: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/java"),
+  cpp: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/cpp"),
+  c: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/c"),
+  html: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/xml"),
+  markup: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/xml"),
+  sql: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/sql"),
+  bash: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/bash"),
+  shell: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/bash"),
+  yaml: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/yaml"),
+  yml: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/yaml"),
+  markdown: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/markdown"),
+  md: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/markdown"),
+  go: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/go"),
+  rust: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/rust"),
+  php: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/php"),
+  ruby: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/ruby"),
+  swift: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/swift"),
+  kotlin: () => import("react-syntax-highlighter/dist/cjs/languages/hljs/kotlin"),
 }
 
 // Keep track of registered languages
@@ -71,10 +71,12 @@ export function CodeBlockEnhanced({
   // Register language dynamically
   useEffect(() => {
     const registerLanguage = async () => {
-      if (
-        registeredLanguages.has(detectedLanguage) ||
-        !languageRegistrations[detectedLanguage as keyof typeof languageRegistrations]
-      ) {
+      if (registeredLanguages.has(detectedLanguage)) {
+        setLanguageReady(true)
+        return
+      }
+
+      if (!languageRegistrations[detectedLanguage as keyof typeof languageRegistrations]) {
         setLanguageReady(true)
         return
       }
@@ -82,17 +84,20 @@ export function CodeBlockEnhanced({
       try {
         const languageModule =
           await languageRegistrations[detectedLanguage as keyof typeof languageRegistrations]()
+        
         // Ensure the module has the expected structure
-        if (languageModule.default) {
-          SyntaxHighlighter.registerLanguage(detectedLanguage, languageModule.default)
-          registeredLanguages.add(detectedLanguage)
-        } else {
-          console.warn(`Language module for ${detectedLanguage} missing default export`)
+        if (languageModule && languageModule.default) {
+          try {
+            SyntaxHighlighter.registerLanguage(detectedLanguage, languageModule.default)
+            registeredLanguages.add(detectedLanguage)
+          } catch (regError) {
+            // Silently fail registration - will fall back to plain text
+          }
         }
         setLanguageReady(true)
       } catch (error) {
-        console.warn(`Could not register language: ${detectedLanguage}`, error)
-        setLanguageReady(true) // Still show the component, just without highlighting
+        // Silently fail - will fall back to plain text
+        setLanguageReady(true)
       }
     }
 

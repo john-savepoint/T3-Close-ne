@@ -17,8 +17,8 @@ import {
   Share2,
   StopCircle,
 } from "lucide-react"
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter"
+import oneDark from "react-syntax-highlighter/dist/esm/styles/hljs/atom-one-dark"
 import { ShareChatModal } from "@/components/share-chat-modal"
 import { ExportChatModal } from "@/components/export-chat-modal"
 import { Textarea } from "@/components/ui/textarea"

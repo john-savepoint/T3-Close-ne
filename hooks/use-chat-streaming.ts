@@ -52,8 +52,10 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
 
   // Update persistentChatId when options.chatId changes
   useEffect(() => {
-    if (options.chatId && options.chatId !== persistentChatId) {
-      setPersistentChatId(options.chatId as Id<"chats">)
+    const newChatId = options.chatId ? (options.chatId as Id<"chats">) : undefined
+    if (newChatId !== persistentChatId) {
+      console.log("Chat ID changed from", persistentChatId, "to", newChatId)
+      setPersistentChatId(newChatId)
     }
   }, [options.chatId, persistentChatId])
 
@@ -167,6 +169,14 @@ export function useChatStreaming(options: UseChatStreamingOptions = {}) {
       options.onError?.(error)
     },
   })
+
+  // Clear messages when navigating to home (when chatId becomes undefined)
+  useEffect(() => {
+    if (!persistentChatId && aiMessages.length > 0) {
+      console.log("Clearing AI messages - navigated to home")
+      setMessages([])
+    }
+  }, [persistentChatId, aiMessages.length, setMessages])
 
   // Sync messages when existing messages are loaded but AI SDK messages are empty
   useEffect(() => {

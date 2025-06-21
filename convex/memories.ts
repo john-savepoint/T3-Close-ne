@@ -22,7 +22,7 @@ async function getUserId(ctx: any): Promise<Id<"users">> {
     }
   } catch (error) {
     // Auth is disabled or failed, fall back to demo user
-    console.log("Auth not available, using demo user")
+    // Silently fall back without logging
   }
   
   return DEMO_USER_ID
